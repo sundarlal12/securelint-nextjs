@@ -38,7 +38,7 @@ export interface CachedProfile {
   created_at: string;
   plan:       { id: string; name: string; price_monthly: number };
   plan_status: string;
-  settings:   Record<string, unknown>;
+  settings?:  Record<string, unknown>;
 }
 
 export interface CachedPlan {
@@ -72,7 +72,9 @@ export function getCachedPlans(): CachedPlan[] {
 /* ── Write helper — called after login and after revalidation ── */
 export function saveProfile(data: CachedProfile) {
   localStorage.setItem("user_profile",   JSON.stringify(data));
-  localStorage.setItem("user_settings",  JSON.stringify(data.settings || {}));
+  if (data.settings !== undefined) {
+    localStorage.setItem("user_settings", JSON.stringify(data.settings));
+  }
   localStorage.setItem("user_email",     data.email      || "");
   localStorage.setItem("user_full_name", data.full_name  || "");
   localStorage.setItem("user_plan_id",   data.plan?.id   || "free");
