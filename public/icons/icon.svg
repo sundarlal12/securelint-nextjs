@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="SecureLint">
+  <!-- Base droplet flipped horizontally so corner is bottom-left -->
+  <path fill="#0BA37F" d="M512 256C512 114.6 397.4 0 256 0S0 114.6 0 256c0 141.4 114.6 256 256 256h256V256z"></path>
+  <!-- Inner S path -->
+  <path fill="#fff" d="M172 206c0-46 41-76 100-76 38 0 73 11 97 30 8 6 9 18 2 26-6 8-18 9-26 3-19-15-44-23-73-23-33 0-55 13-55 35 0 60 181 23 181 121 0 52-47 84-113 84-43 0-84-12-113-34-8-6-10-18-4-26 6-9 18-10 26-4 24 17 55 26 90 26 40 0 66-14 66-38 0-54-178-22-178-124z"></path>
+</svg>

@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  /* Hide the dev “N” badge overlay that sits on top of the page in `next dev` */
+  devIndicators: false,
 };
 
 export default nextConfig;

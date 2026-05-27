@@ -1,0 +1,58 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="dbGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8CF7FF"/>
+      <stop offset="100%" stop-color="#245BFF"/>
+    </linearGradient>
+
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#8CF7FF" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#8CF7FF" stop-opacity="0"/>
+    </radialGradient>
+
+    <filter id="blurGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="25" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background Glow -->
+  <circle cx="256" cy="256" r="180" fill="url(#glow)"/>
+
+  <!-- Outer Ring -->
+  <circle cx="256" cy="256" r="170" stroke="#B8FFFF" stroke-opacity="0.4" stroke-width="6" stroke-dasharray="18 16"/>
+
+  <!-- Database Layers -->
+  <g filter="url(#blurGlow)">
+    <!-- Top Layer -->
+    <ellipse cx="256" cy="160" rx="90" ry="28" fill="#B8FFFF" fill-opacity="0.4"/>
+    <rect x="166" y="160" width="180" height="70" rx="8" fill="url(#dbGradient)"/>
+    <ellipse cx="256" cy="160" rx="90" ry="28" fill="url(#dbGradient)"/>
+
+    <!-- Middle Layer -->
+    <ellipse cx="256" cy="230" rx="90" ry="28" fill="#B8FFFF" fill-opacity="0.4"/>
+    <rect x="166" y="230" width="180" height="70" rx="8" fill="url(#dbGradient)"/>
+    <ellipse cx="256" cy="230" rx="90" ry="28" fill="url(#dbGradient)"/>
+
+    <!-- Bottom Layer -->
+    <ellipse cx="256" cy="300" rx="90" ry="28" fill="#B8FFFF" fill-opacity="0.4"/>
+    <rect x="166" y="300" width="180" height="70" rx="8" fill="url(#dbGradient)"/>
+    <ellipse cx="256" cy="300" rx="90" ry="28" fill="url(#dbGradient)"/>
+    <ellipse cx="256" cy="370" rx="90" ry="28" fill="url(#dbGradient)"/>
+  </g>
+
+  <!-- Status Lights -->
+  <g>
+    <circle cx="320" cy="180" r="7" fill="#FFD580"/>
+    <circle cx="345" cy="180" r="7" fill="#A8FFB0"/>
+
+    <circle cx="320" cy="250" r="7" fill="#A8FFB0"/>
+    <circle cx="345" cy="250" r="7" fill="#FFD580"/>
+
+    <circle cx="320" cy="320" r="7" fill="#FFD580"/>
+    <circle cx="345" cy="320" r="7" fill="#A8FFB0"/>
+  </g>
+</svg>

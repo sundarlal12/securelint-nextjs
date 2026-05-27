@@ -1,0 +1,136 @@
+.card {
+  position: relative;
+  border-radius: 16px;
+  padding: 32px;
+  height: 100%;
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  transition: box-shadow 0.2s;
+}
+
+.cardFeatured {
+  border: 2px solid var(--green);
+  box-shadow: 0 16px 40px rgba(64, 130, 109, 0.12), 0 0 0 1px rgba(64, 130, 109, 0.08);
+}
+
+.badgeSlot {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.popular {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: var(--green);
+  padding: 6px 16px;
+  border-radius: 999px;
+  line-height: 1;
+}
+
+.name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.priceWrap {
+  font-size: 42px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -1px;
+  line-height: 1.05;
+}
+
+.priceWrapMd {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--green);
+  line-height: 1.2;
+}
+
+.priceLarge {
+  font-size: 42px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -1px;
+  line-height: 1.05;
+}
+
+.per {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.priceContact {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--green);
+  padding-top: 4px;
+}
+
+.period {
+  font-size: 14px;
+  color: var(--ink-muted);
+  margin: 14px 0 24px;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.list li {
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+
+.tick {
+  color: var(--green);
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.cta {
+  margin-top: auto;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 10px;
+  text-decoration: none;
+  cursor: pointer;
+  border: 2px solid var(--green);
+  color: var(--green);
+  background: var(--white);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.cta:hover {
+  background: var(--green-light);
+  border-color: var(--green-dark);
+  color: var(--green-dark);
+}
