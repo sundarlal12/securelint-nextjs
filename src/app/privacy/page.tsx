@@ -5,8 +5,26 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 export const metadata: Metadata = {
   title: "Privacy Policy – SecureLint | How We Protect Your Sensitive Data",
   description:
-    "SecureLint Privacy Policy — Learn how SecureLint protects your API keys, passwords, and credentials. 100% local processing, no data collection, enterprise DLP, phishing mail detection.",
+    "SecureLint Privacy Policy: all secret detection runs 100% locally in your browser — no API keys, passwords, or credentials are ever sent to our servers. GDPR & CCPA aligned. Read how we protect your data.",
+  keywords: [
+    "SecureLint privacy policy", "browser extension privacy", "local secret detection",
+    "no data collection Chrome extension", "GDPR compliant browser extension",
+    "enterprise DLP privacy", "zero data sent", "API key privacy",
+  ],
   alternates: { canonical: "https://securelint.in/privacy" },
+  openGraph: {
+    title: "Privacy Policy – SecureLint | 100% Local Processing, Zero Data Sent",
+    description:
+      "SecureLint runs all secret detection locally in your browser. Your API keys, passwords, and credentials never leave your device. Read our full privacy policy.",
+    url: "https://securelint.in/privacy",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SecureLint Privacy Policy – Your Secrets Never Leave Your Browser",
+    description:
+      "100% local processing. No data collection. No tracking. GDPR & CCPA aligned. Read how SecureLint protects your sensitive data.",
+  },
 };
 
 export default function PrivacyPage() {

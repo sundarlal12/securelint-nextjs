@@ -8,15 +8,15 @@ const FAQS = [
   },
   {
     q: "Is my data ever sent to a server?",
-    a: "For Free and Pro users — no. All detection, masking, and phishing checks happen 100% locally inside your browser. No page content, typed text, or detected secrets are ever transmitted to any server. For Enterprise users, masked incident reports (never raw secrets) can be sent to your organization's admin dashboard only when explicitly enabled by your IT admin.",
+    a: "For Basic and Pro users — no. All detection, masking, and phishing checks happen 100% locally inside your browser. No page content, typed text, or detected secrets are ever transmitted to any server. For Enterprise users, masked incident reports (never raw secrets) can be sent to your organization's admin dashboard only when explicitly enabled by your IT admin.",
   },
   {
-    q: "What's the difference between Free and Pro?",
-    a: "The Free plan covers the fundamentals: 60+ security checks, URL analysis, typosquat detection, Google Safe Browsing, and basic secret masking. Pro adds advanced features including AI Brand Detection, clickjacking & pastejacking protection, HaveIBeenPwned breach monitoring, crypto scam detection, 100+ language scam detection, advanced scan history, and much more.",
+    q: "What's the difference between Basic and Pro?",
+    a: "The Basic plan covers the fundamentals: 60+ security checks, URL analysis, typosquat detection, Google Safe Browsing, and basic secret masking. Pro adds advanced features including AI Brand Detection, clickjacking & pastejacking protection, HaveIBeenPwned breach monitoring, crypto scam detection, 100+ language scam detection, advanced scan history, and much more.",
   },
   {
     q: "Can I switch plans or cancel anytime?",
-    a: "Yes. You can upgrade, downgrade, or cancel your subscription at any time from your dashboard. If you cancel, your Pro or Enterprise features remain active until the end of your current billing period.",
+    a: "Yes. You can upgrade, downgrade, or cancel your subscription at any time from your dashboard. If you cancel, your paid features remain active until the end of your current billing period.",
   },
   {
     q: "Does SecureLint work on all websites?",
@@ -31,8 +31,8 @@ const FAQS = [
     a: "Enterprise is designed for IT and security teams. It adds centralized policy management, email DLP & send blocking, WAF / social-domain blocking, incident reporting, admin dashboard, and dedicated support with an SLA. Pricing is custom — contact our sales team to get a quote.",
   },
   {
-    q: "Is there a free trial for Pro?",
-    a: "The Free plan is permanently free and covers the core feature set. We don't offer a time-limited Pro trial, but the Free plan lets you experience the extension before upgrading.",
+    q: "Is there a trial for Pro?",
+    a: "We don't offer a time-limited Pro trial. The Basic plan covers the core feature set and lets you experience SecureLint before upgrading to Pro.",
   },
   {
     q: "How does phishing detection work?",

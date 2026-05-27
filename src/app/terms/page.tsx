@@ -5,8 +5,25 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 export const metadata: Metadata = {
   title: "Terms & Conditions – SecureLint Browser Security Extension",
   description:
-    "SecureLint Terms & Conditions — Read the terms governing your use of the SecureLint browser extension for real-time secret masking, phishing detection, and enterprise DLP.",
+    "SecureLint Terms & Conditions: read the terms governing your use of the SecureLint Chrome extension for real-time API key masking, phishing detection, enterprise email DLP, and secret scanning.",
+  keywords: [
+    "SecureLint terms and conditions", "browser extension terms of use",
+    "SecureLint subscription terms", "VAPTLabs terms", "Chrome extension legal",
+  ],
   alternates: { canonical: "https://securelint.in/terms" },
+  openGraph: {
+    title: "Terms & Conditions – SecureLint Browser Security Extension",
+    description:
+      "Terms governing your use of the SecureLint browser extension — secret masking, phishing detection, enterprise DLP, and associated services.",
+    url: "https://securelint.in/terms",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SecureLint – Terms & Conditions",
+    description:
+      "Read the terms governing your use of the SecureLint browser security extension and associated services.",
+  },
 };
 
 export default function TermsPage() {
@@ -140,7 +157,7 @@ export default function TermsPage() {
             <ul>
               <li>You are responsible for all taxes, duties, or levies applicable to your subscription in your jurisdiction.</li>
               <li>We use Stripe and Razorpay as our payment processors — your payment card details are processed securely by them and are never stored on our servers.</li>
-              <li>Subscription fees are non-refundable except as explicitly described in our <a href="/refund-policy">Refund Policy</a>.</li>
+              <li>All subscription payments are non-refundable. See our <a href="/refund-policy">Refund Policy</a> for full details.</li>
               <li>We reserve the right to modify pricing with at least 30 days' notice to active subscribers before changes apply to your billing cycle.</li>
               <li>Failure to pay may result in suspension or termination of your paid features.</li>
             </ul>

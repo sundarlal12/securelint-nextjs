@@ -35,8 +35,8 @@ export function HowItWorksSection() {
     <section id="how-it-works" className={s.section}>
       <div className={s.inner}>
         <header className={s.head}>
-          <h2>See SecureLint in action</h2>
-          <p>Three simple steps. Zero configuration. Your secrets are protected the moment you install.</p>
+          <h2>How Real-Time API Key &amp; Credential Detection Works</h2>
+          <p>Three simple steps. Zero configuration. Your API keys, passwords, and secrets are protected the moment you install the SecureLint Chrome extension.</p>
         </header>
 
         <div className={s.grid}>
@@ -48,8 +48,8 @@ export function HowItWorksSection() {
                 <span className={s.cursor}>|</span>
               </div>
             </div>
-            <h3>Type or Paste</h3>
-            <p>Start typing in any web editor. SecureLint watches silently in the background.</p>
+            <h3>Type or Paste in Any Web Editor</h3>
+            <p>Start typing in any web editor — Gmail, Notion, GitHub, Slack, ChatGPT, or any textarea. SecureLint watches silently in the background.</p>
           </div>
 
           <div className={s.step}>
@@ -67,9 +67,9 @@ export function HowItWorksSection() {
                 </div>
               ))}
             </div>
-            <h3>Detect</h3>
+            <h3>Real-Time Secret &amp; Credential Detection</h3>
             <p>
-              100+ regex patterns scan your text in real-time, entirely in-browser. No data leaves your machine.
+              100+ patterns instantly scan for API keys, AWS credentials, JWT tokens, database passwords, and private keys — entirely in-browser. No data leaves your machine.
             </p>
           </div>
 
@@ -89,8 +89,8 @@ export function HowItWorksSection() {
                 </div>
               ))}
             </div>
-            <h3>Mask &amp; Protect</h3>
-            <p>Secrets are instantly masked. Your data never leaves the browser.</p>
+            <h3>Instant Masking — Secrets Never Leave Your Browser</h3>
+            <p>Detected credentials are masked in real-time. Your API keys, passwords, and tokens stay 100% local — zero data sent to any server.</p>
           </div>
         </div>
       </div>

@@ -190,10 +190,10 @@ export function FeaturesShowcase() {
     <section id="features" className={s.section}>
       <div className={s.inner}>
         <div className={s.header}>
-          <h2>Everything you need to protect sensitive data</h2>
+          <h2>API Key Masking, Phishing Detection &amp; Browser DLP — All in One Extension</h2>
           <p>
-            From real-time secret detection to enterprise-grade DLP — SecureLint keeps your credentials safe across
-            every tool you use.
+            From real-time credential leak prevention to enterprise email DLP — SecureLint stops API keys, passwords,
+            and secrets from leaking across every web editor, email client, and tool you use.
           </p>
         </div>
 

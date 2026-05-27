@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { warmCache } from "@/lib/userCache";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://securelint-api.vercel.app";
 
 function getBrowserId(): string {
   if (typeof window === "undefined") return "";
@@ -101,10 +102,14 @@ export default function LoginModal({ isOpen, onClose, defaultTab = "login" }: Pr
       if (!res.ok) throw new Error(data.message || "Login failed");
 
       // Save tokens
-      localStorage.setItem("user_token",         data.access_token  || "");
+      const accessToken = data.access_token || "";
+      localStorage.setItem("user_token",         accessToken);
       localStorage.setItem("user_refresh_token", data.refresh_token || "");
       localStorage.setItem("user_plan_id",       data.plan_id       || "free");
       localStorage.setItem("user_plan_status",   data.plan_status   || "inactive");
+
+      // Warm the full cache (profile + plans) in the background
+      warmCache(accessToken).catch(() => {});
 
       // Check if user came from the pricing page wanting a specific plan
       const pendingPlanId   = sessionStorage.getItem("pending_billing_plan_id");
@@ -162,6 +167,7 @@ export default function LoginModal({ isOpen, onClose, defaultTab = "login" }: Pr
         localStorage.setItem("user_refresh_token", data.refresh_token || "");
         localStorage.setItem("user_plan_id",       data.plan_id     || "free");
         localStorage.setItem("user_plan_status",   data.plan_status || "inactive");
+        warmCache(data.access_token).catch(() => {});
       }
       setSignupSuccess(true);
       setTimeout(() => { window.location.href = "/user/dashboard"; }, 1200);

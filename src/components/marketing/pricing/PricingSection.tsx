@@ -5,7 +5,7 @@ import { PricingCard, type PricingPlanDefinition } from "./PricingCard";
 import LoginModal from "@/components/auth/LoginModal";
 import s from "./PricingSection.module.css";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://securelint-api.vercel.app";
 
 type Period = "monthly" | "quarterly" | "annual";
 
@@ -39,7 +39,7 @@ const FEATURES: Record<string, string[]> = {
     "Export detection reports",
   ],
   pro: [
-    "Everything in Free",
+    "Everything in Basic",
     "AI Brand Detection (any company worldwide)",
     "Clickjacking protection",
     "Pastejacking guard (blocks & restores clipboard)",
@@ -132,7 +132,7 @@ export function PricingSection() {
     ? `Billed ₹${proTotal.toLocaleString("en-IN")} — ${proRow.savings_label}`
     : `Billed ₹${proTotal.toLocaleString("en-IN")} ${PERIOD_LABELS[period].toLowerCase()}`;
 
-  const freeName = freePlan?.name ?? "Free";
+  const freeName = freePlan?.name ?? "Basic";
   const proName  = proPlan?.name  ?? "Pro";
 
   const PLANS: PricingPlanDefinition[] = [
@@ -141,9 +141,9 @@ export function PricingSection() {
       priceDisplay: loading
         ? <span style={{ fontSize: 14, color: "var(--ink-muted)" }}>Loading…</span>
         : <>{freeMonthly === 0 ? "₹0" : `₹${freeMonthly.toLocaleString("en-IN")}`}<span className={s.inlinePer}>/mo</span></>,
-      period:       "Free forever for individuals",
+      period:       "Essential plan for individuals",
       features:     FEATURES.free,
-      ctaLabel:     "Get Started Free",
+      ctaLabel:     "Get Started",
       ctaHref:      "",
       onCtaClick:   () => handlePlanClick("free", freeName, freeMonthly),
     },
@@ -173,9 +173,10 @@ export function PricingSection() {
       <section id="pricing" className={s.section}>
         <div className={s.inner}>
           <header className={s.intro}>
-            <h2>Choose the right plan</h2>
+            <h2>SecureLint Pricing — Browser Security Plans for Developers &amp; Enterprise Teams</h2>
             <p>
-              Start free. Upgrade when you need phishing protection, enterprise dashboards, or team-wide DLP.
+              Pro for individuals who need phishing protection, API key masking, and breach monitoring.
+              Enterprise for teams who need centralized DLP, incident reporting, and admin dashboards.
             </p>
           </header>
 
