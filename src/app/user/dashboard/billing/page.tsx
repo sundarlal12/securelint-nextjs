@@ -2,7 +2,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://securelint-api.vercel.app";
+const API_BASE   = process.env.NEXT_PUBLIC_API_BASE      || "https://securelint-api.vercel.app";
+const RZP_KEY_ID = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "";
 
 declare global { interface Window { Razorpay: any; } } // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -131,7 +132,7 @@ export default function BillingPage() {
       const loaded = await loadRazorpay();
       if (!loaded) { setError("Failed to load payment gateway."); return; }
       const rzp = new window.Razorpay({
-        key: order.key_id, amount: order.amount, currency:"INR",
+        key: order.key_id || RZP_KEY_ID, amount: order.amount, currency:"INR",
         name:"SecureLint", description:`${planName} — ${PERIOD_LABELS[period] || period}`,
         order_id: order.order_id, prefill:{ name:fullName },
         theme:{ color: G },
