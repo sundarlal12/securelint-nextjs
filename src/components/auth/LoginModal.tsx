@@ -5,7 +5,7 @@ import { warmCache } from "@/lib/userCache";
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://securelint-api.vercel.app";
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "970630889678-7aojvvhm0umigok9l7ipsvkrkj1gs3k9.apps.googleusercontent.com";
 
-// Extend the window type to include Google Identity Services
+// Extend the window type to include Google Identity Services and Chrome extension API
 declare global {
   interface Window {
     google?: {
@@ -23,6 +23,37 @@ declare global {
         };
       };
     };
+    chrome?: {
+      runtime?: {
+        sendMessage: (
+          extensionId: string,
+          message: object,
+          callback?: (response: unknown) => void
+        ) => void;
+      };
+    };
+  }
+}
+
+// After a successful login, send the token to the extension (if the page was
+// opened by the extension's popup via ?ext_id=...).
+function notifyExtension(accessToken: string, refreshToken: string) {
+  if (typeof window === "undefined") return;
+  const extId = sessionStorage.getItem("sl_ext_id");
+  if (!extId) return;
+  try {
+    window.chrome?.runtime?.sendMessage(
+      extId,
+      { type: "AUTH_SUCCESS", token: accessToken, refresh_token: refreshToken },
+      (resp) => {
+        if (resp && (resp as Record<string, unknown>).success) {
+          console.log("[SecureLint] Extension auth handshake complete");
+          sessionStorage.removeItem("sl_ext_id");
+        }
+      }
+    );
+  } catch (_) {
+    // chrome.runtime not available (e.g. non-Chrome browser) — safe to ignore
   }
 }
 
@@ -98,6 +129,7 @@ export default function LoginModal({ isOpen, onClose, defaultTab = "login" }: Pr
       localStorage.setItem("user_plan_status",   data.plan_status   || "inactive");
 
       warmCache(accessToken).catch(() => {});
+      notifyExtension(accessToken, data.refresh_token || "");
 
       const pendingPlanId   = sessionStorage.getItem("pending_billing_plan_id");
       const pendingPlanName = sessionStorage.getItem("pending_billing_plan_name");
@@ -215,6 +247,7 @@ export default function LoginModal({ isOpen, onClose, defaultTab = "login" }: Pr
 
       // Warm the full cache (profile + plans) in the background
       warmCache(accessToken).catch(() => {});
+      notifyExtension(accessToken, data.refresh_token || "");
 
       // Check if user came from the pricing page wanting a specific plan
       const pendingPlanId   = sessionStorage.getItem("pending_billing_plan_id");
@@ -273,6 +306,7 @@ export default function LoginModal({ isOpen, onClose, defaultTab = "login" }: Pr
         localStorage.setItem("user_plan_id",       data.plan_id     || "free");
         localStorage.setItem("user_plan_status",   data.plan_status || "inactive");
         warmCache(data.access_token).catch(() => {});
+        notifyExtension(data.access_token, data.refresh_token || "");
       }
       setSignupSuccess(true);
       setTimeout(() => { window.location.href = "/user/dashboard"; }, 1200);

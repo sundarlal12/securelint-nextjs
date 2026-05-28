@@ -32,6 +32,21 @@ export function SiteHeader() {
     }
   }, []);
 
+  // If the page was opened by the extension (popup passes ?ext_id=...),
+  // store the ID for LoginModal to pick up and auto-open the login modal.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const extId  = params.get("ext_id");
+    if (!extId) return;
+    sessionStorage.setItem("sl_ext_id", extId);
+    // Only auto-open if not already logged in
+    if (!localStorage.getItem("user_token")) {
+      setModalTab("login");
+      setModalOpen(true);
+    }
+  }, []);
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", onScroll, { passive: true });
