@@ -20,6 +20,17 @@ export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTab, setModalTab] = useState<"login" | "signup">("login");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [dashboardHref, setDashboardHref] = useState("/user/dashboard");
+
+  useEffect(() => {
+    const token = localStorage.getItem("user_token");
+    if (token) {
+      setIsLoggedIn(true);
+      const planId = localStorage.getItem("user_plan_id") || "";
+      setDashboardHref(planId === "enterprise" ? "/dashboard" : "/user/dashboard");
+    }
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -59,9 +70,15 @@ export function SiteHeader() {
           </ul>
 
           <div className={s.actions}>
-            <button type="button" className={s.loginBtn} onClick={openLogin}>
-              Log in
-            </button>
+            {isLoggedIn ? (
+              <Link href={dashboardHref} className={s.loginBtn}>
+                Dashboard
+              </Link>
+            ) : (
+              <button type="button" className={s.loginBtn} onClick={openLogin}>
+                Log in
+              </button>
+            )}
             <a
               className={s.cta}
               href="https://chromewebstore.google.com/detail/securelint-%E2%80%93-sensitive-da/nfakpphnajjbmejbmpnlnamncdplkbna"
@@ -91,9 +108,15 @@ export function SiteHeader() {
           ))}
           <div className={s.mobileDivider} />
           <div className={s.mobileRow}>
-            <button type="button" className={s.loginBtn} onClick={openLogin}>
-              Log in
-            </button>
+            {isLoggedIn ? (
+              <Link href={dashboardHref} className={s.loginBtn} onClick={() => setMenuOpen(false)}>
+                Dashboard
+              </Link>
+            ) : (
+              <button type="button" className={s.loginBtn} onClick={openLogin}>
+                Log in
+              </button>
+            )}
             <a
               className={s.cta}
               href="https://chromewebstore.google.com/detail/securelint-%E2%80%93-sensitive-da/nfakpphnajjbmejbmpnlnamncdplkbna"

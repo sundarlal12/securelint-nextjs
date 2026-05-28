@@ -4,7 +4,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import FeedbackModal from "@/components/dashboard/FeedbackModal";
 import ToastContainer from "@/components/dashboard/Toast";
-import { clearUserCache } from "@/lib/userCache";
+import { clearUserCache, getCachedProfile, revalidateProfile } from "@/lib/userCache";
 
 /* ── Brand tokens ── */
 const TEAL        = "#0BA37F";
@@ -150,13 +150,27 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
   useEffect(() => {
     const token = localStorage.getItem("user_token");
     if (!token) { router.replace("/"); return; }
-    const em = localStorage.getItem("user_email") || "";
-    const nm = localStorage.getItem("user_full_name") || "";
+
+    // ── 1. Use cached profile blob as the single source of truth ─────────────
+    // This is the same source the profile page uses, so they are always in sync.
+    const cached = getCachedProfile();
+    const em = cached?.email      || localStorage.getItem("user_email")     || "";
+    const nm = cached?.full_name  || localStorage.getItem("user_full_name") || "";
     setEmail(em);
     setFullName(nm);
     setAvatar((nm || em || "U")[0].toUpperCase());
-    setPlanId(localStorage.getItem("user_plan_id") || "free");
+    setPlanId(cached?.plan?.id || localStorage.getItem("user_plan_id") || "free");
     setChecked(true);
+
+    // ── 2. Revalidate in the background and sync layout state ─────────────────
+    // Ensures avatar/email are always up-to-date after the first API response.
+    revalidateProfile(token).then(fresh => {
+      if (!fresh) return;
+      setEmail(fresh.email || "");
+      setFullName(fresh.full_name || "");
+      setAvatar((fresh.full_name || fresh.email || "U")[0].toUpperCase());
+      setPlanId(fresh.plan?.id || "free");
+    });
   }, [router]);
 
   if (!checked) return (
