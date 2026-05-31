@@ -13,55 +13,44 @@ const MUTED = "#6b7280";
 interface Plan { id: string; name: string; price_monthly: number | null; }
 
 const FEATURES: Record<string, { text: string; bold?: boolean }[]> = {
-  basic: [
-    { text: "Secret detection & masking" },
-    { text: "100+ real-time security checks" },
-    { text: "Safe domain check" },
-    { text: "URL pattern analysis" },
-    { text: "Typosquat detection" },
-    { text: "Crowd-powered protection" },
-    { text: "Export detection reports" },
-  ],
-  free: [
-    { text: "Secret detection & masking" },
-    { text: "100+ real-time security checks" },
-    { text: "Safe domain check" },
-    { text: "URL pattern analysis" },
-    { text: "Typosquat detection" },
-    { text: "Crowd-powered protection" },
-    { text: "Export detection reports" },
-  ],
   pro: [
-    { text: "Everything included in Basic", bold: true },
+    { text: "Real-time phishing detection on every page", bold: true },
+    { text: "SSL certificate real-time check" },
+    { text: "Domain age real-time alert (new domains flagged)" },
+    { text: "Suspicious redirect chain detection" },
+    { text: "Real-time URL risk scoring" },
+    { text: "API key & secret detection — 100+ patterns" },
+    { text: "AWS, GCP, Azure credential masking" },
+    { text: "JWT, OAuth & database password masking" },
     { text: "AI Brand Detection (any company worldwide)" },
-    { text: "Clickjacking & pastejacking protection" },
-    { text: "Password breach monitoring (HaveIBeenPwned)" },
-    { text: "Link hover scanner" },
-    { text: "Manual URL checker" },
+    { text: "Homograph / IDN & typosquat protection" },
     { text: "Crypto scam & fake dApp detection" },
-    { text: "Social engineering & fake CAPTCHA protection" },
-    { text: "Multi-layer AI engine with auto failover" },
+    { text: "Password breach monitoring (HaveIBeenPwned)" },
+    { text: "Clickjacking & pastejacking protection" },
+    { text: "Link hover scanner — risk score before click" },
+    { text: "Real-time desktop threat notifications" },
     { text: "Advanced scan history & weekly stats" },
     { text: "Detects scams in 100+ languages" },
+    { text: "Multi-layer AI engine with auto failover" },
     { text: "Priority support" },
   ],
   enterprise: [
     { text: "Everything included in Pro", bold: true },
+    { text: "Real-time phishing, SSL & domain age checks for all users" },
     { text: "Aggressive email DLP & send blocking" },
     { text: "WAF / social-domain blocking" },
     { text: "Centralized admin dashboard" },
     { text: "Custom policy management" },
     { text: "Incident reporting & audit logs" },
+    { text: "Enterprise data collection & telemetry" },
     { text: "Unlimited team members" },
     { text: "Dedicated support & SLA" },
   ],
 };
 
 const PLAN_META: Record<string, { audience: string; tagline: string }> = {
-  basic:      { audience: "For Individuals",         tagline: "Core secret detection and browser security, always available." },
-  free:       { audience: "For Individuals",         tagline: "Core secret detection and browser security, always available." },
-  pro:        { audience: "For Individuals Or Teams", tagline: "Advanced phishing protection, AI detection, and breach monitoring." },
-  enterprise: { audience: "For Larger Organisations", tagline: "Enterprise-grade DLP, incident reporting, and dedicated support." },
+  pro:        { audience: "For Individuals Or Teams", tagline: "Real-time API key masking, phishing detection, SSL checks, and domain age alerts." },
+  enterprise: { audience: "For Larger Organisations", tagline: "Everything in Pro plus enterprise DLP, email blocking, and admin dashboards." },
 };
 
 function CheckIcon() {
@@ -165,10 +154,10 @@ export default function SubscriptionPage() {
       {/* 3-column plan grid */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))", gap:40 }}>
         {plans.map(plan => {
-          const key      = plan.id === "free" ? "basic" : plan.id;
-          const meta     = PLAN_META[key] || PLAN_META.basic;
-          const features = FEATURES[key] || FEATURES.basic;
-          const isCurrent = currentPlan === plan.id || (plan.id === "free" && currentPlan === "basic");
+          const key      = plan.id;
+          const meta     = PLAN_META[key] || PLAN_META.pro;
+          const features = FEATURES[key] || FEATURES.pro;
+          const isCurrent = currentPlan === plan.id;
           const isEnt     = plan.id === "enterprise";
 
           return (

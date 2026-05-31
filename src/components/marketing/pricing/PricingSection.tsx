@@ -26,43 +26,29 @@ const PERIOD_LABELS: Record<Period, string> = {
 
 const FEATURES: Record<string, string[]> = {
   pro: [
-    // Real-time security checks
     "Real-time phishing detection on every page",
     "SSL certificate real-time check",
     "Domain age real-time alert (new domains flagged)",
     "Suspicious redirect chain detection",
     "Real-time URL risk scoring",
-    // Secret & credential masking
     "API key & secret detection — 100+ patterns",
     "AWS, GCP, Azure credential masking",
     "JWT, OAuth & database password masking",
-    "Console & editor masking (CodeMirror, Monaco…)",
-    "Block network secrets & form submission",
-    // Phishing & browser threats
     "AI Brand Detection (any company worldwide)",
-    "Homograph / IDN attack protection",
-    "Typosquat & subdomain abuse detection",
+    "Homograph / IDN & typosquat protection",
     "Crypto scam & fake dApp detection",
-    "Social engineering & fake CAPTCHA blocker",
-    "Clickjacking & pastejacking protection",
     "Password breach monitoring (HaveIBeenPwned)",
+    "Clickjacking & pastejacking protection",
     "Link hover scanner — risk score before click",
-    // Scanning & alerts
     "Real-time desktop threat notifications",
-    "Advanced scan history & weekly stats",
-    "Threat timeline & trend charts",
     "Detects scams in 100+ languages",
     "Multi-layer AI engine with auto failover",
-    // Experience
-    "Early access to new features",
   ],
   enterprise: [
-    "Everything in Pro",
-    // Enterprise DLP
+    "Everything in Pro — phishing, SSL & domain age checks",
     "Email DLP — outbound send blocking",
     "Aggressive email & attachment blocking",
     "WAF / social-domain blocking",
-    // Admin & compliance
     "Centralized admin dashboard",
     "Custom policy management",
     "Incident reporting & audit logs",
@@ -165,12 +151,12 @@ export function PricingSection() {
         <div className={s.inner}>
           <header className={s.intro}>
             <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#1a7f37", marginBottom: 10 }}>
-              Pricing
+              Pricing Plans
             </p>
-            <h2>Real-Time Browser Security — API Key Masking, Phishing Detection &amp; SSL Checks</h2>
+            <h2>Pro &amp; Enterprise — API Key Masking, Phishing Detection &amp; SSL Security</h2>
             <p>
-              Pro gives developers real-time API key masking, SSL checks, domain age alerts, and phishing protection.
-              Enterprise adds centralized DLP, email blocking, and admin dashboards for security teams.
+              Real-time secret masking, phishing detection, SSL checks, and domain age alerts on Pro.
+              Enterprise adds team-wide DLP, email blocking, and admin dashboards for security teams.
             </p>
           </header>
 
