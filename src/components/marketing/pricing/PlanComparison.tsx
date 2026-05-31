@@ -99,11 +99,11 @@ export function PlanComparison() {
             {/* Header */}
             <thead>
               <tr style={{ background: "#f8fafc" }}>
-                <th style={{ padding: "16px 20px", textAlign: "left", fontWeight: 700, color: "#57606a", borderBottom: "2px solid #e2e8f0", width: "42%" }}>Feature</th>
-                {(["Beginner", "Pro", "Enterprise"] as const).map((plan, i) => (
-                  <th key={plan} style={{ padding: "16px 20px", textAlign: "center", fontWeight: 800, color: i === 1 ? "#1a7f37" : "#1a1a2e", borderBottom: "2px solid #e2e8f0", background: i === 1 ? "#f0fdf4" : undefined }}>
+                <th style={{ padding: "16px 20px", textAlign: "left", fontWeight: 700, color: "#57606a", borderBottom: "2px solid #e2e8f0", width: "50%" }}>Feature</th>
+                {(["Pro", "Enterprise"] as const).map((plan, i) => (
+                  <th key={plan} style={{ padding: "16px 20px", textAlign: "center", fontWeight: 800, color: i === 0 ? "#1a7f37" : "#1a1a2e", borderBottom: "2px solid #e2e8f0", background: i === 0 ? "#f0fdf4" : undefined }}>
                     {plan}
-                    {i === 1 && <span style={{ display: "block", fontSize: 10, fontWeight: 600, color: "#1a7f37", background: "#dafbe1", borderRadius: 8, padding: "1px 6px", marginTop: 4 }}>Most Popular</span>}
+                    {i === 0 && <span style={{ display: "block", fontSize: 10, fontWeight: 600, color: "#1a7f37", background: "#dafbe1", borderRadius: 8, padding: "1px 6px", marginTop: 4 }}>Most Popular</span>}
                   </th>
                 ))}
               </tr>
@@ -116,7 +116,7 @@ export function PlanComparison() {
                   <React.Fragment key={cat}>
                     {/* Category header row */}
                     <tr style={{ background: "#f1f5f9" }}>
-                      <td colSpan={4} style={{ padding: "10px 20px", fontWeight: 700, fontSize: 12, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                      <td colSpan={3} style={{ padding: "10px 20px", fontWeight: 700, fontSize: 12, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                         {cat}
                       </td>
                     </tr>
@@ -124,7 +124,6 @@ export function PlanComparison() {
                     {catRows.map((row, idx) => (
                       <tr key={`${cat}-${row.feature}`} style={{ background: idx % 2 === 0 ? "#fff" : "#fafbfc", borderBottom: "1px solid #f0f0f0" }}>
                         <td style={{ padding: "13px 20px", color: "#1a1a2e", fontWeight: 500 }}>{row.feature}</td>
-                        <td style={{ padding: "13px 20px", textAlign: "center" }}><Cell val={row.free} /></td>
                         <td style={{ padding: "13px 20px", textAlign: "center", background: "rgba(26,127,55,.03)" }}><Cell val={row.pro} /></td>
                         <td style={{ padding: "13px 20px", textAlign: "center" }}><Cell val={row.enterprise} /></td>
                       </tr>
