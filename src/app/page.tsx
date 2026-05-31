@@ -15,22 +15,22 @@ import {
 import styles from "@/styles/page-shell.module.css";
 
 export const metadata: Metadata = {
-  title: "SecureLint – #1 Chrome Extension for API Key Masking & Phishing Protection",
+  title: "SecureLint – #1 Chrome Extension for API Key Masking, Phishing Detection, SSL Check & VAPT",
   description:
-    "SecureLint is the #1 Chrome extension for real-time API key masking, phishing email detection, and browser DLP. Stop secrets from leaking, block phishing attacks, and protect your team — 100% local, zero data sent to any server. Trusted by developers, security engineers, and enterprise IT teams.",
+    "SecureLint detects and masks API keys, secrets & credentials in real-time, checks SSL certificates, alerts on suspicious new domains, blocks phishing attacks, crypto drainers, and XSS — 100% local browser security. Used by developers, security teams, and enterprises across India.",
   alternates: { canonical: "https://securelint.in" },
   openGraph: {
-    title: "SecureLint – Stop API Keys & Credentials From Leaking in Your Browser",
+    title: "SecureLint – Real-Time API Key Masking, SSL Check, Phishing & VAPT Browser Security",
     description:
-      "Real-time secret masking, phishing detection & browser DLP. Detect API keys, AWS credentials, JWT tokens, and passwords as you type — masked instantly, 100% locally.",
+      "Stop API key leaks, phishing emails, SSL threats, and credential exposure. SecureLint runs a real-time VAPT-style scan in your browser — masking secrets, validating SSL, checking domain age, and blocking threats before they cause damage.",
     url: "https://securelint.in",
-    images: [{ url: "/og-banner.png", width: 1200, height: 630, alt: "SecureLint Chrome Extension" }],
+    images: [{ url: "/og-banner.png", width: 1200, height: 630, alt: "SecureLint – API Key Masking, SSL & Phishing Protection Chrome Extension" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "SecureLint – Stop API Keys & Secrets Leaking in Your Browser",
+    title: "SecureLint – API Key Masking, SSL Check, Phishing & VAPT in Your Browser",
     description:
-      "Real-time API key masking, phishing email detection & enterprise DLP — 100% local, zero data sent. Install free on Chrome.",
+      "Real-time API key masking, SSL certificate check, domain age alert, phishing detection & browser DLP — 100% local, zero data sent. India's #1 browser security extension.",
     images: [{ url: "/og-banner.png", width: 1200, height: 630, alt: "SecureLint Chrome Extension" }],
   },
 };

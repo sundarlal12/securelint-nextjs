@@ -17,46 +17,60 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://securelint.in"),
   title: {
-    default: "SecureLint – Real-Time Secret Masking & Phishing Protection | Chrome Extension",
+    default: "SecureLint – Real-Time API Key Masking, Phishing Detection & VAPT Browser Security | Chrome Extension",
     template: "%s | SecureLint",
   },
   description:
-    "SecureLint is the #1 Chrome extension for real-time API key masking, phishing email detection, and browser DLP. Stops secrets from leaking, blocks phishing attacks, and protects your team — 100% local, zero data sent to any server.",
+    "SecureLint is India's #1 Chrome extension for real-time API key masking, secret detection, phishing protection, SSL checks, domain age alerts, and browser VAPT. Blocks credential leaks, phishing emails, crypto drainers, and XSS attacks — 100% local, zero data sent to any server. Trusted by developers, security engineers, and enterprise IT teams.",
   keywords: [
-    // Phase 1 — Branded
+    // Branded
     "SecureLint", "SecureLint Chrome extension", "SecureLint pricing", "SecureLint enterprise",
-    "VAPTLabs security", "VAPTLabs browser extension",
-    // Phase 2 — Secret Masking
-    "API key detector chrome", "mask sensitive data browser", "hide secrets extension",
-    "real-time secret scanning", "credential detection tool", "secret masking", "API key protection",
-    "credential detection", "API key leakage", "password masking", "token masking",
-    "AWS key masking", "JWT token detection", "real-time secret detection",
-    "sensitive data protector", "prevent credential leak",
-    // Phase 2 — Phishing Protection
-    "phishing email detector", "malware domain blocker", "anti-phishing chrome extension",
-    "crypto drainer detection", "URL risk checker", "homograph attack protection",
-    "phishing email detection", "phishing detection Chrome", "phishing blocker",
-    // Phase 2 — Browser DLP
-    "browser dlp extension", "data loss prevention chrome", "enterprise browser security",
-    "web filtering extension", "browser DLP", "email DLP Chrome extension",
-    "enterprise security extension",
-    // Phase 3 — Developer persona
-    "prevent committing secrets in browser", "mask API keys in screenshots",
-    "scan for hardcoded keys browser", "secret scanner browser",
-    // Phase 3 — Security team persona
-    "how to prevent employees sharing passwords", "dlp for remote teams",
-    "block sensitive data chrome managed devices",
-    // Phase 3 — General user
-    "protect clipboard from malware", "detect fake website before login",
-    "stop shoulder surfing on laptop",
-    // Phase 4 — Problem/Tech
-    "clipboard hijacking malware protection", "crypto wallet address swap attack",
-    "fake QR code phishing", "brand impersonation detection",
-    "gdpr compliant data masking", "pci dss screen protection",
-    "typosquat domain detection", "exposed API keys browser",
-    // Phase 5 — Competitor alternatives
-    "hide secrets extension alternative", "open source browser dlp alternative",
-    "chrome extension", "browser security", "developer security tool",
+    "VAPTLabs", "VAPTLabs browser extension", "VAPTLabs security",
+    // API keys & secrets
+    "API key masking", "API key detector chrome", "mask API keys browser",
+    "hide API keys extension", "API key exposure detection", "exposed API keys",
+    "real-time API key detection", "secret masking chrome extension",
+    "secret scanner browser", "prevent API key leak",
+    "credential detection tool", "credential leak prevention",
+    "AWS key masking", "GCP credential detection", "Azure secret detection",
+    "JWT token masking", "OAuth token detection", "database password masking",
+    "private key detection browser", "hardcoded secrets browser",
+    // Phishing
+    "phishing detection real-time", "phishing email detector chrome",
+    "anti-phishing chrome extension", "real-time phishing protection",
+    "phishing blocker extension", "phishing site detection",
+    "AI phishing detection", "brand impersonation detection",
+    "typosquat detection", "homograph attack protection",
+    "fake CAPTCHA protection", "ClickFix attack blocker",
+    "social engineering detection browser",
+    // SSL & domain checks
+    "SSL certificate check browser", "SSL real-time check extension",
+    "domain age checker chrome", "domain age real-time alert",
+    "new domain phishing detection", "suspicious domain alert",
+    "HTTPS security check browser", "certificate validation extension",
+    // VAPT / Security scanning
+    "VAPT browser extension", "browser vulnerability scan",
+    "real-time browser security scan", "browser security scanner",
+    "online security scan extension", "web application security check",
+    "browser VAPT tool", "automated security scan browser",
+    "real-time threat detection browser", "browser threat scanner",
+    // DLP
+    "browser DLP extension", "data loss prevention chrome",
+    "enterprise browser DLP", "email DLP chrome extension",
+    "enterprise email send blocking", "sensitive data protector",
+    // Crypto & wallet
+    "crypto drainer detection", "fake dApp detection",
+    "crypto wallet protection chrome", "Web3 phishing blocker",
+    // General security
+    "URL risk checker", "link scanner extension",
+    "redirect chain detection", "XSS detection browser",
+    "clipboard hijacking protection", "pastejacking protection",
+    "password breach monitoring", "HaveIBeenPwned chrome extension",
+    "browser security extension india", "enterprise security extension",
+    "chrome security extension 2026", "best security extension chrome",
+    // Competitor/intent
+    "securelint alternative", "browser dlp alternative",
+    "chrome extension for developers security",
   ],
   authors: [{ name: "VAPTLabs", url: "https://securelint.in" }],
   creator: "VAPTLabs",
@@ -84,16 +98,16 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "https://securelint.in",
-    title: "SecureLint – Real-Time Secret Masking & Phishing Protection",
+    title: "SecureLint – Real-Time API Key Masking, Phishing & VAPT Browser Security",
     description:
-      "Stop API keys, passwords, and credentials from leaking in your browser. SecureLint masks secrets in real-time, blocks phishing attacks, and gives enterprises full DLP visibility — 100% locally, zero data sent.",
+      "Stop API keys, credentials, and secrets from leaking. SecureLint masks secrets in real-time, checks SSL certificates, flags new suspicious domains, blocks phishing attacks and crypto drainers — 100% locally, zero data sent.",
     siteName: "SecureLint",
     images: [
       {
         url: "/og-banner.png",
         width: 1200,
         height: 630,
-        alt: "SecureLint – Real-Time Browser Security Extension for Secret Masking & Phishing Protection",
+        alt: "SecureLint – Real-Time Browser Security: API Key Masking, Phishing Detection & VAPT",
       },
     ],
     locale: "en_US",
@@ -102,15 +116,15 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     site: "@vaptlabs",
     creator: "@vaptlabs",
-    title: "SecureLint – Stop Secrets From Leaking in Your Browser",
+    title: "SecureLint – Stop API Key Leaks, Phishing & SSL Threats in Real-Time",
     description:
-      "Real-time API key masking, phishing detection & browser DLP. 100% local — your secrets never leave your browser. Trusted by developers & security teams.",
+      "Real-time API key masking, phishing detection, SSL checks, domain age alerts & browser DLP — 100% local, zero data sent. India's #1 browser security extension.",
     images: [
       {
         url: "/og-banner.png",
         width: 1200,
         height: 630,
-        alt: "SecureLint Chrome Extension – Secret Masking & Phishing Protection",
+        alt: "SecureLint Chrome Extension – API Key Masking, Phishing & VAPT Security",
       },
     ],
   },
