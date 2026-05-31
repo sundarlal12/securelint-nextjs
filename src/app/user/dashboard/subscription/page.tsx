@@ -183,9 +183,32 @@ export default function SubscriptionPage() {
 
               {/* CTA */}
               {isCurrent ? (
-                <div style={{ width:"100%", padding:"12px 0", borderRadius:10, background:"#eff2fc", textAlign:"center", fontSize:14, fontWeight:700, color:MUTED, marginBottom:32, border:`1px solid ${BORDER}` }}>
-                  {planStatus === "active" ? "✓ Current Plan" : "⏳ Payment Pending"}
-                </div>
+                planStatus === "active" ? (
+                  <div style={{ width:"100%", padding:"12px 0", borderRadius:10, background:"#eff2fc", textAlign:"center", fontSize:14, fontWeight:700, color:MUTED, marginBottom:32, border:`1px solid ${BORDER}`, boxSizing:"border-box" }}>
+                    ✓ Current Plan
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      localStorage.setItem("billing_plan_id",   plan.id);
+                      localStorage.setItem("billing_plan_name", plan.name);
+                      localStorage.setItem("billing_price",     String(plan.price_monthly ?? 0));
+                      router.push("/user/dashboard/billing");
+                    }}
+                    style={{
+                      width:"100%", padding:"12px 0", borderRadius:10,
+                      background:"#f97316", color:"#fff",
+                      fontSize:14, fontWeight:700, border:"none",
+                      cursor:"pointer", marginBottom:32,
+                      boxSizing:"border-box", transition:"background .15s",
+                      display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.background = "#ea6c05")}
+                    onMouseLeave={e => (e.currentTarget.style.background = "#f97316")}
+                  >
+                    ⏳ Complete Payment
+                  </button>
+                )
               ) : isEnt ? (
                 <a href="/contact/sales"
                   style={{ display:"block", width:"100%", padding:"12px 0", borderRadius:10, background:G, color:"#fff", fontSize:14, fontWeight:700, textAlign:"center", textDecoration:"none", marginBottom:32, transition:"background .15s", boxSizing:"border-box" }}
