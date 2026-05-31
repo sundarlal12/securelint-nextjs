@@ -12,7 +12,7 @@
 
 const API_BASE = () =>
   (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_API_BASE) ||
-  "http://localhost:8000";
+  "https://securelint-api.vercel.app";
 
 /* ── Cache keys that belong to a user session ── */
 const SESSION_KEYS = [

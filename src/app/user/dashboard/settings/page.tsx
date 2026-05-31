@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getCachedProfile, getCachedSettings, revalidateProfile } from "@/lib/userCache";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://securelint-api.vercel.app";
 const G      = "#1a7f37";
 const BORDER = "#e5e7eb";
 const TEXT   = "#111827";

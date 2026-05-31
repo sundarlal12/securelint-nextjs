@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { showToast } from "@/components/dashboard/Toast";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://securelint-api.vercel.app";
 
 const BLUE   = "#2563eb";
 const BORDER = "#e2e8f0";

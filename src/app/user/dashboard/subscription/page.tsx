@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getCachedProfile, getCachedPlans, revalidateProfile, revalidatePlans } from "@/lib/userCache";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://securelint-api.vercel.app";
 const G = "#007b70";   // teal-green matching design
 const G_DARK = "#00665c";
 const BORDER = "#e5e7eb";
