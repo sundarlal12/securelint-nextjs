@@ -162,10 +162,13 @@ export function PricingSection() {
       <section id="pricing" className={s.section}>
         <div className={s.inner}>
           <header className={s.intro}>
-            <h2>SecureLint Pricing — Browser Security Plans for Developers &amp; Enterprise Teams</h2>
+            <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#1a7f37", marginBottom: 10 }}>
+              Pricing
+            </p>
+            <h2>Simple, Transparent Pricing</h2>
             <p>
-              Pro for individuals who need phishing protection, API key masking, and breach monitoring.
-              Enterprise for teams who need centralized DLP, incident reporting, and admin dashboards.
+              Choose the plan that fits your needs. Pro for developers &amp; individuals,
+              Enterprise for teams that need centralized security controls.
             </p>
           </header>
 
