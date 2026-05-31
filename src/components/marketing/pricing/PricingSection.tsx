@@ -137,17 +137,6 @@ export function PricingSection() {
 
   const PLANS: PricingPlanDefinition[] = [
     {
-      name:         freeName,
-      priceDisplay: loading
-        ? <span style={{ fontSize: 14, color: "var(--ink-muted)" }}>Loading…</span>
-        : <>{freeMonthly === 0 ? "₹0" : `₹${freeMonthly.toLocaleString("en-IN")}`}<span className={s.inlinePer}>/mo</span></>,
-      period:       "Essential plan for individuals",
-      features:     FEATURES.free,
-      ctaLabel:     "Get Started",
-      ctaHref:      "",
-      onCtaClick:   () => handlePlanClick("free", freeName, freeMonthly),
-    },
-    {
       name:         proName,
       priceDisplay: proPrice,
       period:       proPeriodNote,

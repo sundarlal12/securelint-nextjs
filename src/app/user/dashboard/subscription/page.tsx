@@ -86,9 +86,10 @@ export default function SubscriptionPage() {
     const withEnt = plans.some(p => p.id === "enterprise")
       ? plans
       : [...plans, { id:"enterprise", name:"Enterprise", price_monthly: null }];
-    setPlans(withEnt.length >= 2 ? withEnt : [
-      { id:"free",       name:"Basic",      price_monthly: 0 },
-      { id:"pro",        name:"Pro",        price_monthly: 999 },
+    // Only show Pro and Enterprise — Basic/free is hidden
+    const filtered = withEnt.filter(p => p.id !== "free" && p.id !== "basic");
+    setPlans(filtered.length >= 2 ? filtered : [
+      { id:"pro",        name:"Pro",        price_monthly: 1999 },
       { id:"enterprise", name:"Enterprise", price_monthly: null },
     ]);
     setCurrentPlan(planId);
@@ -132,8 +133,8 @@ export default function SubscriptionPage() {
     <div>
       <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
       <div style={{ height:36, width:180, borderRadius:8, marginBottom:20, background:"linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 50%,#f3f4f6 75%)", backgroundSize:"200%", animation:"shimmer 1.4s infinite" }} />
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:32 }}>
-        {[1,2,3].map(i => <div key={i} style={{ height:400, borderRadius:10, background:"linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 50%,#f3f4f6 75%)", backgroundSize:"200%", animation:"shimmer 1.4s infinite" }} />)}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:32 }}>
+        {[1,2].map(i => <div key={i} style={{ height:400, borderRadius:10, background:"linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 50%,#f3f4f6 75%)", backgroundSize:"200%", animation:"shimmer 1.4s infinite" }} />)}
       </div>
     </div>
   );
