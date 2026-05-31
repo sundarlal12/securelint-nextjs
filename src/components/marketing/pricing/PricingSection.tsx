@@ -25,47 +25,49 @@ const PERIOD_LABELS: Record<Period, string> = {
 };
 
 const FEATURES: Record<string, string[]> = {
-  free: [
-    "Secret detection & masking",
-    "100+ real-time security checks",
-    "Safe domain check",
-    "URL pattern analysis",
-    "Typosquat detection",
-    "Crowd-powered protection",
-    "Google Safe Browsing",
-    "Free hosting detection",
-    "Basic overlay on inputs & textareas",
-    "Medium & low severity detection",
-    "Export detection reports",
-  ],
   pro: [
-    "Everything in Basic",
+    // Real-time security checks
+    "Real-time phishing detection on every page",
+    "SSL certificate real-time check",
+    "Domain age real-time alert (new domains flagged)",
+    "Suspicious redirect chain detection",
+    "Real-time URL risk scoring",
+    // Secret & credential masking
+    "API key & secret detection — 100+ patterns",
+    "AWS, GCP, Azure credential masking",
+    "JWT, OAuth & database password masking",
+    "Console & editor masking (CodeMirror, Monaco…)",
+    "Block network secrets & form submission",
+    // Phishing & browser threats
     "AI Brand Detection (any company worldwide)",
-    "Clickjacking protection",
-    "Pastejacking guard (blocks & restores clipboard)",
-    "Hidden text attack protection",
-    "Password breach monitoring (HaveIBeenPwned)",
-    "Link hover scanner (score before click)",
-    "Manual URL checker",
-    "Real-time desktop notifications",
-    "Advanced scan history & weekly stats",
-    "Detects scams in 100+ languages",
+    "Homograph / IDN attack protection",
+    "Typosquat & subdomain abuse detection",
     "Crypto scam & fake dApp detection",
-    "Social engineering detection",
-    "Fake CAPTCHA & ClickFix protection",
+    "Social engineering & fake CAPTCHA blocker",
+    "Clickjacking & pastejacking protection",
+    "Password breach monitoring (HaveIBeenPwned)",
+    "Link hover scanner — risk score before click",
+    // Scanning & alerts
+    "Real-time desktop threat notifications",
+    "Advanced scan history & weekly stats",
+    "Threat timeline & trend charts",
+    "Detects scams in 100+ languages",
     "Multi-layer AI engine with auto failover",
-    "Draggable widget & smart positioning",
-    "Lifetime updates during subscription",
+    // Experience
     "Early access to new features",
   ],
   enterprise: [
     "Everything in Pro",
-    "Aggressive email DLP blocking",
-    "WAF / social-domain protection",
-    "Enterprise data collection",
+    // Enterprise DLP
+    "Email DLP — outbound send blocking",
+    "Aggressive email & attachment blocking",
+    "WAF / social-domain blocking",
+    // Admin & compliance
     "Centralized admin dashboard",
     "Custom policy management",
     "Incident reporting & audit logs",
+    "Enterprise data collection & telemetry",
+    "Unlimited team members",
     "Dedicated support & SLA",
   ],
 };
@@ -165,10 +167,10 @@ export function PricingSection() {
             <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#1a7f37", marginBottom: 10 }}>
               Pricing
             </p>
-            <h2>Simple, Transparent Pricing</h2>
+            <h2>Real-Time Browser Security — API Key Masking, Phishing Detection &amp; SSL Checks</h2>
             <p>
-              Choose the plan that fits your needs. Pro for developers &amp; individuals,
-              Enterprise for teams that need centralized security controls.
+              Pro gives developers real-time API key masking, SSL checks, domain age alerts, and phishing protection.
+              Enterprise adds centralized DLP, email blocking, and admin dashboards for security teams.
             </p>
           </header>
 
