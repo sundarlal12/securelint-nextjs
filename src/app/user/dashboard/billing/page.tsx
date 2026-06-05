@@ -201,14 +201,17 @@ export default function BillingPage() {
   const [pricing,      setPricing]     = useState<PricingRow[]>([]);
   const [priceLoad,    setPriceLoad]   = useState(true);
   const [ppRendered,   setPpRendered]  = useState(false);
+  const [ppKey,        setPpKey]       = useState(0); // increment to force fresh DOM mount
 
   const isIndia = country === "India";
 
   // Reset state when country changes
   useEffect(() => { setState(""); }, [country]);
 
-  // Re-render PayPal buttons when country changes away from India
-  useEffect(() => { if (!isIndia) setPpRendered(false); }, [isIndia]);
+  // When country changes, force a brand-new PayPal container (avoids removeChild error)
+  useEffect(() => {
+    if (!isIndia) { setPpRendered(false); setPpKey(k => k + 1); }
+  }, [isIndia, country]);
 
   useEffect(() => {
     const pid = localStorage.getItem("billing_plan_id")   || "pro";
@@ -345,7 +348,7 @@ export default function BillingPage() {
 
   // Re-render PayPal when fullName or period changes (new order details)
   useEffect(() => {
-    if (step === "pay" && !isIndia) { setPpRendered(false); }
+    if (step === "pay" && !isIndia) { setPpRendered(false); setPpKey(k => k + 1); }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fullName, period]);
 
@@ -513,32 +516,32 @@ export default function BillingPage() {
               <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Rahul Sharma" style={INP} />
             </div>
 
-            {/* Country */}
-            <div style={{ marginBottom:18 }}>
-              <label style={LBL}>Country / Region</label>
-              <select
-                value={country}
-                onChange={e => { setCountry(e.target.value); setPpRendered(false); }}
-                style={{ ...INP, appearance:"none", cursor:"pointer" }}>
-                <option value="" disabled hidden>Select</option>
-                <option value="separator" disabled>----------</option>
-                {TOP_COUNTRIES.map(c => <option key={`top-${c}`} value={c}>{c}</option>)}
-                <option value="separator2" disabled>----------</option>
-                {ALL_COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-
-            {/* State — India only */}
-            {isIndia && (
-              <div style={{ marginBottom:18 }}>
-                <label style={LBL}>State</label>
-                <select value={state} onChange={e => setState(e.target.value)} style={{ ...INP, appearance:"none", cursor:"pointer" }}>
+            {/* Country + State (side-by-side; state only for India) */}
+            <div style={{ display:"grid", gridTemplateColumns: isIndia ? "1fr 1fr" : "1fr", gap:14, marginBottom:18 }}>
+              <div>
+                <label style={LBL}>Country / Region</label>
+                <select
+                  value={country}
+                  onChange={e => setCountry(e.target.value)}
+                  style={{ ...INP, appearance:"none", cursor:"pointer" }}>
                   <option value="" disabled hidden>Select</option>
                   <option value="separator" disabled>----------</option>
-                  {INDIA_STATES.map(s => <option key={s.code} value={s.name}>{s.name}</option>)}
+                  {TOP_COUNTRIES.map(c => <option key={`top-${c}`} value={c}>{c}</option>)}
+                  <option value="separator2" disabled>----------</option>
+                  {ALL_COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
-            )}
+              {isIndia && (
+                <div>
+                  <label style={LBL}>State</label>
+                  <select value={state} onChange={e => setState(e.target.value)} style={{ ...INP, appearance:"none", cursor:"pointer" }}>
+                    <option value="" disabled hidden>Select</option>
+                    <option value="separator" disabled>----------</option>
+                    {INDIA_STATES.map(s => <option key={s.code} value={s.name}>{s.name}</option>)}
+                  </select>
+                </div>
+              )}
+            </div>
 
             {/* Pincode + City */}
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:18 }}>
@@ -588,8 +591,9 @@ export default function BillingPage() {
                 <div style={{ marginBottom:14, padding:"12px 16px", borderRadius:8, background:"#fef9ee", border:"1px solid #fde68a", fontSize:13, color:"#92400e" }}>
                   💡 Paying from <strong>{country}</strong>. Amount: <strong>${(sel.total_price/83).toFixed(2)} USD</strong>
                 </div>
-                {/* PayPal renders its button here */}
-                <div id="paypal-btn-container" style={{ minHeight:52 }}>
+                {/* key forces React to create a fresh DOM node on country/period change,
+                    preventing PayPal's internal removeChild error */}
+                <div key={ppKey} id="paypal-btn-container" style={{ minHeight:52 }}>
                   {!ppRendered && (
                     <div style={{ display:"flex", justifyContent:"center", padding:"12px 0" }}>
                       <div style={{ width:22, height:22, border:`3px solid ${BORDER}`, borderTop:`3px solid #003087`, borderRadius:"50%", animation:"spin .8s linear infinite" }} />
