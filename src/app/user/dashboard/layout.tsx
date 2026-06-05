@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { BillingStepCtx } from "./billing/billing-step-ctx";
 import FeedbackModal from "@/components/dashboard/FeedbackModal";
 import ToastContainer from "@/components/dashboard/Toast";
 import { clearUserCache, getCachedProfile, revalidateProfile } from "@/lib/userCache";
@@ -146,6 +147,7 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
   const [showMenu,     setShowMenu]     = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [checked,      setChecked]      = useState(false);
+  const [billingStep,  setBillingStep]  = useState<"choose"|"pay">("choose");
 
   useEffect(() => {
     const token = localStorage.getItem("user_token");
@@ -184,27 +186,55 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
 
   /* ── Billing: full-page checkout ── */
   if (isBillingPage) {
+    const G = "#007b70";
     return (
-      <div style={{ minHeight:"100vh", background:"radial-gradient(circle at 8% 15%, rgba(45,212,191,.12) 0%, rgba(11,163,127,.06) 40%, #fff 80%)", fontFamily:"system-ui,-apple-system,sans-serif" }}>
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-        <div style={{ position:"fixed", top:-120, left:-120, width:500, height:500, borderRadius:"50%", background:"rgba(45,212,191,.08)", filter:"blur(60px)", pointerEvents:"none", zIndex:0 }} />
-        <div style={{ position:"fixed", bottom:-100, right:-100, width:400, height:400, borderRadius:"50%", background:"rgba(11,163,127,.07)", filter:"blur(60px)", pointerEvents:"none", zIndex:0 }} />
-        <header style={{ position:"sticky", top:0, zIndex:50, background:"rgba(255,255,255,.95)", backdropFilter:"blur(12px)", borderBottom:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 48px", height:64 }}>
-          <Link href="/user/dashboard" style={{ display:"flex", alignItems:"center", gap:10, textDecoration:"none" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.svg" alt="SecureLint" style={{ width:36, height:36, objectFit:"contain" }} />
-            <span style={{ fontSize:17, fontWeight:700, color:TEXT, letterSpacing:"-0.4px" }}>SecureLint</span>
-          </Link>
-          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <div style={{ width:7, height:7, borderRadius:"50%", background:"#22c55e" }} />
-            <span style={{ fontSize:13, color:MUTED, fontWeight:500 }}>{email}</span>
-          </div>
-        </header>
-        <main style={{ position:"relative", zIndex:1, maxWidth:920, margin:"0 auto", padding:"56px 32px 100px" }}>
-          {children}
-        </main>
-        <ToastContainer />
-      </div>
+      <BillingStepCtx.Provider value={{ step: billingStep, setStep: setBillingStep }}>
+        <div style={{ minHeight:"100vh", background:"radial-gradient(circle at 8% 15%, rgba(45,212,191,.12) 0%, rgba(11,163,127,.06) 40%, #fff 80%)", fontFamily:"system-ui,-apple-system,sans-serif" }}>
+          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+          <div style={{ position:"fixed", top:-120, left:-120, width:500, height:500, borderRadius:"50%", background:"rgba(45,212,191,.08)", filter:"blur(60px)", pointerEvents:"none", zIndex:0 }} />
+          <div style={{ position:"fixed", bottom:-100, right:-100, width:400, height:400, borderRadius:"50%", background:"rgba(11,163,127,.07)", filter:"blur(60px)", pointerEvents:"none", zIndex:0 }} />
+
+          {/* ── Billing header: 3-column grid so stepper is truly centred ── */}
+          <header style={{ position:"sticky", top:0, zIndex:50, background:"rgba(255,255,255,.95)", backdropFilter:"blur(12px)", borderBottom:`1px solid ${BORDER}`, display:"grid", gridTemplateColumns:"1fr auto 1fr", alignItems:"center", padding:"0 48px", height:64 }}>
+            {/* Left — logo */}
+            <Link href="/user/dashboard" style={{ display:"flex", alignItems:"center", gap:10, textDecoration:"none" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.svg" alt="SecureLint" style={{ width:36, height:36, objectFit:"contain" }} />
+              <span style={{ fontSize:17, fontWeight:700, color:TEXT, letterSpacing:"-0.4px" }}>SecureLint</span>
+            </Link>
+
+            {/* Center — step indicator */}
+            <nav style={{ display:"flex", alignItems:"center", gap:6, fontSize:14, fontWeight:500 }}>
+              <span style={{
+                color: billingStep==="choose" ? G : MUTED,
+                fontWeight: billingStep==="choose" ? 700 : 500,
+              }}>
+                1. Choose billing
+              </span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M9 18l6-6-6-6" stroke="#d1d5db" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span style={{
+                color: billingStep==="pay" ? G : MUTED,
+                fontWeight: billingStep==="pay" ? 700 : 500,
+              }}>
+                2. Review and purchase
+              </span>
+            </nav>
+
+            {/* Right — email */}
+            <div style={{ display:"flex", alignItems:"center", gap:8, justifySelf:"end" }}>
+              <div style={{ width:7, height:7, borderRadius:"50%", background:"#22c55e" }} />
+              <span style={{ fontSize:13, color:MUTED, fontWeight:500 }}>{email}</span>
+            </div>
+          </header>
+
+          <main style={{ position:"relative", zIndex:1, maxWidth:920, margin:"0 auto", padding:"56px 32px 100px" }}>
+            {children}
+          </main>
+          <ToastContainer />
+        </div>
+      </BillingStepCtx.Provider>
     );
   }
 

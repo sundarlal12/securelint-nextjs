@@ -1,6 +1,7 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, useContext } from "react";
 import { useRouter } from "next/navigation";
+import { BillingStepCtx } from "./billing-step-ctx";
 
 const API_BASE    = process.env.NEXT_PUBLIC_API_BASE         || "https://securelint-api.vercel.app";
 const RZP_KEY_ID  = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID  || "";
@@ -183,8 +184,20 @@ function loadPayPal(clientId: string, currency: string): Promise<boolean> {
   });
 }
 
+function loadGooglePay(): Promise<boolean> {
+  return new Promise(resolve => {
+    if (document.getElementById("gpay-js")) { resolve(true); return; }
+    const s = document.createElement("script");
+    s.id = "gpay-js";
+    s.src = "https://pay.google.com/gp/p/js/pay.js";
+    s.onload = () => resolve(true); s.onerror = () => resolve(false);
+    document.body.appendChild(s);
+  });
+}
+
 export default function BillingPage() {
   const router = useRouter();
+  const { setStep: setLayoutStep } = useContext(BillingStepCtx);
   const [planId,       setPlanId]      = useState("pro");
   const [planName,     setPlanName]    = useState("Pro");
   const [period,       setPeriod]      = useState("annual");
@@ -201,17 +214,44 @@ export default function BillingPage() {
   const [pricing,      setPricing]     = useState<PricingRow[]>([]);
   const [priceLoad,    setPriceLoad]   = useState(true);
   const [ppRendered,   setPpRendered]  = useState(false);
-  const [ppKey,        setPpKey]       = useState(0); // increment to force fresh DOM mount
+  const [gpayRendered, setGpayRendered] = useState(false);
+  const [gpayAvailable, setGpayAvailable] = useState(true);
+  const [intlTab,      setIntlTab]     = useState<"googlepay"|"paypal">("paypal");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ppInstanceRef  = useRef<any>(null);
+  const ppContainerRef = useRef<HTMLDivElement>(null);
+  const gpayContainerRef = useRef<HTMLDivElement>(null);
 
   const isIndia = country === "India";
+
+  // Sync local step → layout header stepper
+  useEffect(() => { setLayoutStep(step); }, [step, setLayoutStep]);
 
   // Reset state when country changes
   useEffect(() => { setState(""); }, [country]);
 
-  // When country changes, force a brand-new PayPal container (avoids removeChild error)
+  // Reset payment buttons when country changes (non-India)
   useEffect(() => {
-    if (!isIndia) { setPpRendered(false); setPpKey(k => k + 1); }
+    if (!isIndia) {
+      if (ppInstanceRef.current) {
+        try { ppInstanceRef.current.close(); } catch { /* ignore */ }
+        ppInstanceRef.current = null;
+      }
+      setPpRendered(false);
+      setGpayRendered(false);
+      setGpayAvailable(true);
+    }
   }, [isIndia, country]);
+
+  // Clean up PayPal on page unmount
+  useEffect(() => {
+    return () => {
+      if (ppInstanceRef.current) {
+        try { ppInstanceRef.current.close(); } catch { /* ignore */ }
+        ppInstanceRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const pid = localStorage.getItem("billing_plan_id")   || "pro";
@@ -280,75 +320,167 @@ export default function BillingPage() {
     finally  { setLoading(false); }
   }, [fullName, state, pincode, city, address, planId, planName, period, router]);
 
-  // ── PayPal button renderer (international) ────────────────────────────────
+  // ── PayPal order config ────────────────────────────────────────────────────
+  // createOrder calls our server which creates the order on PayPal server-side
+  // (amount is set authoritatively on the backend, not trusted from the client).
+  const makePayPalConfig = useCallback(() => ({
+    createOrder: async () => {
+      const token = localStorage.getItem("user_token") || "";
+      const res = await fetch(`${API_BASE}/api/payment/paypal-create-order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ plan_id: planId, billing_period: period }),
+      }).catch(() => null);
+      const data = res ? await res.json().catch(() => ({})) : {};
+      if (data?.error === 1) throw new Error(data.message || "Could not create order.");
+      return data.order_id as string;
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onApprove: async (_data: unknown, actions: any) => {
+      setLoading(true);
+      try {
+        const capture = await actions.order.capture();
+        const token = localStorage.getItem("user_token") || "";
+        const verRes = await fetch(`${API_BASE}/api/payment/paypal-verify`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ paypal_order_id: capture.id, plan_id: planId, billing_period: period, country }),
+        }).catch(() => null);
+        const ver = verRes ? await verRes.json().catch(() => ({})) : {};
+        if (ver?.error === 1) { setError(ver.message || "Verification failed."); }
+        else {
+          localStorage.setItem("user_plan_status", "active");
+          localStorage.setItem("user_plan_id", planId);
+          setSuccess(`${planName} activated! Redirecting…`);
+          setTimeout(() => router.replace("/user/dashboard/subscription"), 1500);
+        }
+      } catch { setError("Payment could not be verified. Contact support."); }
+      finally { setLoading(false); }
+    },
+    onError: () => setError("PayPal encountered an error. Please try again."),
+    onCancel: () => setError("Payment cancelled."),
+  }), [planId, planName, period, country, router]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── PayPal tab: yellow PayPal button ──────────────────────────────────────
   const renderPayPalButtons = useCallback(async () => {
     if (ppRendered || !sel) return;
-    const container = document.getElementById("paypal-btn-container");
+    if (ppInstanceRef.current) {
+      try { ppInstanceRef.current.close(); } catch { /* ignore */ }
+      ppInstanceRef.current = null;
+    }
+    const container = ppContainerRef.current;
     if (!container) return;
-    container.innerHTML = "";
+    const loaded = await loadPayPal(PAYPAL_CID, "USD");
+    if (!loaded || !window.paypal) { setError("Failed to load PayPal. Please try again."); return; }
+    const buttons = window.paypal.Buttons({
+      fundingSource: window.paypal.FUNDING.PAYPAL,
+      style: { layout:"vertical", color:"gold", shape:"rect", label:"checkout", height:50 },
+      ...makePayPalConfig(),
+    });
+    buttons.render(container);
+    ppInstanceRef.current = buttons;
+    setPpRendered(true);
+  }, [ppRendered, sel, makePayPalConfig]);
 
-    // USD amount — round to 2dp
+  // ── Google Pay button renderer (international) ────────────────────────────
+  const renderGooglePay = useCallback(async () => {
+    if (gpayRendered || !sel) return;
+    const container = gpayContainerRef.current;
+    if (!container) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const gw = window as any;
+    const loaded = await loadGooglePay();
+    if (!loaded || !gw.google?.payments?.api) {
+      setGpayAvailable(false); return;
+    }
+
     const usdAmount = (sel.total_price / 83).toFixed(2);
 
-    const loaded = await loadPayPal(PAYPAL_CID, "USD");
-    if (!loaded || !window.paypal) {
-      setError("Failed to load PayPal. Please try again.");
-      return;
-    }
-
-    window.paypal.Buttons({
-      style: { layout:"vertical", color:"gold", shape:"rect", label:"pay", height:48 },
-      createOrder: (_data: unknown, actions: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-        return actions.order.create({
-          purchase_units: [{
-            amount: { value: usdAmount, currency_code:"USD" },
-            description: `SecureLint ${planName} — ${PERIOD_LABELS[period] || period}`,
-          }],
-          payer: { name: { given_name: fullName.split(" ")[0] || fullName, surname: fullName.split(" ").slice(1).join(" ") || "" } },
-        });
+    const allowedPaymentMethods = [{
+      type: "CARD",
+      parameters: {
+        allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"],
+        allowedCardNetworks: ["MASTERCARD", "VISA", "AMEX", "DISCOVER"],
       },
-      onApprove: async (_data: unknown, actions: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-        setLoading(true);
-        try {
-          const capture = await actions.order.capture();
-          const paypalOrderId = capture.id;
-          const token = localStorage.getItem("user_token") || "";
-          // Notify backend
-          const verRes = await fetch(`${API_BASE}/api/payment/paypal-verify`, {
-            method:"POST",
-            headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` },
-            body: JSON.stringify({ paypal_order_id:paypalOrderId, plan_id:planId, billing_period:period, country }),
-          }).catch(() => null);
-          const ver = verRes ? await verRes.json().catch(() => ({})) : {};
-          if (ver?.error === 1) { setError(ver.message || "Verification failed."); }
-          else {
-            localStorage.setItem("user_plan_status","active");
-            localStorage.setItem("user_plan_id", planId);
-            setSuccess(`${planName} activated! Redirecting…`);
-            setTimeout(() => router.replace("/user/dashboard/subscription"), 1500);
-          }
-        } catch { setError("Payment could not be verified. Contact support."); }
-        finally { setLoading(false); }
+      tokenizationSpecification: {
+        type: "PAYMENT_GATEWAY",
+        parameters: { gateway: "example", gatewayMerchantId: "exampleGatewayMerchantId" },
       },
-      onError: () => { setError("PayPal encountered an error. Please try again."); },
-      onCancel: () => { setError("Payment cancelled."); },
-    }).render("#paypal-btn-container");
+    }];
 
-    setPpRendered(true);
-  }, [ppRendered, sel, planId, planName, period, fullName, country, router]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const paymentsClient = new gw.google.payments.api.PaymentsClient({ environment: "TEST" });
 
-  // Auto-render PayPal buttons when switching to pay step for non-India
+    try {
+      const { result } = await paymentsClient.isReadyToPay({ apiVersion:2, apiVersionMinor:0, allowedPaymentMethods });
+      if (!result) { setGpayAvailable(false); return; }
+      setGpayAvailable(true);
+
+      const paymentDataRequest = {
+        apiVersion: 2, apiVersionMinor: 0,
+        allowedPaymentMethods,
+        transactionInfo: { totalPriceStatus:"FINAL", totalPrice:usdAmount, currencyCode:"USD", countryCode:"US" },
+        merchantInfo: { merchantName:"SecureLint", merchantId:"BCR2DN4T5TMFFLKP" },
+      };
+
+      const button = paymentsClient.createButton({
+        buttonColor: "black", buttonType: "pay", buttonSizeMode: "fill",
+        onClick: async () => {
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const paymentData: any = await paymentsClient.loadPaymentData(paymentDataRequest);
+            setLoading(true);
+            const token = localStorage.getItem("user_token") || "";
+            const verRes = await fetch(`${API_BASE}/api/payment/googlepay-verify`, {
+              method:"POST",
+              headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` },
+              body: JSON.stringify({
+                payment_token: paymentData.paymentMethodData.tokenizationData.token,
+                plan_id: planId, billing_period: period, country,
+              }),
+            }).catch(() => null);
+            const ver = verRes ? await verRes.json().catch(() => ({})) : {};
+            if (ver?.error === 1) { setError(ver.message || "Verification failed."); }
+            else {
+              localStorage.setItem("user_plan_status","active");
+              localStorage.setItem("user_plan_id", planId);
+              setSuccess(`${planName} activated! Redirecting…`);
+              setTimeout(() => router.replace("/user/dashboard/subscription"), 1500);
+            }
+          } catch { /* user cancelled */ }
+          finally { setLoading(false); }
+        },
+      });
+
+      container.innerHTML = "";
+      container.appendChild(button);
+      setGpayRendered(true);
+    } catch { setGpayAvailable(false); }
+  }, [gpayRendered, sel, planId, planName, period, country, router]);
+
+  // Auto-render active tab's button when entering pay step (non-India)
   useEffect(() => {
-    if (step === "pay" && !isIndia && sel && !ppRendered) {
-      // slight delay so DOM is ready
-      const t = setTimeout(() => renderPayPalButtons(), 200);
-      return () => clearTimeout(t);
+    if (step !== "pay" || isIndia || !sel) return;
+    let t: ReturnType<typeof setTimeout>;
+    if (intlTab === "paypal" && !ppRendered) {
+      t = setTimeout(() => renderPayPalButtons(), 200);
+    } else if (intlTab === "googlepay" && !gpayRendered) {
+      t = setTimeout(() => renderGooglePay(), 200);
     }
-  }, [step, isIndia, sel, ppRendered, renderPayPalButtons]);
+    return () => clearTimeout(t);
+  }, [step, isIndia, sel, intlTab, ppRendered, gpayRendered, renderPayPalButtons, renderGooglePay]);
 
-  // Re-render PayPal when fullName or period changes (new order details)
+  // When fullName or period changes, reset buttons so they re-render with fresh order details
   useEffect(() => {
-    if (step === "pay" && !isIndia) { setPpRendered(false); setPpKey(k => k + 1); }
+    if (step === "pay" && !isIndia) {
+      if (ppInstanceRef.current) {
+        try { ppInstanceRef.current.close(); } catch { /* ignore */ }
+        ppInstanceRef.current = null;
+      }
+      setPpRendered(false);
+      setGpayRendered(false);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fullName, period]);
 
@@ -380,20 +512,17 @@ export default function BillingPage() {
         input:focus,select:focus{border-color:#007b70 !important;box-shadow:0 0 0 3px rgba(0,123,112,.1);}
       `}</style>
 
-      {/* Title + stepper */}
-      <div style={{ maxWidth:660, margin:"0 auto", textAlign:"center" }}>
-        <h1 style={{ fontSize:30, fontWeight:800, color:TEXT, marginBottom:8, letterSpacing:"-0.6px", lineHeight:1.2 }}>
-          {step==="choose" ? `Choose a billing option for your ${planName} plan` : "Review and complete your purchase"}
-        </h1>
-        <p style={{ fontSize:15, color:MUTED, marginBottom:36, lineHeight:1.6 }}>
-          {step==="choose"
-            ? "Pick the billing period that works best for you."
-            : "Fill in your details to activate your plan instantly."}
-        </p>
-        <div style={{ display:"flex", justifyContent:"center", marginBottom:44 }}>
-          <Stepper step={step} />
+      {/* Page title — choose step only */}
+      {step === "choose" && (
+        <div style={{ maxWidth:660, margin:"0 auto", textAlign:"center", marginBottom:44 }}>
+          <h1 style={{ fontSize:30, fontWeight:800, color:TEXT, marginBottom:8, letterSpacing:"-0.6px", lineHeight:1.2 }}>
+            {`Choose a billing option for your ${planName} plan`}
+          </h1>
+          <p style={{ fontSize:15, color:MUTED, lineHeight:1.6 }}>
+            Pick the billing period that works best for you.
+          </p>
         </div>
-      </div>
+      )}
 
       {/* ── Step 1: Choose billing ── */}
       {step === "choose" && (
@@ -474,13 +603,13 @@ export default function BillingPage() {
               <div style={{ textAlign:"right" }}>
                 <div style={{ fontWeight:700, color:TEXT }}>{PERIOD_LABELS[sel.billing_period] || sel.billing_period}</div>
                 {sel.savings_label && (
-                  <span style={{ background:"#d1fae5", color:"#065f46", fontSize:11, fontWeight:600, padding:"2px 8px", borderRadius:20, display:"inline-block", marginTop:3 }}>
+                  <span style={{ background:"#ccfbf1", color:"#0f766e", fontSize:12, fontWeight:700, padding:"3px 10px", borderRadius:20, display:"inline-block", marginTop:5 }}>
                     {sel.savings_label}
                   </span>
                 )}
               </div>
             </div>
-            <div style={{ marginTop:20, marginBottom:4, display:"flex", justifyContent:"space-between", fontSize:16 }}>
+            <div style={{ marginTop:16, marginBottom:4, display:"flex", justifyContent:"space-between", fontSize:16 }}>
               <span style={{ fontWeight:700, color:TEXT }}>Today&apos;s order</span>
               <span style={{ fontWeight:800, color:TEXT }}>
                 {isIndia
@@ -510,60 +639,50 @@ export default function BillingPage() {
             {error   && <div style={{ padding:"10px 14px", borderRadius:8, background:"#fef2f2", border:"1px solid #fca5a5", color:"#dc2626", fontSize:13, marginBottom:16 }}>{error}</div>}
             {success && <div style={{ padding:"10px 14px", borderRadius:8, background:"#f0fdf4", border:"1px solid #86efac", color:"#16a34a", fontSize:13, marginBottom:16 }}>{success}</div>}
 
-            {/* Full name */}
-            <div style={{ marginBottom:18 }}>
-              <label style={LBL}>Full name</label>
-              <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Rahul Sharma" style={INP} />
-            </div>
-
-            {/* Country + State (side-by-side; state only for India) */}
-            <div style={{ display:"grid", gridTemplateColumns: isIndia ? "1fr 1fr" : "1fr", gap:14, marginBottom:18 }}>
-              <div>
-                <label style={LBL}>Country / Region</label>
-                <select
-                  value={country}
-                  onChange={e => setCountry(e.target.value)}
-                  style={{ ...INP, appearance:"none", cursor:"pointer" }}>
-                  <option value="" disabled hidden>Select</option>
-                  <option value="separator" disabled>----------</option>
-                  {TOP_COUNTRIES.map(c => <option key={`top-${c}`} value={c}>{c}</option>)}
-                  <option value="separator2" disabled>----------</option>
-                  {ALL_COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-              {isIndia && (
-                <div>
-                  <label style={LBL}>State</label>
-                  <select value={state} onChange={e => setState(e.target.value)} style={{ ...INP, appearance:"none", cursor:"pointer" }}>
-                    <option value="" disabled hidden>Select</option>
-                    <option value="separator" disabled>----------</option>
-                    {INDIA_STATES.map(s => <option key={s.code} value={s.name}>{s.name}</option>)}
-                  </select>
-                </div>
-              )}
-            </div>
-
-            {/* Pincode + City */}
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:18 }}>
-              <div>
-                <label style={LBL}>{isIndia ? "Pincode" : "Postal / ZIP code"}</label>
-                <input type="text" value={pincode} onChange={e => setPincode(e.target.value)} placeholder={isIndia ? "400001" : "10001"} style={INP} maxLength={10} />
-              </div>
-              <div>
-                <label style={LBL}>City</label>
-                <input type="text" value={city} onChange={e => setCity(e.target.value)} placeholder="Mumbai" style={INP} />
-              </div>
-            </div>
-
-            {/* Address */}
-            <div style={{ marginBottom:28 }}>
-              <label style={LBL}>Flat / House No., Building, Street</label>
-              <input type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="123, Sector 5, MG Road" style={INP} />
-            </div>
-
-            {/* ── India: Razorpay button ── */}
+            {/* ── India: full name + address fields + Razorpay ── */}
             {isIndia && (
               <>
+                <div style={{ marginBottom:18 }}>
+                  <label style={LBL}>Full name</label>
+                  <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Rahul Sharma" style={INP} />
+                </div>
+                {/* Country + State side-by-side */}
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:18 }}>
+                  <div>
+                    <label style={LBL}>Country / Region</label>
+                    <select value={country} onChange={e => setCountry(e.target.value)} style={{ ...INP, appearance:"none", cursor:"pointer" }}>
+                      <option value="" disabled hidden>Select</option>
+                      <option value="separator" disabled>----------</option>
+                      {TOP_COUNTRIES.map(c => <option key={`top-${c}`} value={c}>{c}</option>)}
+                      <option value="separator2" disabled>----------</option>
+                      {ALL_COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={LBL}>State</label>
+                    <select value={state} onChange={e => setState(e.target.value)} style={{ ...INP, appearance:"none", cursor:"pointer" }}>
+                      <option value="" disabled hidden>Select</option>
+                      <option value="separator" disabled>----------</option>
+                      {INDIA_STATES.map(s => <option key={s.code} value={s.name}>{s.name}</option>)}
+                    </select>
+                  </div>
+                </div>
+                {/* Pincode + City */}
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:18 }}>
+                  <div>
+                    <label style={LBL}>Pincode</label>
+                    <input type="text" value={pincode} onChange={e => setPincode(e.target.value)} placeholder="400001" style={INP} maxLength={10} />
+                  </div>
+                  <div>
+                    <label style={LBL}>City</label>
+                    <input type="text" value={city} onChange={e => setCity(e.target.value)} placeholder="Mumbai" style={INP} />
+                  </div>
+                </div>
+                {/* Address */}
+                <div style={{ marginBottom:28 }}>
+                  <label style={LBL}>Flat / House No., Building, Street</label>
+                  <input type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="123, Sector 5, MG Road" style={INP} />
+                </div>
                 <button onClick={handleRazorpay} disabled={loading || !!success}
                   style={{
                     width:"100%", padding:"15px", borderRadius:10,
@@ -585,23 +704,119 @@ export default function BillingPage() {
               </>
             )}
 
-            {/* ── International: PayPal ── */}
+            {/* ── International: Google Pay | PayPal tabs ── */}
             {!isIndia && (
               <>
-                <div style={{ marginBottom:14, padding:"12px 16px", borderRadius:8, background:"#fef9ee", border:"1px solid #fde68a", fontSize:13, color:"#92400e" }}>
-                  💡 Paying from <strong>{country}</strong>. Amount: <strong>${(sel.total_price/83).toFixed(2)} USD</strong>
+                {/* Tab switcher — always on top */}
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", background:"#f3f4f6", borderRadius:12, padding:4, gap:4, marginBottom:20 }}>
+                  {/* Google Pay tab */}
+                  <button
+                    onClick={() => {
+                      if (intlTab !== "googlepay") {
+                        setGpayRendered(false); setGpayAvailable(true);
+                        setIntlTab("googlepay");
+                      }
+                    }}
+                    style={{
+                      padding:"12px 10px", border:"none", cursor:"pointer", borderRadius:9,
+                      background: intlTab==="googlepay" ? "#fff" : "transparent",
+                      boxShadow: intlTab==="googlepay" ? `0 0 0 2px ${G}, 0 1px 4px rgba(0,0,0,.08)` : "none",
+                      transition:"all .15s",
+                      display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+                      opacity: intlTab==="googlepay" ? 1 : 0.55,
+                    }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/icons/gpay.webp" alt="Google Pay" style={{ height:24, objectFit:"contain" }} />
+                  </button>
+
+                  {/* PayPal tab */}
+                  <button
+                    onClick={() => {
+                      if (intlTab !== "paypal") {
+                        if (ppInstanceRef.current) { try { ppInstanceRef.current.close(); } catch { /* ignore */ } ppInstanceRef.current = null; }
+                        setPpRendered(false);
+                        setIntlTab("paypal");
+                      }
+                    }}
+                    style={{
+                      padding:"12px 10px", border:"none", cursor:"pointer", borderRadius:9,
+                      background: intlTab==="paypal" ? "#fff" : "transparent",
+                      boxShadow: intlTab==="paypal" ? `0 0 0 2px ${G}, 0 1px 4px rgba(0,0,0,.08)` : "none",
+                      transition:"all .15s",
+                      display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+                      opacity: intlTab==="paypal" ? 1 : 0.55,
+                    }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/icons/paypal.svg" alt="PayPal" style={{ height:22, objectFit:"contain" }} />
+                  </button>
                 </div>
-                {/* key forces React to create a fresh DOM node on country/period change,
-                    preventing PayPal's internal removeChild error */}
-                <div key={ppKey} id="paypal-btn-container" style={{ minHeight:52 }}>
+
+                {/* Shared fields — below tabs */}
+                <div style={{ marginBottom:18 }}>
+                  <label style={LBL}>Full name</label>
+                  <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="John Smith" style={INP} />
+                </div>
+                <div style={{ marginBottom:20 }}>
+                  <label style={LBL}>Country / Region</label>
+                  <select value={country} onChange={e => setCountry(e.target.value)} style={{ ...INP, appearance:"none", cursor:"pointer" }}>
+                    <option value="" disabled hidden>Select</option>
+                    <option value="separator" disabled>----------</option>
+                    {TOP_COUNTRIES.map(c => <option key={`top-${c}`} value={c}>{c}</option>)}
+                    <option value="separator2" disabled>----------</option>
+                    {ALL_COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+
+                {/*
+                  Both button containers are ALWAYS in the DOM (just hidden via display:none).
+                  This prevents PayPal's removeChild error when the container unmounts mid-render.
+                */}
+
+                {/* ── Google Pay panel ──
+                    IMPORTANT: gpayContainerRef must have zero React children.
+                    The SDK manages its DOM directly; React children would cause
+                    removeChild conflicts when gpayRendered flips. Use a sibling
+                    spinner and toggle the container with display:none instead. */}
+                <div style={{ display: intlTab === "googlepay" ? "block" : "none" }}>
+                  {!gpayAvailable ? (
+                    <div style={{ padding:"16px", borderRadius:8, background:"#fef9ee", border:"1px solid #fde68a", fontSize:13, color:"#92400e", textAlign:"center" }}>
+                      Google Pay is not available on this browser. Please use the PayPal tab.
+                    </div>
+                  ) : (
+                    <>
+                      {/* Spinner lives OUTSIDE the ref — sibling, not child */}
+                      {!gpayRendered && (
+                        <div style={{ display:"flex", justifyContent:"center", padding:"14px 0" }}>
+                          <div style={{ width:22, height:22, border:`3px solid ${BORDER}`, borderTop:`3px solid #4285F4`, borderRadius:"50%", animation:"spin .8s linear infinite" }} />
+                        </div>
+                      )}
+                      {/* SDK-owned container — always empty from React's perspective */}
+                      <div ref={gpayContainerRef} style={{ width:"100%", minHeight: gpayRendered ? 52 : 0 }} />
+                      {gpayRendered && (
+                        <div style={{ fontSize:12, color:MUTED, textAlign:"center", marginTop:8 }}>
+                          🔒 Secured by Google Pay · Visa, Mastercard, Amex accepted
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* ── PayPal panel ──
+                    Same rule: ppContainerRef has zero React children. */}
+                <div style={{ display: intlTab === "paypal" ? "block" : "none" }}>
+                  {/* Spinner lives OUTSIDE the ref */}
                   {!ppRendered && (
-                    <div style={{ display:"flex", justifyContent:"center", padding:"12px 0" }}>
+                    <div style={{ display:"flex", justifyContent:"center", padding:"14px 0" }}>
                       <div style={{ width:22, height:22, border:`3px solid ${BORDER}`, borderTop:`3px solid #003087`, borderRadius:"50%", animation:"spin .8s linear infinite" }} />
                     </div>
                   )}
-                </div>
-                <div style={{ fontSize:12, color:MUTED, textAlign:"center", marginTop:10 }}>
-                  🔒 Secured by PayPal · Credit/Debit Cards accepted
+                  {/* SDK-owned container — always empty from React's perspective */}
+                  <div ref={ppContainerRef} style={{ width:"100%", minHeight: ppRendered ? 52 : 0 }} />
+                  {ppRendered && (
+                    <div style={{ fontSize:12, color:MUTED, textAlign:"center", marginTop:8 }}>
+                      🔒 Secured by PayPal · Credit &amp; debit cards accepted
+                    </div>
+                  )}
                 </div>
               </>
             )}
