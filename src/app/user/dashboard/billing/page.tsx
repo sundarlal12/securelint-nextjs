@@ -6,6 +6,7 @@ import { BillingStepCtx } from "./billing-step-ctx";
 const API_BASE    = process.env.NEXT_PUBLIC_API_BASE         || "https://securelint-api.vercel.app";
 const RZP_KEY_ID  = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID  || "";
 const PAYPAL_CID  = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "sb";
+const GPAY_MID    = process.env.NEXT_PUBLIC_GPAY_MERCHANT_ID || "";
 
 declare global {
   interface Window {
@@ -421,7 +422,7 @@ export default function BillingPage() {
         apiVersion: 2, apiVersionMinor: 0,
         allowedPaymentMethods,
         transactionInfo: { totalPriceStatus:"FINAL", totalPrice:usdAmount, currencyCode:"USD", countryCode:"US" },
-        merchantInfo: { merchantName:"SecureLint", merchantId:"BCR2DN4T5TMFFLKP" },
+        merchantInfo: { merchantName:"SecureLint", merchantId: GPAY_MID },
       };
 
       const button = paymentsClient.createButton({
