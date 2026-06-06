@@ -110,9 +110,9 @@ export function SiteJsonLd() {
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: "4.8",
-      reviewCount: "320",
+      reviewCount: "0",
       bestRating: "5",
-      worstRating: "1",
+      worstRating: "0",
     },
     offers: [
       {
