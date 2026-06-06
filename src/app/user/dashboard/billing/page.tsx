@@ -875,10 +875,6 @@ export default function BillingPage() {
                 {/* ── PayU panel ── */}
                 {intlTab === "payu" && (
                   <div>
-                    <div style={{ background:"#fff7f0", border:"1px solid #ffe0c0", borderRadius:10, padding:"14px 16px", marginBottom:16, fontSize:13, color:"#7a3a00", display:"flex", gap:10, alignItems:"flex-start" }}>
-                      <span style={{ fontSize:16 }}>ℹ️</span>
-                      <span>You will be redirected to PayU&apos;s secure checkout to complete payment. Return here once done.</span>
-                    </div>
                     <button
                       onClick={handlePayU}
                       disabled={payuLoading || !!success}
