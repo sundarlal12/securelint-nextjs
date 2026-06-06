@@ -214,10 +214,11 @@ export default function BillingPage() {
   const [success,      setSuccess]     = useState("");
   const [pricing,      setPricing]     = useState<PricingRow[]>([]);
   const [priceLoad,    setPriceLoad]   = useState(true);
-  const [ppRendered,   setPpRendered]  = useState(false);
-  const [gpayRendered, setGpayRendered] = useState(false);
+  const [ppRendered,    setPpRendered]   = useState(false);
+  const [gpayRendered,  setGpayRendered]  = useState(false);
   const [gpayAvailable, setGpayAvailable] = useState(true);
-  const [intlTab,      setIntlTab]     = useState<"googlepay"|"paypal">("paypal");
+  const [payuLoading,   setPayuLoading]   = useState(false);
+  const [intlTab,       setIntlTab]      = useState<"googlepay"|"paypal"|"payu">("paypal");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ppInstanceRef  = useRef<any>(null);
   const ppContainerRef = useRef<HTMLDivElement>(null);
@@ -459,6 +460,26 @@ export default function BillingPage() {
       setGpayRendered(true);
     } catch { setGpayAvailable(false); }
   }, [gpayRendered, sel, planId, planName, period, country, router]);
+
+  // ── PayU redirect handler ─────────────────────────────────────────────────
+  const handlePayU = useCallback(async () => {
+    if (!sel || !fullName.trim()) { setError("Please enter your full name."); return; }
+    setPayuLoading(true); setError("");
+    try {
+      const token = localStorage.getItem("user_token") || "";
+      const res = await fetch(`${API_BASE}/api/payment/payu-create-order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ plan_id: planId, billing_period: period, full_name: fullName, country }),
+      }).catch(() => null);
+      const data = res ? await res.json().catch(() => ({})) : {};
+      if (data?.error === 1) { setError(data.message || "Could not initiate PayU payment."); return; }
+      // Redirect to PayU hosted checkout
+      if (data?.redirect_url) { window.location.href = data.redirect_url; }
+      else { setError("PayU did not return a payment URL. Please try again."); }
+    } catch { setError("Failed to start PayU payment. Please try again."); }
+    finally { setPayuLoading(false); }
+  }, [sel, planId, period, fullName, country]);
 
   // Auto-render active tab's button when entering pay step (non-India)
   useEffect(() => {
@@ -709,7 +730,7 @@ export default function BillingPage() {
             {!isIndia && (
               <>
                 {/* Tab switcher — always on top */}
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", background:"#f3f4f6", borderRadius:12, padding:4, gap:4, marginBottom:20 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", background:"#f3f4f6", borderRadius:12, padding:4, gap:4, marginBottom:20 }}>
                   {/* Google Pay tab */}
                   <button
                     onClick={() => {
@@ -719,15 +740,15 @@ export default function BillingPage() {
                       }
                     }}
                     style={{
-                      padding:"12px 10px", border:"none", cursor:"pointer", borderRadius:9,
+                      padding:"12px 8px", border:"none", cursor:"pointer", borderRadius:9,
                       background: intlTab==="googlepay" ? "#fff" : "transparent",
                       boxShadow: intlTab==="googlepay" ? `0 0 0 2px ${G}, 0 1px 4px rgba(0,0,0,.08)` : "none",
                       transition:"all .15s",
-                      display:"flex", alignItems:"center", justifyContent:"center", gap:7,
-                      opacity: intlTab==="googlepay" ? 1 : 0.55,
+                      display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+                      opacity: intlTab==="googlepay" ? 1 : 0.5,
                     }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/icons/gpay.webp" alt="Google Pay" style={{ height:24, objectFit:"contain" }} />
+                    <img src="/icons/gpay.webp" alt="Google Pay" style={{ height:22, objectFit:"contain" }} />
                   </button>
 
                   {/* PayPal tab */}
@@ -740,15 +761,33 @@ export default function BillingPage() {
                       }
                     }}
                     style={{
-                      padding:"12px 10px", border:"none", cursor:"pointer", borderRadius:9,
+                      padding:"12px 8px", border:"none", cursor:"pointer", borderRadius:9,
                       background: intlTab==="paypal" ? "#fff" : "transparent",
                       boxShadow: intlTab==="paypal" ? `0 0 0 2px ${G}, 0 1px 4px rgba(0,0,0,.08)` : "none",
                       transition:"all .15s",
-                      display:"flex", alignItems:"center", justifyContent:"center", gap:7,
-                      opacity: intlTab==="paypal" ? 1 : 0.55,
+                      display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+                      opacity: intlTab==="paypal" ? 1 : 0.5,
                     }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/icons/paypal.svg" alt="PayPal" style={{ height:22, objectFit:"contain" }} />
+                    <img src="/icons/paypal.svg" alt="PayPal" style={{ height:20, objectFit:"contain" }} />
+                  </button>
+
+                  {/* PayU tab */}
+                  <button
+                    onClick={() => { if (intlTab !== "payu") setIntlTab("payu"); }}
+                    style={{
+                      padding:"12px 8px", border:"none", cursor:"pointer", borderRadius:9,
+                      background: intlTab==="payu" ? "#fff" : "transparent",
+                      boxShadow: intlTab==="payu" ? `0 0 0 2px ${G}, 0 1px 4px rgba(0,0,0,.08)` : "none",
+                      transition:"all .15s",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      opacity: intlTab==="payu" ? 1 : 0.5,
+                    }}>
+                    {/* PayU wordmark */}
+                    <svg width="48" height="18" viewBox="0 0 120 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <text x="0" y="28" fontFamily="Arial,sans-serif" fontWeight="800" fontSize="30" fill={intlTab==="payu" ? "#FF6B00" : "#9ca3af"}>Pay</text>
+                      <text x="56" y="28" fontFamily="Arial,sans-serif" fontWeight="800" fontSize="30" fill={intlTab==="payu" ? "#1A1A2E" : "#9ca3af"}>U</text>
+                    </svg>
                   </button>
                 </div>
 
@@ -819,6 +858,36 @@ export default function BillingPage() {
                     </div>
                   )}
                 </div>
+
+                {/* ── PayU panel ── */}
+                {intlTab === "payu" && (
+                  <div>
+                    <div style={{ background:"#fff7f0", border:"1px solid #ffe0c0", borderRadius:10, padding:"14px 16px", marginBottom:16, fontSize:13, color:"#7a3a00", display:"flex", gap:10, alignItems:"flex-start" }}>
+                      <span style={{ fontSize:16 }}>ℹ️</span>
+                      <span>You will be redirected to PayU&apos;s secure checkout to complete payment. Return here once done.</span>
+                    </div>
+                    <button
+                      onClick={handlePayU}
+                      disabled={payuLoading || !!success}
+                      style={{
+                        width:"100%", padding:"15px", borderRadius:10,
+                        background: payuLoading || success ? "#ffd4a0" : "#FF6B00",
+                        color:"#fff", fontSize:16, fontWeight:800, border:"none",
+                        cursor: payuLoading || success ? "not-allowed" : "pointer",
+                        display:"flex", alignItems:"center", justifyContent:"center", gap:10,
+                        letterSpacing:"-0.2px", transition:"background .15s",
+                      }}
+                      onMouseEnter={e => { if (!payuLoading && !success) e.currentTarget.style.background="#e05a00"; }}
+                      onMouseLeave={e => { if (!payuLoading && !success) e.currentTarget.style.background="#FF6B00"; }}>
+                      {payuLoading
+                        ? <><div style={{ width:18, height:18, border:"2px solid #ffffff50", borderTop:"2px solid #fff", borderRadius:"50%", animation:"spin .8s linear infinite" }} />Redirecting to PayU…</>
+                        : <>Pay ${sel ? (sel.total_price / 83).toFixed(2) : "—"} USD with PayU</>}
+                    </button>
+                    <div style={{ fontSize:12, color:MUTED, textAlign:"center", marginTop:8 }}>
+                      🔒 Secured by PayU · Visa, Mastercard &amp; more accepted
+                    </div>
+                  </div>
+                )}
               </>
             )}
 
