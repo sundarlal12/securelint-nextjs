@@ -462,6 +462,8 @@ export default function BillingPage() {
   }, [gpayRendered, sel, planId, planName, period, country, router]);
 
   // ── PayU redirect handler ─────────────────────────────────────────────────
+  // PayU requires a POST form submission (not GET redirect).
+  // We build a hidden form, append it to the DOM, and auto-submit it.
   const handlePayU = useCallback(async () => {
     if (!sel || !fullName.trim()) { setError("Please enter your full name."); return; }
     setPayuLoading(true); setError("");
@@ -474,11 +476,22 @@ export default function BillingPage() {
       }).catch(() => null);
       const data = res ? await res.json().catch(() => ({})) : {};
       if (data?.error === 1) { setError(data.message || "Could not initiate PayU payment."); return; }
-      // Redirect to PayU hosted checkout
-      if (data?.redirect_url) { window.location.href = data.redirect_url; }
-      else { setError("PayU did not return a payment URL. Please try again."); }
-    } catch { setError("Failed to start PayU payment. Please try again."); }
-    finally { setPayuLoading(false); }
+      if (!data?.action_url || !data?.params) {
+        setError("PayU did not return payment details. Please try again."); return;
+      }
+      // Build and auto-submit a hidden POST form to PayU
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = data.action_url;
+      Object.entries(data.params as Record<string, string>).forEach(([k, v]) => {
+        const inp = document.createElement("input");
+        inp.type = "hidden"; inp.name = k; inp.value = v;
+        form.appendChild(inp);
+      });
+      document.body.appendChild(form);
+      form.submit();
+    } catch { setError("Failed to start PayU payment. Please try again."); setPayuLoading(false); }
+    // Note: don't call setPayuLoading(false) on success — page is navigating away
   }, [sel, planId, period, fullName, country]);
 
   // Auto-render active tab's button when entering pay step (non-India)
