@@ -894,7 +894,7 @@ export default function BillingPage() {
                       onMouseLeave={e => { if (!payuLoading && !success) e.currentTarget.style.background="#FF6B00"; }}>
                       {payuLoading
                         ? <><div style={{ width:18, height:18, border:"2px solid #ffffff50", borderTop:"2px solid #fff", borderRadius:"50%", animation:"spin .8s linear infinite" }} />Redirecting to PayU…</>
-                        : <>Pay ${sel ? (sel.total_price / 83).toFixed(2) : "—"} USD with PayU</>}
+                        : <>Pay ₹{sel ? sel.total_price.toLocaleString("en-IN") : "—"} with PayU</>}
                     </button>
                     <div style={{ fontSize:12, color:MUTED, textAlign:"center", marginTop:8 }}>
                       🔒 Secured by PayU · Visa, Mastercard &amp; more accepted
