@@ -76,6 +76,16 @@ export const metadata: Metadata = {
   creator: "VAPTLabs",
   publisher: "VAPTLabs",
   category: "Security",
+  classification: "Browser Security Extension",
+  referrer: "origin-when-cross-origin",
+  other: {
+    "geo.region": "IN",
+    "geo.placename": "India",
+    "content-language": "en-IN",
+    "rating": "general",
+    "revisit-after": "7 days",
+    "og:locale:alternate": "en_US",
+  },
   robots: {
     index: true,
     follow: true,
@@ -87,7 +97,13 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  alternates: { canonical: "https://securelint.in" },
+  alternates: {
+    canonical: "https://securelint.in",
+    languages: {
+      "en-IN": "https://securelint.in",
+      "en-US": "https://securelint.in",
+    },
+  },
   icons: {
     icon: [
       { url: "/icons/icon-48.png", sizes: "48x48", type: "image/png" },
@@ -110,7 +126,7 @@ export const metadata: Metadata = {
         alt: "SecureLint – Real-Time Browser Security: API Key Masking, Phishing Detection & VAPT",
       },
     ],
-    locale: "en_US",
+    locale: "en_IN",
   },
   twitter: {
     card: "summary_large_image",
