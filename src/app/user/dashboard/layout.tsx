@@ -84,7 +84,7 @@ function AvatarDropdown({
   const iconStyle: React.CSSProperties = { flexShrink: 0, color: MUTED };
 
   return (
-    <div ref={ref} style={{
+    <div ref={ref} className="ud-avatar-dropdown" style={{
       position:"fixed", bottom:20, left:168,
       width:272, background:"#fff", borderRadius:10, border:`1px solid ${BORDER}`,
       boxShadow:"0 4px 20px rgba(0,0,0,.14), 0 2px 8px rgba(0,0,0,.07)",
@@ -148,6 +148,7 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
   const [showFeedback, setShowFeedback] = useState(false);
   const [checked,      setChecked]      = useState(false);
   const [billingStep,  setBillingStep]  = useState<"choose"|"pay">("choose");
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("user_token");
@@ -190,46 +191,49 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
     return (
       <BillingStepCtx.Provider value={{ step: billingStep, setStep: setBillingStep }}>
         <div style={{ minHeight:"100vh", background:"radial-gradient(circle at 8% 15%, rgba(45,212,191,.12) 0%, rgba(11,163,127,.06) 40%, #fff 80%)", fontFamily:"system-ui,-apple-system,sans-serif" }}>
-          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+          <style>{`
+            @keyframes spin{to{transform:rotate(360deg)}}
+            .billing-header-email { display: flex; }
+            @media (max-width: 600px) {
+              .billing-header { padding: 0 16px !important; }
+              .billing-header-stepper { font-size: 12px !important; gap: 4px !important; }
+              .billing-header-email { display: none !important; }
+              .billing-main { padding: 28px 16px 80px !important; }
+            }
+          `}</style>
           <div style={{ position:"fixed", top:-120, left:-120, width:500, height:500, borderRadius:"50%", background:"rgba(45,212,191,.08)", filter:"blur(60px)", pointerEvents:"none", zIndex:0 }} />
           <div style={{ position:"fixed", bottom:-100, right:-100, width:400, height:400, borderRadius:"50%", background:"rgba(11,163,127,.07)", filter:"blur(60px)", pointerEvents:"none", zIndex:0 }} />
 
-          {/* ── Billing header: 3-column grid so stepper is truly centred ── */}
-          <header style={{ position:"sticky", top:0, zIndex:50, background:"rgba(255,255,255,.95)", backdropFilter:"blur(12px)", borderBottom:`1px solid ${BORDER}`, display:"grid", gridTemplateColumns:"1fr auto 1fr", alignItems:"center", padding:"0 48px", height:64 }}>
+          {/* ── Billing header ── */}
+          <header className="billing-header" style={{ position:"sticky", top:0, zIndex:50, background:"rgba(255,255,255,.95)", backdropFilter:"blur(12px)", borderBottom:`1px solid ${BORDER}`, display:"grid", gridTemplateColumns:"1fr auto 1fr", alignItems:"center", padding:"0 48px", height:64 }}>
             {/* Left — logo */}
             <Link href="/user/dashboard" style={{ display:"flex", alignItems:"center", gap:10, textDecoration:"none" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.svg" alt="SecureLint" style={{ width:36, height:36, objectFit:"contain" }} />
-              <span style={{ fontSize:17, fontWeight:700, color:TEXT, letterSpacing:"-0.4px" }}>SecureLint</span>
+              <img src="/logo.svg" alt="SecureLint" style={{ width:32, height:32, objectFit:"contain" }} />
+              <span style={{ fontSize:16, fontWeight:700, color:TEXT, letterSpacing:"-0.4px" }}>SecureLint</span>
             </Link>
 
             {/* Center — step indicator */}
-            <nav style={{ display:"flex", alignItems:"center", gap:6, fontSize:14, fontWeight:500 }}>
-              <span style={{
-                color: billingStep==="choose" ? G : MUTED,
-                fontWeight: billingStep==="choose" ? 700 : 500,
-              }}>
+            <nav className="billing-header-stepper" style={{ display:"flex", alignItems:"center", gap:6, fontSize:14, fontWeight:500 }}>
+              <span style={{ color: billingStep==="choose" ? G : MUTED, fontWeight: billingStep==="choose" ? 700 : 500 }}>
                 1. Choose billing
               </span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path d="M9 18l6-6-6-6" stroke="#d1d5db" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <span style={{
-                color: billingStep==="pay" ? G : MUTED,
-                fontWeight: billingStep==="pay" ? 700 : 500,
-              }}>
-                2. Review and purchase
+              <span style={{ color: billingStep==="pay" ? G : MUTED, fontWeight: billingStep==="pay" ? 700 : 500 }}>
+                2. Review &amp; purchase
               </span>
             </nav>
 
-            {/* Right — email */}
-            <div style={{ display:"flex", alignItems:"center", gap:8, justifySelf:"end" }}>
+            {/* Right — email (hidden on mobile) */}
+            <div className="billing-header-email" style={{ alignItems:"center", gap:8, justifySelf:"end" }}>
               <div style={{ width:7, height:7, borderRadius:"50%", background:"#22c55e" }} />
               <span style={{ fontSize:13, color:MUTED, fontWeight:500 }}>{email}</span>
             </div>
           </header>
 
-          <main style={{ position:"relative", zIndex:1, maxWidth:920, margin:"0 auto", padding:"56px 32px 100px" }}>
+          <main className="billing-main" style={{ position:"relative", zIndex:1, maxWidth:920, margin:"0 auto", padding:"56px 32px 100px" }}>
             {children}
           </main>
           <ToastContainer />
@@ -247,10 +251,40 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
         .ud-nav-item:hover .ud-nav-icon-bg { background: #f3f4f6; }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
+
+        /* ── Mobile layout ── */
+        .ud-sidebar-overlay {
+          display: none;
+          position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 39;
+        }
+        @media (max-width: 768px) {
+          .ud-sidebar {
+            transform: translateX(-100%);
+            transition: transform .25s ease;
+            box-shadow: 4px 0 24px rgba(0,0,0,.12);
+          }
+          .ud-sidebar.open {
+            transform: translateX(0);
+          }
+          .ud-sidebar-overlay.open { display: block; }
+          .ud-mobile-header { display: flex !important; }
+          .ud-main { margin-left: 0 !important; padding: 72px 16px 80px !important; }
+          .ud-avatar-dropdown { left: 16px !important; bottom: 16px !important; width: calc(100vw - 32px) !important; }
+        }
+        @media (min-width: 769px) {
+          .ud-mobile-header { display: none !important; }
+          .ud-sidebar { transform: translateX(0) !important; }
+        }
       `}</style>
 
+      {/* ── Mobile overlay (tap to close sidebar) ── */}
+      <div
+        className={`ud-sidebar-overlay${mobileSidebarOpen ? " open" : ""}`}
+        onClick={() => setMobileSidebarOpen(false)}
+      />
+
       {/* ── Left sidebar ── */}
-      <aside style={{
+      <aside className={`ud-sidebar${mobileSidebarOpen ? " open" : ""}`} style={{
         width: SIDEBAR_W, background:"#fff", borderRight:`1px solid ${BORDER}`,
         display:"flex", flexDirection:"column", alignItems:"center",
         position:"fixed", top:0, left:0, height:"100vh", zIndex:40, overflow:"visible",
@@ -258,7 +292,7 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
 
         {/* Logo header */}
         <div style={{ width:"100%", padding:"20px 18px 16px", display:"flex", alignItems:"center", gap:10, borderBottom:`1px solid ${BORDER}` }}>
-          <Link href="/" style={{ display:"flex", alignItems:"center", gap:9, textDecoration:"none" }}>
+          <Link href="/" style={{ display:"flex", alignItems:"center", gap:9, textDecoration:"none" }} onClick={() => setMobileSidebarOpen(false)}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.svg" alt="SecureLint" style={{ width:34, height:34, objectFit:"contain", flexShrink:0 }} />
             <span style={{ fontSize:15, fontWeight:700, color:TEXT, letterSpacing:"-0.3px", lineHeight:1 }}>SecureLint</span>
@@ -271,6 +305,7 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
             const active = pathname === n.href;
             return (
               <Link key={n.href} href={n.href} className="ud-nav-item"
+                onClick={() => setMobileSidebarOpen(false)}
                 style={{ width:"100%", display:"flex", flexDirection:"column", alignItems:"center", padding:"10px 8px 8px", textDecoration:"none", gap:5, borderRadius:10 }}>
                 <div className="ud-nav-icon-bg" style={{
                   width:48, height:48, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center",
@@ -289,6 +324,7 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
           {/* Upgrade / Pro CTA */}
           {(planId === "free" || planId === "basic") && (
             <Link href="/user/dashboard/subscription" className="ud-nav-item"
+              onClick={() => setMobileSidebarOpen(false)}
               style={{ width:"100%", display:"flex", flexDirection:"column", alignItems:"center", padding:"10px 8px 8px", textDecoration:"none", gap:5, borderRadius:10, marginTop:8 }}>
               <div className="ud-nav-icon-bg" style={{ width:48, height:48, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", background:"transparent", transition:"background .15s" }}>
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
@@ -326,8 +362,43 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
         </div>
       </aside>
 
+      {/* ── Mobile top bar (hidden on desktop) ── */}
+      <header className="ud-mobile-header" style={{
+        display:"none", position:"fixed", top:0, left:0, right:0, height:56,
+        background:"#fff", borderBottom:`1px solid ${BORDER}`, zIndex:38,
+        alignItems:"center", justifyContent:"space-between", padding:"0 16px",
+      }}>
+        {/* Hamburger */}
+        <button onClick={() => setMobileSidebarOpen(true)}
+          style={{ background:"none", border:"none", cursor:"pointer", padding:6, display:"flex", flexDirection:"column", gap:5 }}>
+          <span style={{ display:"block", width:22, height:2, background:TEXT, borderRadius:2 }} />
+          <span style={{ display:"block", width:22, height:2, background:TEXT, borderRadius:2 }} />
+          <span style={{ display:"block", width:22, height:2, background:TEXT, borderRadius:2 }} />
+        </button>
+        {/* Logo */}
+        <Link href="/" style={{ display:"flex", alignItems:"center", gap:8, textDecoration:"none" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.svg" alt="SecureLint" style={{ width:28, height:28, objectFit:"contain" }} />
+          <span style={{ fontSize:15, fontWeight:700, color:TEXT, letterSpacing:"-0.3px" }}>SecureLint</span>
+        </Link>
+        {/* Avatar */}
+        <button onClick={() => setShowMenu(!showMenu)}
+          style={{ width:36, height:36, borderRadius:"50%", background:"#1e3a8a", border:"none", color:"#fff", fontSize:14, fontWeight:800, cursor:"pointer" }}>
+          {avatar}
+        </button>
+        {showMenu && (
+          <AvatarDropdown
+            email={email}
+            onClose={() => setShowMenu(false)}
+            onAccount={() => { setShowMenu(false); router.push("/user/dashboard"); }}
+            onFeedback={() => setShowFeedback(true)}
+            onSignOut={() => { clearUserCache(); router.replace("/"); }}
+          />
+        )}
+      </header>
+
       {/* ── Main content ── */}
-      <main style={{ marginLeft: SIDEBAR_W, flex:1, padding:"44px 52px", minHeight:"100vh" }}>
+      <main className="ud-main" style={{ marginLeft: SIDEBAR_W, flex:1, padding:"44px 52px", minHeight:"100vh", paddingTop: 44 }}>
         {children}
       </main>
 

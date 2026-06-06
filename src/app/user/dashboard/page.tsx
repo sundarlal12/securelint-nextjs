@@ -110,9 +110,17 @@ export default function ProfilePage() {
   const isActive = profile?.plan_status === "active";
 
   return (
-    <div style={{ maxWidth: 640 }}>
+    <div style={{ maxWidth: 640, paddingTop: 0 }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .ud-profile-wrap { padding-top: 64px !important; }
+          .ud-profile-name-row { flex-wrap: wrap !important; }
+          .ud-profile-name-input { width: 100% !important; max-width: 100% !important; }
+          .ud-plan-card { flex-direction: column !important; gap: 12px !important; align-items: flex-start !important; }
+        }
+      `}</style>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 36 }}>
+      <div className="ud-profile-wrap" style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 36, paddingTop: 0 }}>
         <h1 style={{ fontSize: 28, fontWeight: 800, color: TEXT, margin: 0, letterSpacing: "-0.5px" }}>Profile</h1>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ color: "#d1d5db" }}>
           <path d="M5 5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16l-7-3.5L5 21V5z" stroke="#d1d5db" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -125,8 +133,9 @@ export default function ProfilePage() {
         {/* Name */}
         <FieldRow label="Name">
           {editing ? (
-            <div style={{ display:"flex", alignItems:"center", gap:10, marginTop:2 }}>
+            <div className="ud-profile-name-row" style={{ display:"flex", alignItems:"center", gap:10, marginTop:2 }}>
               <input value={newName} onChange={e => setNewName(e.target.value)}
+                className="ud-profile-name-input"
                 style={{ padding:"8px 12px", borderRadius:8, border:`1px solid ${BORDER}`, fontSize:15, color:TEXT, outline:"none", width:220, background:"#f9fafb" }}
                 autoFocus />
               <button onClick={saveName} disabled={saving}
@@ -176,7 +185,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Current plan */}
-      <div style={{ marginTop:32, padding:"16px 20px", borderRadius:12, background: isActive ? "#f0fdf4" : "#fffbeb", border:`1px solid ${isActive ? "#86efac" : "#fde68a"}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+      <div className="ud-plan-card" style={{ marginTop:32, padding:"16px 20px", borderRadius:12, background: isActive ? "#f0fdf4" : "#fffbeb", border:`1px solid ${isActive ? "#86efac" : "#fde68a"}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <div>
           <div style={{ fontSize:13, color:MUTED, marginBottom:4 }}>Current Plan</div>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
