@@ -115,16 +115,7 @@ export function SiteJsonLd() {
       worstRating: "0",
     },
     offers: [
-      {
-        "@type": "Offer",
-        name: "Free",
-        description:
-          "Basic secret detection, phishing alerts, and SSL checks — free forever. Install from the Chrome Web Store.",
-        price: "0",
-        priceCurrency: "INR",
-        availability: "https://schema.org/InStock",
-        url: "https://securelint.in/#pricing",
-      },
+      
       {
         "@type": "Offer",
         name: "Pro",
@@ -260,7 +251,7 @@ export function SiteJsonLd() {
         name: "Is SecureLint free to use?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "SecureLint has a free tier with core secret detection, phishing alerts, and SSL checks — available forever at no cost. The Pro plan unlocks advanced detection, custom masking, reports, and priority support. The Enterprise plan adds full DLP, email blocking, admin dashboard, and SLA-backed support for security teams.",
+          text: "SecureLint is a paid product with Pro and Enterprise plans. The Pro plan is designed for individual developers and security professionals, while Enterprise is built for IT and security teams needing full DLP, admin dashboard, and SLA-backed support. Both plans can be activated instantly from securelint.in.",
         },
       },
       {
@@ -387,8 +378,8 @@ export function SiteJsonLd() {
       {
         "@type": "HowToStep",
         position: 5,
-        name: "Upgrade to Pro or Enterprise (optional)",
-        text: "For advanced custom masking policies, detailed incident reports, export capabilities, and enterprise email DLP, upgrade to Pro or Enterprise from your SecureLint dashboard at securelint.in/user/dashboard.",
+        name: "Choose a plan and activate",
+        text: "SecureLint requires a Pro or Enterprise subscription. Choose your plan at securelint.in/#pricing, complete payment via Razorpay (India) or PayPal/Google Pay (international), and your plan activates instantly.",
         url: "https://securelint.in/#pricing",
       },
     ],
