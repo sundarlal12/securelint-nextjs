@@ -336,8 +336,8 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
           )}
         </nav>
 
-        {/* Avatar + dropdown at bottom */}
-        <div style={{ marginTop:"auto", padding:"16px 0 20px", position:"relative", width:"100%", display:"flex", flexDirection:"column", alignItems:"center" }}>
+        {/* Avatar button at bottom (dropdown rendered at layout root) */}
+        <div style={{ marginTop:"auto", padding:"16px 0 20px", width:"100%", display:"flex", flexDirection:"column", alignItems:"center" }}>
           <button onClick={() => setShowMenu(!showMenu)}
             style={{
               width:44, height:44, borderRadius:"50%", background:"#1e3a8a",
@@ -347,18 +347,6 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
             }}>
             {avatar}
           </button>
-          {showMenu && (
-            <AvatarDropdown
-              email={email}
-              onClose={() => setShowMenu(false)}
-              onAccount={() => { setShowMenu(false); router.push("/user/dashboard"); }}
-              onFeedback={() => setShowFeedback(true)}
-              onSignOut={() => {
-                clearUserCache();
-                router.replace("/");
-              }}
-            />
-          )}
         </div>
       </aside>
 
@@ -381,26 +369,28 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
           <img src="/logo.svg" alt="SecureLint" style={{ width:28, height:28, objectFit:"contain" }} />
           <span style={{ fontSize:15, fontWeight:700, color:TEXT, letterSpacing:"-0.3px" }}>SecureLint</span>
         </Link>
-        {/* Avatar */}
+        {/* Avatar button (dropdown rendered at layout root) */}
         <button onClick={() => setShowMenu(!showMenu)}
           style={{ width:36, height:36, borderRadius:"50%", background:"#1e3a8a", border:"none", color:"#fff", fontSize:14, fontWeight:800, cursor:"pointer" }}>
           {avatar}
         </button>
-        {showMenu && (
-          <AvatarDropdown
-            email={email}
-            onClose={() => setShowMenu(false)}
-            onAccount={() => { setShowMenu(false); router.push("/user/dashboard"); }}
-            onFeedback={() => setShowFeedback(true)}
-            onSignOut={() => { clearUserCache(); router.replace("/"); }}
-          />
-        )}
       </header>
 
       {/* ── Main content ── */}
       <main className="ud-main" style={{ marginLeft: SIDEBAR_W, flex:1, padding:"44px 52px", minHeight:"100vh", paddingTop: 44 }}>
         {children}
       </main>
+
+      {/* ── Single avatar dropdown (one instance, avoids duplicate mousedown listeners) ── */}
+      {showMenu && (
+        <AvatarDropdown
+          email={email}
+          onClose={() => setShowMenu(false)}
+          onAccount={() => { setShowMenu(false); router.push("/user/dashboard"); }}
+          onFeedback={() => { setShowMenu(false); setShowFeedback(true); }}
+          onSignOut={() => { clearUserCache(); router.replace("/"); }}
+        />
+      )}
 
       {/* ── Feedback modal ── */}
       {showFeedback && (
