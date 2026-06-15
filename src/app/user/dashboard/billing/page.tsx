@@ -469,7 +469,8 @@ export default function BillingPage() {
   const handlePayU = useCallback(async () => {
     if (!sel || !fullName.trim()) { setError("Please enter your full name."); return; }
     const phoneDigits = payuPhone.replace(/\D/g, "");
-    if (phoneDigits.length < 8) { setError("Please enter a valid phone number for PayU."); return; }
+    if (phoneDigits.length < 10) { setError("Please enter a valid 10-digit phone number for PayU."); return; }
+    if (payuLoading) return;
     setPayuLoading(true); setError("");
     try {
       const token = localStorage.getItem("user_token") || "";
@@ -479,9 +480,9 @@ export default function BillingPage() {
         body: JSON.stringify({ plan_id: planId, billing_period: period, full_name: fullName, country, phone: phoneDigits }),
       }).catch(() => null);
       const data = res ? await res.json().catch(() => ({})) : {};
-      if (data?.error === 1) { setError(data.message || "Could not initiate PayU payment."); return; }
+      if (data?.error === 1) { setError(data.message || "Could not initiate PayU payment."); setPayuLoading(false); return; }
       if (!data?.action_url || !data?.params) {
-        setError("PayU did not return payment details. Please try again."); return;
+        setError("PayU did not return payment details. Please try again."); setPayuLoading(false); return;
       }
       // Build and auto-submit a hidden POST form to PayU
       const form = document.createElement("form");
@@ -496,7 +497,7 @@ export default function BillingPage() {
       form.submit();
     } catch { setError("Failed to start PayU payment. Please try again."); setPayuLoading(false); }
     // Note: don't call setPayuLoading(false) on success — page is navigating away
-  }, [sel, planId, period, fullName, country, payuPhone]);
+  }, [sel, planId, period, fullName, country, payuPhone, payuLoading]);
 
   // Auto-render active tab's button when entering pay step (non-India)
   useEffect(() => {
