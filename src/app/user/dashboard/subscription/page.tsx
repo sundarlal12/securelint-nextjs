@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getCachedProfile, getCachedPlans, revalidateProfile, revalidatePlans } from "@/lib/userCache";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://securelint-api.vercel.app";
@@ -63,10 +63,12 @@ function CheckIcon() {
 
 export default function SubscriptionPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [plans,        setPlans]        = useState<Plan[]>([]);
   const [currentPlan,  setCurrentPlan]  = useState("free");
   const [planStatus,   setPlanStatus]   = useState("pending");
   const [loading,      setLoading]      = useState(true);
+  const [payuNotice,   setPayuNotice]   = useState("");
 
   // Suppress unused warning — API_BASE kept for future direct calls
   void API_BASE;
@@ -86,29 +88,54 @@ export default function SubscriptionPage() {
   }
 
   useEffect(() => {
-    const token = localStorage.getItem("user_token");
-    if (!token) return;
+    const authToken = localStorage.getItem("user_token");
+    if (!authToken) return;
 
-    // ── 1. Show cached data instantly ──
-    const cachedProfile = getCachedProfile();
-    const cachedPlans   = getCachedPlans();
-    if (cachedProfile && cachedPlans.length) {
-      applyData(cachedPlans, cachedProfile.plan?.id || "free", cachedProfile.plan_status || "pending");
-      setLoading(false);
-    }
+    const payuResult = searchParams.get("payu");
+    const payuTxnid  = searchParams.get("txnid") || "";
+    const payuPlanId = searchParams.get("plan_id") || "";
 
-    // ── 2. Revalidate silently in background ──
-    Promise.all([
-      revalidatePlans(),
-      revalidateProfile(token),
-    ]).then(([freshPlans, freshProfile]) => {
+    async function loadProfile() {
+      const cachedProfile = getCachedProfile();
+      const cachedPlans   = getCachedPlans();
+      if (cachedProfile && cachedPlans.length) {
+        applyData(cachedPlans, cachedProfile.plan?.id || "free", cachedProfile.plan_status || "pending");
+        setLoading(false);
+      }
+
+      if (payuResult === "success" && payuTxnid) {
+        await fetch(`${API_BASE}/api/payment/payu-verify`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+          body: JSON.stringify({ txnid: payuTxnid, status: "success" }),
+        }).catch(() => null);
+      }
+
+      const [freshPlans, freshProfile] = await Promise.all([
+        revalidatePlans(),
+        revalidateProfile(authToken),
+      ]);
+
       const plans  = freshPlans.length  ? freshPlans  : cachedPlans;
-      const planId = freshProfile?.plan?.id   || cachedProfile?.plan?.id   || "free";
+      const planId = freshProfile?.plan?.id   || payuPlanId || cachedProfile?.plan?.id   || "free";
       const status = freshProfile?.plan_status || cachedProfile?.plan_status || "pending";
       applyData(plans, planId, status);
-    }).finally(() => setLoading(false));
+
+      if (payuResult === "success") {
+        if (status === "active") {
+          setPayuNotice(`${planId.charAt(0).toUpperCase() + planId.slice(1)} plan activated successfully.`);
+          localStorage.setItem("user_plan_status", "active");
+          localStorage.setItem("user_plan_id", planId);
+        } else {
+          setPayuNotice("Payment received. Your plan is still activating — refresh in a moment if needed.");
+        }
+        router.replace("/user/dashboard/subscription");
+      }
+    }
+
+    loadProfile().finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams]);
 
   function choosePlan(plan: Plan) {
     if (!plan.price_monthly) return;
@@ -141,7 +168,13 @@ export default function SubscriptionPage() {
         See your current plan details. Choose a plan to get the full SecureLint security experience.
       </p>
 
-      {planStatus !== "active" && currentPlan !== "free" && (
+      {payuNotice && (
+        <div style={{ padding:"14px 18px", borderRadius:10, background:"#f0fdf4", border:"1px solid #86efac", fontSize:13, color:"#16a34a", marginBottom:32 }}>
+          {payuNotice}
+        </div>
+      )}
+
+      {planStatus !== "active" && currentPlan !== "free" && !payuNotice && (
         <div style={{ padding:"14px 18px", borderRadius:10, background:"#fffbeb", border:"1px solid #fde68a", fontSize:13, color:"#92400e", marginBottom:32, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <span>Your <strong>{currentPlan}</strong> plan payment is pending.</span>
           <button onClick={() => router.push("/user/dashboard/billing")}

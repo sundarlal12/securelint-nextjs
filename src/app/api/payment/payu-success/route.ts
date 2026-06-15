@@ -25,11 +25,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.redirect(location, 303);
     }
   } catch {
-    // Fall through to default redirect
+    // Backend unreachable — do not show a false success state.
   }
 
   return NextResponse.redirect(
-    `${APP_ORIGIN}/user/dashboard/subscription?payu=success`,
+    `${APP_ORIGIN}/user/dashboard/billing?payu=failed`,
     303,
   );
 }
