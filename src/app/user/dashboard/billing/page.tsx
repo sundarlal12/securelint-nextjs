@@ -218,6 +218,7 @@ export default function BillingPage() {
   const [gpayRendered,  setGpayRendered]  = useState(false);
   const [gpayAvailable, setGpayAvailable] = useState(true);
   const [payuLoading,   setPayuLoading]   = useState(false);
+  const [payuPhone,     setPayuPhone]      = useState("");
   const [intlTab,       setIntlTab]      = useState<"googlepay"|"paypal"|"payu">("paypal");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ppInstanceRef  = useRef<any>(null);
@@ -467,13 +468,15 @@ export default function BillingPage() {
   // We build a hidden form, append it to the DOM, and auto-submit it.
   const handlePayU = useCallback(async () => {
     if (!sel || !fullName.trim()) { setError("Please enter your full name."); return; }
+    const phoneDigits = payuPhone.replace(/\D/g, "");
+    if (phoneDigits.length < 8) { setError("Please enter a valid phone number for PayU."); return; }
     setPayuLoading(true); setError("");
     try {
       const token = localStorage.getItem("user_token") || "";
       const res = await fetch(`${API_BASE}/api/payment/payu-create-order`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ plan_id: planId, billing_period: period, full_name: fullName, country }),
+        body: JSON.stringify({ plan_id: planId, billing_period: period, full_name: fullName, country, phone: phoneDigits }),
       }).catch(() => null);
       const data = res ? await res.json().catch(() => ({})) : {};
       if (data?.error === 1) { setError(data.message || "Could not initiate PayU payment."); return; }
@@ -493,7 +496,7 @@ export default function BillingPage() {
       form.submit();
     } catch { setError("Failed to start PayU payment. Please try again."); setPayuLoading(false); }
     // Note: don't call setPayuLoading(false) on success — page is navigating away
-  }, [sel, planId, period, fullName, country]);
+  }, [sel, planId, period, fullName, country, payuPhone]);
 
   // Auto-render active tab's button when entering pay step (non-India)
   useEffect(() => {
@@ -876,6 +879,16 @@ export default function BillingPage() {
                 {/* ── PayU panel ── */}
                 {intlTab === "payu" && (
                   <div>
+                    <div style={{ marginBottom:18 }}>
+                      <label style={LBL}>Phone number</label>
+                      <input
+                        type="tel"
+                        value={payuPhone}
+                        onChange={e => setPayuPhone(e.target.value)}
+                        placeholder="+1 555 123 4567"
+                        style={INP}
+                      />
+                    </div>
                     <button
                       onClick={handlePayU}
                       disabled={payuLoading || !!success}
@@ -891,7 +904,7 @@ export default function BillingPage() {
                       onMouseLeave={e => { if (!payuLoading && !success) e.currentTarget.style.background="#FF6B00"; }}>
                       {payuLoading
                         ? <><div style={{ width:18, height:18, border:"2px solid #ffffff50", borderTop:"2px solid #fff", borderRadius:"50%", animation:"spin .8s linear infinite" }} />Redirecting to PayU…</>
-                        : <>Pay ${sel ? (sel.total_price / 83).toFixed(2) : "—"} USD with PayU</>}
+                        : <>Pay ₹{sel ? sel.total_price.toLocaleString("en-IN") : "—"} with PayU</>}
                     </button>
                     <div style={{ fontSize:12, color:MUTED, textAlign:"center", marginTop:8 }}>
                       🔒 Secured by PayU · Visa, Mastercard &amp; more accepted
