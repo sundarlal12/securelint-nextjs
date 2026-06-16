@@ -230,8 +230,11 @@ export default function BillingPage() {
   const [payuPhone,     setPayuPhone]      = useState("");
   const [intlTab,       setIntlTab]      = useState<"googlepay"|"paypal"|"payu">("paypal");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const ppInstanceRef  = useRef<any>(null);
-  const ppContainerRef = useRef<HTMLDivElement>(null);
+  const ppInstanceRef    = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ppCardInstanceRef = useRef<any>(null);
+  const ppContainerRef   = useRef<HTMLDivElement>(null);
+  const ppCardContainerRef = useRef<HTMLDivElement>(null);
   const gpayContainerRef = useRef<HTMLDivElement>(null);
 
   const isIndia = country === "India";
@@ -249,6 +252,10 @@ export default function BillingPage() {
         try { ppInstanceRef.current.close(); } catch { /* ignore */ }
         ppInstanceRef.current = null;
       }
+      if (ppCardInstanceRef.current) {
+        try { ppCardInstanceRef.current.close(); } catch { /* ignore */ }
+        ppCardInstanceRef.current = null;
+      }
       setPpRendered(false);
       setGpayRendered(false);
       setGpayAvailable(true);
@@ -261,6 +268,10 @@ export default function BillingPage() {
       if (ppInstanceRef.current) {
         try { ppInstanceRef.current.close(); } catch { /* ignore */ }
         ppInstanceRef.current = null;
+      }
+      if (ppCardInstanceRef.current) {
+        try { ppCardInstanceRef.current.close(); } catch { /* ignore */ }
+        ppCardInstanceRef.current = null;
       }
     };
   }, []);
@@ -373,26 +384,43 @@ export default function BillingPage() {
     onCancel: () => setError("Payment cancelled."),
   }), [planId, planName, period, country, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── PayPal tab: yellow PayPal button ──────────────────────────────────────
+  // ── PayPal tab: PayPal wallet + Debit/Credit card buttons ────────────────
   const renderPayPalButtons = useCallback(async () => {
     if (ppRendered || !sel) return;
     if (ppInstanceRef.current) {
       try { ppInstanceRef.current.close(); } catch { /* ignore */ }
       ppInstanceRef.current = null;
     }
-    const container = ppContainerRef.current;
-    if (!container) return;
+    if (ppCardInstanceRef.current) {
+      try { ppCardInstanceRef.current.close(); } catch { /* ignore */ }
+      ppCardInstanceRef.current = null;
+    }
+    const container     = ppContainerRef.current;
+    const cardContainer = ppCardContainerRef.current;
+    if (!container || !cardContainer) return;
     if (!PAYPAL_CID) { setError("PayPal is not configured. Please contact support."); return; }
     if (isIndia) return; // Panel shows its own notice — no error toast needed
     const loaded = await loadPayPal(PAYPAL_CID);
     if (!loaded || !window.paypal) { setError("Failed to load PayPal. Please try again."); return; }
-    const buttons = window.paypal.Buttons({
+
+    // PayPal wallet (yellow) button
+    const ppBtn = window.paypal.Buttons({
       fundingSource: window.paypal.FUNDING.PAYPAL,
       style: { layout:"vertical", color:"gold", shape:"rect", label:"checkout", height:50 },
       ...makePayPalConfig(),
     });
-    buttons.render(container);
-    ppInstanceRef.current = buttons;
+    if (ppBtn.isEligible()) ppBtn.render(container);
+    ppInstanceRef.current = ppBtn;
+
+    // Debit / Credit Card button (no PayPal account needed)
+    const cardBtn = window.paypal.Buttons({
+      fundingSource: window.paypal.FUNDING.CARD,
+      style: { layout:"vertical", color:"black", shape:"rect", label:"pay", height:50 },
+      ...makePayPalConfig(),
+    });
+    if (cardBtn.isEligible()) cardBtn.render(cardContainer);
+    ppCardInstanceRef.current = cardBtn;
+
     setPpRendered(true);
   }, [ppRendered, sel, makePayPalConfig, isIndia]);
 
@@ -887,17 +915,31 @@ export default function BillingPage() {
                     </div>
                   ) : (
                     <>
-                      {/* Spinner lives OUTSIDE the ref */}
+                      {/* Spinner — outside SDK-owned refs */}
                       {!ppRendered && (
                         <div style={{ display:"flex", justifyContent:"center", padding:"14px 0" }}>
                           <div style={{ width:22, height:22, border:`3px solid ${BORDER}`, borderTop:`3px solid #003087`, borderRadius:"50%", animation:"spin .8s linear infinite" }} />
                         </div>
                       )}
-                      {/* SDK-owned container — always empty from React's perspective */}
+
+                      {/* PayPal wallet button */}
                       <div ref={ppContainerRef} style={{ width:"100%", minHeight: ppRendered ? 52 : 0 }} />
+
+                      {/* Divider */}
+                      {ppRendered && (
+                        <div style={{ display:"flex", alignItems:"center", gap:10, margin:"12px 0" }}>
+                          <div style={{ flex:1, height:1, background:BORDER }} />
+                          <span style={{ fontSize:12, color:MUTED, whiteSpace:"nowrap" }}>or pay with card</span>
+                          <div style={{ flex:1, height:1, background:BORDER }} />
+                        </div>
+                      )}
+
+                      {/* Debit / Credit Card button */}
+                      <div ref={ppCardContainerRef} style={{ width:"100%", minHeight: ppRendered ? 52 : 0 }} />
+
                       {ppRendered && (
                         <div style={{ fontSize:12, color:MUTED, textAlign:"center", marginTop:8 }}>
-                          🔒 Secured by PayPal · International cards &amp; wallets accepted
+                          🔒 Secured by PayPal · Visa, Mastercard, Amex &amp; more accepted
                         </div>
                       )}
                     </>
