@@ -47,9 +47,10 @@
 .card:hover .coverImage { transform: scale(1.025); }
 .card:hover .cardLink { color: #1d4ed8; }
 
-/* ── Cover ── */
+/* ── Cover wrapper (link) ── */
 .coverWrap {
   display: block;
+  line-height: 0;          /* collapse any inline gap around the inner element */
   border-radius: 16px;
   overflow: hidden;
   outline: 1px solid rgba(14,16,26,.08);
@@ -61,17 +62,28 @@
   box-shadow: 0 8px 32px -8px rgba(14,16,26,.14);
 }
 
+/* Real image cover — <img> tag shrink-wraps perfectly */
+.coverImg {
+  display: block;
+  width: 100%;
+  height: auto;             /* height follows natural image ratio, zero extra space */
+  transition: transform .45s ease;
+}
+.card:hover .coverImg { transform: scale(1.025); }
+
+/* Gradient cover (posts without a real image) */
 .cover {
   position: relative;
-  aspect-ratio: 1200/630;
+  aspect-ratio: 16/9;
   overflow: hidden;
   display: flex;
   align-items: flex-end;
   padding: 20px 22px;
   transition: transform .45s ease;
 }
+.card:hover .cover { transform: scale(1.025); }
 
-/* decorative blurred circles (like reference illustrations) */
+/* decorative circles */
 .deco1 {
   position: absolute; border-radius: 50%;
   width: 110px; height: 110px;
@@ -84,32 +96,10 @@
   bottom: 10px; right: 30px;
   opacity: .15; filter: blur(1px);
 }
-
-.coverTextWrap {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  z-index: 1;
-}
+.coverTextWrap { display: flex; flex-direction: column; gap: 2px; z-index: 1; }
 .coverLine {
-  display: block;
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.6px;
-  line-height: 1.15;
-  color: #fff;
-}
-
-/* Real image cover — background-image always fills perfectly regardless of SVG intrinsic size */
-.coverImage {
-  display: block;
-  width: 100%;
-  aspect-ratio: 3080 / 1800; /* matches PNG pixel dimensions exactly */
-  overflow: hidden;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  transition: transform .45s ease;
+  display: block; font-size: 22px; font-weight: 800;
+  letter-spacing: -0.6px; line-height: 1.15; color: #fff;
 }
 
 /* ── Card body ── */
