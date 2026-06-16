@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
-import { POSTS } from "../page";
+import { POSTS } from "../posts-data";
 import s from "./article.module.css";
 
 /* ─── Helpers ─────────────────────────────────────────────── */
