@@ -258,8 +258,9 @@
 ============================================================= */
 .popup {
   position: absolute;
-  /* floating card — leaves email visible below */
-  top: 8px; left: 8px; right: 8px;
+  /* centred in the browser body with a slight downward shift */
+  top: 50%; left: 8px; right: 8px;
+  transform: translateY(-42%);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 6px 24px rgba(0,0,0,.2), 0 1px 4px rgba(0,0,0,.1);
@@ -269,9 +270,9 @@
 }
 
 @keyframes popupLoop {
-  0%, 40%   { opacity: 0; transform: translateY(-20px); pointer-events: none; }
-  47%, 86%  { opacity: 1; transform: translateY(0);     pointer-events: auto; }
-  92%, 100% { opacity: 0; transform: translateY(-20px); pointer-events: none; }
+  0%, 40%   { opacity: 0; transform: translateY(calc(-42% + 16px)); pointer-events: none; }
+  47%, 86%  { opacity: 1; transform: translateY(-42%);               pointer-events: auto; }
+  92%, 100% { opacity: 0; transform: translateY(calc(-42% + 16px)); pointer-events: none; }
 }
 
 /* header (dark red) */
