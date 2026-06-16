@@ -1,181 +1,709 @@
+/* =============================================================
+   Section shell
+============================================================= */
 .section {
-  background: var(--white);
+  background: #f7faf9;
 }
 
 .inner {
   max-width: 1120px;
   margin: 0 auto;
-  padding: 80px 24px;
+  padding: 96px 24px;
 }
 
-.head {
-  text-align: center;
-  margin-bottom: 48px;
-}
-
-.head h2 {
-  font-size: clamp(26px, 3.5vw, 38px);
-  font-weight: 800;
-  color: var(--ink);
-  letter-spacing: -0.8px;
-  margin-bottom: 14px;
-}
-
-.head p {
-  font-size: 16px;
-  color: var(--ink-muted);
-  max-width: 580px;
-  margin: 0 auto;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 32px;
-}
-
-@media (min-width: 860px) {
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 40px;
+@media (max-width: 640px) {
+  .inner {
+    padding: 64px 16px;
   }
 }
 
-.step {
+/* ── Header ── */
+.head {
   text-align: center;
+  max-width: 620px;
+  margin: 0 auto 64px;
 }
 
-.stepNum {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--green);
-  color: #fff;
-  font-weight: 800;
-  font-size: 17px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 24px;
+@media (max-width: 640px) {
+  .head {
+    margin-bottom: 40px;
+  }
 }
 
-.demoBox {
-  width: 100%;
-  min-height: 176px;
-  border-radius: 16px;
-  background: #f8faf9;
-  border: 1px solid var(--green-border);
-  margin-bottom: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  overflow: hidden;
-}
-
-.demoFlex {
-  flex-direction: column;
-  gap: 8px;
-  justify-content: center;
-}
-
-.step h3 {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--ink);
-  margin-bottom: 10px;
-}
-
-.step p {
-  font-size: 14px;
-  color: var(--ink-muted);
-  line-height: 1.65;
-  max-width: 360px;
-  margin: 0 auto;
-}
-
-.terminal {
-  width: 80%;
-  max-width: 280px;
-  background: var(--white);
-  border: 1px solid var(--green-border);
-  border-radius: 8px;
-  padding: 12px 14px;
-  font-family: var(--font-mono), ui-monospace, monospace;
+.overline {
   font-size: 11px;
-  color: var(--ink-2);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink-muted);
+  margin-bottom: 12px;
 }
 
-.cursor {
-  color: var(--green);
-  animation: cursorBlink 0.85s step-end infinite;
+.h2 {
+  font-size: clamp(26px, 3.8vw, 44px);
+  font-weight: 800;
+  letter-spacing: -1.2px;
+  line-height: 1.12;
+  color: var(--ink);
+  margin: 0;
 }
 
-.rowLine {
+.italic {
+  font-style: italic;
+  color: var(--ink-muted);
+  font-weight: 700;
+}
+
+/* ── Bento grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+}
+
+/* ── Card ── */
+.card {
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #fff;
+  padding: 20px;
+  outline: 1px solid rgba(14, 16, 26, 0.08);
+  box-shadow: none;
+  transition: box-shadow 0.3s ease, outline-color 0.3s ease;
+  cursor: default;
 }
 
-.rowLine span:first-child {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--green);
+@media (min-width: 640px) {
+  .card {
+    padding: 24px;
+  }
+}
+
+.card:hover {
+  box-shadow: 0 8px 40px rgba(14, 16, 26, 0.1);
+  outline-color: rgba(14, 16, 26, 0.2);
+}
+
+/* ── Number badge ── */
+.num {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(14, 16, 26, 0.28);
+  user-select: none;
+}
+
+/* ── Visual area ── */
+.visual {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #f2f7f5;
+  box-shadow: inset 0 0 0 1px rgba(14, 16, 26, 0.06);
   flex-shrink: 0;
 }
 
-.mono {
-  font-family: ui-monospace, monospace;
-  font-size: 11px;
-  color: var(--ink-2);
+/* ── Card text ── */
+.cardTitle {
+  margin-top: 20px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: var(--ink);
+  margin-bottom: 0;
 }
 
-.chipRed {
-  font-size: 9px;
-  font-weight: 700;
-  padding: 4px 7px;
+.cardDesc {
+  margin-top: 8px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--ink-muted);
+  flex: 1;
+}
+
+/* =============================================================
+   Card 01 — Instant Detection (token-blur grid)
+============================================================= */
+.v01Grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+}
+
+.v01CellD,
+.v01CellN {
   border-radius: 4px;
-  background: #fef2f2;
-  color: #dc2626;
+  transition: filter 0.5s ease-out;
 }
 
-.chipOrange {
-  font-size: 9px;
-  font-weight: 700;
-  padding: 4px 7px;
-  border-radius: 4px;
-  background: #fff7ed;
-  color: #ea580c;
+.v01CellD { background: var(--ink); }
+.v01CellN { background: #c8e6dc; }
+
+.card:hover .v01CellD {
+  filter: blur(6px);
 }
 
-.chipAmber {
-  font-size: 9px;
-  font-weight: 700;
-  padding: 4px 7px;
-  border-radius: 4px;
-  background: #fffbeb;
-  color: #d97706;
+@media (hover: none) {
+  .v01CellD {
+    animation: cellBlur 3.2s ease-in-out infinite alternate;
+  }
 }
 
-.maskRow {
+@keyframes cellBlur {
+  0%   { filter: blur(0); }
+  100% { filter: blur(6px); }
+}
+
+/* =============================================================
+   Card 02 — Real-time Masking (values blur + darken on hover)
+============================================================= */
+.v02Wrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+  height: 100%;
+  padding: 18px 16px;
+}
+
+.v02Row {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
   font-family: ui-monospace, monospace;
 }
 
-.check {
-  color: var(--green);
-  font-weight: 700;
-}
-
-.key {
+.v02Key {
+  font-size: 10px;
+  font-weight: 600;
   color: #2563eb;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
-.val {
+.v02Eq {
+  font-size: 10px;
+  color: var(--ink-muted);
+  flex-shrink: 0;
+}
+
+.v02Val {
+  font-size: 10px;
+  font-weight: 500;
+  border-radius: 4px;
+  background: rgba(200, 230, 220, 0.5);
+  padding: 3px 8px;
+  color: var(--ink);
+  transition:
+    filter            0.5s ease-out,
+    background-color  0.5s ease-out,
+    color             0.5s ease-out;
+  white-space: nowrap;
+}
+
+.card:hover .v02Val {
+  background: var(--ink);
+  color: #fff;
+  filter: blur(5px);
+}
+
+@media (hover: none) {
+  .v02Val {
+    animation: valMask 3.8s ease-in-out infinite;
+  }
+}
+
+@keyframes valMask {
+  0%, 35%  { background: rgba(200,230,220,.5); color: var(--ink); filter: blur(0); }
+  60%, 90% { background: var(--ink);           color: #fff;       filter: blur(5px); }
+  100%     { background: rgba(200,230,220,.5); color: var(--ink); filter: blur(0); }
+}
+
+/* =============================================================
+   Card 03 — Phishing Detection (selection expands + badge slides in)
+============================================================= */
+.v03Wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.v03Hatch {
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(64, 130, 109, 0.1) 0px,
+    rgba(64, 130, 109, 0.1) 1.5px,
+    transparent 1.5px,
+    transparent 9px
+  );
+}
+
+.v03Selection {
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  top: 50%;
+  height: 40%;
+  transform: translateY(-50%);
+  border: 2px dashed rgba(14, 16, 26, 0.5);
+  border-radius: 8px;
+  background: rgba(242, 247, 245, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    left         0.5s ease-out,
+    right        0.5s ease-out,
+    height       0.5s ease-out,
+    border-style 0.4s,
+    border-color 0.4s,
+    background   0.4s;
+}
+
+.card:hover .v03Selection {
+  left: 7%;
+  right: 7%;
+  height: 56%;
+  border-style: solid;
+  border-color: #dc2626;
+  background: rgba(254, 242, 242, 0.85);
+}
+
+/* corner handle dots */
+.v03Dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: var(--ink);
+}
+
+.v03TL { top: -5px; left: -5px; }
+.v03TR { top: -5px; right: -5px; }
+.v03BL { bottom: -5px; left: -5px; }
+.v03BR { bottom: -5px; right: -5px; }
+
+.v03UrlBar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.v03Warn {
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.v03Url {
+  font-size: 9.5px;
+  font-family: ui-monospace, monospace;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.4s;
+}
+
+.card:hover .v03Url {
   color: #dc2626;
+}
+
+/* sliding badge */
+.v03Badge {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%) translateY(50px);
+  background: #dc2626;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 20px;
+  white-space: nowrap;
+  opacity: 0;
+  transition:
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity   0.4s;
+}
+
+.card:hover .v03Badge {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .v03Selection { animation: selExpand 4s ease-in-out infinite; }
+  .v03Badge     { animation: badgeIn   4s ease-in-out infinite; }
+  .v03Url       { animation: urlRed    4s ease-in-out infinite; }
+}
+
+@keyframes selExpand {
+  0%, 25%  { left: 16%; right: 16%; height: 40%; border-style: dashed; border-color: rgba(14,16,26,.5); background: rgba(242,247,245,.5); }
+  50%, 80% { left: 7%;  right: 7%;  height: 56%; border-style: solid;  border-color: #dc2626;           background: rgba(254,242,242,.85); }
+  100%     { left: 16%; right: 16%; height: 40%; border-style: dashed; border-color: rgba(14,16,26,.5); background: rgba(242,247,245,.5); }
+}
+
+@keyframes badgeIn {
+  0%, 35%  { transform: translateX(-50%) translateY(50px); opacity: 0; }
+  55%, 80% { transform: translateX(-50%) translateY(0);    opacity: 1; }
+  100%     { transform: translateX(-50%) translateY(50px); opacity: 0; }
+}
+
+@keyframes urlRed {
+  0%, 35%  { color: var(--ink-2); }
+  55%, 80% { color: #dc2626; }
+  100%     { color: var(--ink-2); }
+}
+
+/* =============================================================
+   Card 04 — Email DLP (tab titles covered + blocked banner)
+============================================================= */
+.v04Wrap {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 12px 12px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.v04TabRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.v04Tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 6px 6px 0 0;
+  background: #fff;
+  padding: 5px 6px;
+  outline: 1px solid rgba(14, 16, 26, 0.08);
+  min-width: 0;
+}
+
+.v04TabDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 3px;
+  background: #c8e6dc;
+  flex-shrink: 0;
+}
+
+.v04TabInner {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.v04TabText {
+  display: block;
+  font-size: 8.5px;
+  color: rgba(14, 16, 26, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v04Cover {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s ease-out;
+}
+
+.card:hover .v04Cover {
+  transform: scaleX(1);
+}
+
+.v04Body {
+  flex: 1;
+  border-radius: 0 0 8px 8px;
+  background: rgba(255, 255, 255, 0.6);
+  outline: 1px solid rgba(14, 16, 26, 0.05);
+}
+
+/* blocked banner slides up from bottom */
+.v04Banner {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #dc2626;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
+}
+
+.card:hover .v04Banner {
+  transform: translateY(0);
+}
+
+@media (hover: none) {
+  .v04Cover  { animation: tabCover  3.6s ease-in-out infinite; }
+  .v04Banner { animation: bannerUp  3.6s ease-in-out infinite; }
+}
+
+@keyframes tabCover {
+  0%, 25%  { transform: scaleX(0); }
+  55%, 80% { transform: scaleX(1); }
+  100%     { transform: scaleX(0); }
+}
+
+@keyframes bannerUp {
+  0%, 40%  { transform: translateY(100%); }
+  60%, 85% { transform: translateY(0); }
+  100%     { transform: translateY(100%); }
+}
+
+/* =============================================================
+   Card 05 — Severity Triage (bars grow on hover)
+============================================================= */
+.v05Wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  padding: 18px 16px;
+}
+
+.v05Row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.v05Label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  width: 52px;
+  flex-shrink: 0;
+}
+
+.v05Track {
+  flex: 1;
+  height: 9px;
+  border-radius: 5px;
+  background: rgba(14, 16, 26, 0.08);
+  overflow: hidden;
+}
+
+.v05Bar {
+  height: 100%;
+  width: 0;
+  border-radius: 5px;
+  transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card:hover .v05Bar {
+  width: var(--bar-w) !important;
+}
+
+/* slider */
+.v05SliderRow {
+  width: 75%;
+  margin-top: 6px;
+}
+
+.v05SliderTrack {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(14, 16, 26, 0.08);
+  overflow: hidden;
+}
+
+.v05SliderFill {
+  height: 100%;
+  width: 18%;
+  border-radius: 2px;
+  background: var(--ink);
+  transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card:hover .v05SliderFill {
+  width: 100%;
+}
+
+@media (hover: none) {
+  .v05Bar       { animation: barGrow    3.2s ease-in-out infinite; }
+  .v05SliderFill { animation: sliderFill 3.2s ease-in-out infinite; }
+}
+
+@keyframes barGrow {
+  0%, 20%  { width: 0; }
+  60%, 80% { width: var(--bar-w); }
+  100%     { width: 0; }
+}
+
+@keyframes sliderFill {
+  0%, 20%  { width: 18%; }
+  60%, 80% { width: 100%; }
+  100%     { width: 18%; }
+}
+
+/* =============================================================
+   Card 06 — 14-Layer Engine (stacked cards fan out on hover)
+============================================================= */
+.v06Wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* shared card shell */
+.v06Card {
+  position: absolute;
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px 12px;
+  box-shadow: 0 4px 20px rgba(14, 16, 26, 0.1);
+  outline: 1px solid rgba(14, 16, 26, 0.08);
+  left: 22%;
+  right: 22%;
+  top: 18%;
+  height: 64%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.5s ease-out;
+}
+
+.v06Bar {
+  height: 8px;
+  width: 36%;
+  border-radius: 4px;
+}
+
+.v06Lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.v06Line {
+  height: 5px;
+  width: 75%;
+  border-radius: 3px;
+  background: rgba(14, 16, 26, 0.08);
+}
+
+.v06LineShort {
+  height: 5px;
+  width: 50%;
+  border-radius: 3px;
+  background: rgba(14, 16, 26, 0.08);
+}
+
+.v06Tag {
+  font-family: ui-monospace, monospace;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  width: fit-content;
+  margin-top: auto;
+}
+
+/* individual rotation offsets */
+.v06Back  { transform: rotate(2deg); }
+.v06Mid   { transform: rotate(-2deg); }
+.v06Front { transform: rotate(0deg); }
+
+/* fan out on hover */
+.card:hover .v06Back {
+  left: 4%;
+  right: 54%;
+  transform: rotate(-14deg);
+}
+
+.card:hover .v06Mid {
+  transform: rotate(0);
+}
+
+.card:hover .v06Front {
+  left: 54%;
+  right: 4%;
+  transform: rotate(14deg);
+}
+
+@media (hover: none) {
+  .v06Back  { animation: profileBack  4.2s ease-in-out infinite; }
+  .v06Front { animation: profileFront 4.2s ease-in-out infinite; }
+}
+
+@keyframes profileBack {
+  0%, 25%  { left: 22%; right: 22%; transform: rotate(2deg); }
+  55%, 80% { left: 4%;  right: 54%; transform: rotate(-14deg); }
+  100%     { left: 22%; right: 22%; transform: rotate(2deg); }
+}
+
+@keyframes profileFront {
+  0%, 25%  { left: 22%; right: 22%; transform: rotate(0deg); }
+  55%, 80% { left: 54%; right: 4%;  transform: rotate(14deg); }
+  100%     { left: 22%; right: 22%; transform: rotate(0deg); }
 }
