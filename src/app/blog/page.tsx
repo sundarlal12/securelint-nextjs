@@ -79,14 +79,10 @@ export default function BlogPage() {
                   {/* Cover */}
                   <Link href={`/blog/${post.slug}`} className={s.coverWrap} tabIndex={-1} aria-hidden="true">
                     {"imageCover" in post && post.imageCover ? (
-                      /* Real image cover for posts that have one */
-                      <div className={s.cover} style={{ background: "#0f172a" }}>
+                      /* Real image — simple block fill, no absolute positioning */
+                      <div className={s.coverImage}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={post.imageCover}
-                          alt={post.title}
-                          className={s.coverImg}
-                        />
+                        <img src={post.imageCover} alt={post.title}/>
                       </div>
                     ) : (
                       /* Gradient + text cover for posts without an image */
