@@ -2,23 +2,15 @@
 
 import s from "./MeetingMode.module.css";
 
-/* ── The 4 open tabs that get armoured ── */
+/* ── 4 open tabs — content visible before armour slides in ── */
 const TABS = [
   {
     title: "AWS Console",
     lines: [
-      { bold: "AKIAIOSFODNN7EXAMPLE", rest: " — Access Key" },
-      { bold: "wJalrXUtnFEMI/K7MD…",  rest: " — Secret Key" },
+      { bold: "AKIAIOSFODNN7EX",  rest: " — Access Key ID" },
+      { bold: "wJalrXUtnFEMI/K…", rest: " — Secret Key" },
     ],
-    delay: s.delayA,
-  },
-  {
-    title: "GitHub — Secrets",
-    lines: [
-      { bold: "ghp_a1B2c3D4e5F6g7H8", rest: " — PAT" },
-      { bold: "ghs_xYzAbCdEfGhIjKl",  rest: " — Actions secret" },
-    ],
-    delay: s.delayB,
+    armour: s.armourA,
   },
   {
     title: "Stripe — API Keys",
@@ -26,7 +18,15 @@ const TABS = [
       { bold: "sk_live_51Abc…XYZ", rest: " — Secret key" },
       { bold: "rk_live_43Def…ABC", rest: " — Restricted" },
     ],
-    delay: s.delayC,
+    armour: s.armourB,
+  },
+  {
+    title: "GitHub — Secrets",
+    lines: [
+      { bold: "ghp_a1B2c3D4e5F6",  rest: " — PAT" },
+      { bold: "ghs_xYzAbCdEfGhIj", rest: " — Actions secret" },
+    ],
+    armour: s.armourC,
   },
   {
     title: "Notion — Creds",
@@ -34,7 +34,7 @@ const TABS = [
       { bold: "secret_KxQe7…fGhIj", rest: " — Integration" },
       { bold: "ntn_12abc…xyz99",    rest: " — API key" },
     ],
-    delay: s.delayD,
+    armour: s.armourD,
   },
 ];
 
@@ -45,10 +45,10 @@ const CHECKS = [
   "Lifts instantly when the call ends",
 ];
 
-/* ── Lock icon ── */
-function LockIcon() {
+/* ── Lock SVG ── */
+function Lock({ size = 16 }: { size?: number }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
       aria-hidden="true">
       <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
@@ -57,46 +57,28 @@ function LockIcon() {
   );
 }
 
-/* ── Armour overlay (blur + lock) ── */
-function Armour({ delayClass }: { delayClass: string }) {
-  return (
-    <div className={`${s.armour} ${delayClass}`} aria-hidden="true">
-      <div className={s.armourBg} />
-      {/* redaction dots row */}
-      <div className={s.armourDots}>
-        {Array.from({ length: 12 }).map((_, i) => (
-          <span key={i} className={s.armourDot} />
-        ))}
-      </div>
-      <div className={s.armourLock}>
-        <LockIcon />
-      </div>
-    </div>
-  );
-}
-
 export function MeetingModeSection() {
   return (
     <section id="meeting-mode" className={s.section}>
       <div className={s.inner}>
 
-        {/* ── Left: mock browser window ── */}
+        {/* ── Left: animated mock browser ── */}
         <div className={s.mockCol} role="img"
-          aria-label="Meeting Mode blurring four open tabs the moment a Zoom call starts">
+          aria-label="Meeting Mode blurring open tabs the moment a Zoom call starts">
           <div className={s.browser}>
 
-            {/* browser chrome bar */}
+            {/* browser chrome */}
             <div className={s.browserBar} aria-hidden="true">
               <span className={s.dot} style={{ background: "#f87171" }} />
               <span className={s.dot} style={{ background: "#fb923c" }} />
               <span className={s.dot} style={{ background: "#4ade80" }} />
-              <div className={s.addressBar}>meeting mode · securelint active</div>
+              <div className={s.addressBar}>meeting mode</div>
             </div>
 
             <div className={s.browserBody}>
-              {/* "Zoom call detected" pill */}
-              <div className={s.callBadge}>
-                {/* video icon */}
+
+              {/* "Zoom call detected" pill — loops with the animation */}
+              <div className={s.callBadge} aria-live="polite">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                   aria-hidden="true">
@@ -106,38 +88,53 @@ export function MeetingModeSection() {
                 Zoom call detected
               </div>
 
-              {/* 2×2 tab grid */}
+              {/* 2 × 2 tab grid */}
               <div className={s.tabGrid}>
                 {TABS.map((tab) => (
                   <div key={tab.title} className={s.tabCard}>
+
                     {/* tab header */}
                     <div className={s.tabHeader}>
                       <span className={s.tabDot} />
                       <span className={s.tabTitle}>{tab.title}</span>
                     </div>
-                    {/* tab content — sensitive data */}
+
+                    {/* tab body — sensitive data */}
                     <div className={s.tabBody}>
                       {tab.lines.map((l, i) => (
                         <div key={i} className={s.tabLine}>
-                          <span className={s.tabLineBold}>{l.bold}</span>
-                          <span className={s.tabLineRest}>{l.rest}</span>
+                          <span className={s.bold}>{l.bold}</span>
+                          <span className={s.muted}>{l.rest}</span>
                         </div>
                       ))}
                     </div>
-                    {/* armour overlay */}
-                    <Armour delayClass={tab.delay} />
+
+                    {/* ── armour overlay ── */}
+                    <div className={`${s.armour} ${tab.armour}`} aria-hidden="true">
+                      <div className={s.armourBg} />
+                      {/* redaction dots */}
+                      <div className={s.armourDots}>
+                        {Array.from({ length: 13 }).map((_, i) => (
+                          <span key={i} className={s.armourDot} />
+                        ))}
+                      </div>
+                      {/* lock icon */}
+                      <div className={s.armourLock}><Lock size={18} /></div>
+                    </div>
+
                   </div>
                 ))}
               </div>
 
-              {/* status bar */}
+              {/* status bar — fades in after all tabs are armoured */}
               <div className={s.statusBar}>
-                <LockIcon />
+                <Lock size={13} />
                 <span>
                   Meeting Mode active ·{" "}
-                  <span className={s.statusCount}>4 tabs protected</span>
+                  <span className={s.statusMono}>4 tabs protected</span>
                 </span>
               </div>
+
             </div>
           </div>
         </div>
