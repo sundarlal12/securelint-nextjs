@@ -111,14 +111,12 @@ export function MeetingModeSection() {
 
                     {/* ── armour overlay ── */}
                     <div className={`${s.armour} ${tab.armour}`} aria-hidden="true">
+                      {/* solid cover — hides all content */}
                       <div className={s.armourBg} />
-                      {/* redacted text rows */}
-                      <div className={s.armourRedact}>
-                        <span className={s.armourStars}>*** *** *** *** *** ***</span>
-                        <span className={s.armourStars}>*** *** *** ***</span>
-                      </div>
+                      {/* single clean redaction row */}
+                      <span className={s.armourStars}>* * * * * * * * * * * * *</span>
                       {/* lock icon */}
-                      <div className={s.armourLock}><Lock size={18} /></div>
+                      <div className={s.armourLock}><Lock size={20} /></div>
                     </div>
 
                   </div>
