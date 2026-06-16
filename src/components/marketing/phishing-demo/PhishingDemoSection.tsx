@@ -225,15 +225,27 @@ export function PhishingDemoSection() {
                   {/* background track */}
                   <path d="M 15 100 A 85 85 0 0 1 185 100"
                     fill="none" stroke="#f3f4f6" strokeWidth="16" strokeLinecap="butt"/>
-                  {/* green segment 180°→120° */}
-                  <path d="M 15 100 A 85 85 0 0 1 57.5 26.4"
+                  {/*
+                    4 segments, each 45° (score 0→25→50→75→100)
+                    Boundary coords (cx=100, cy=100, r=85):
+                      180° → (15,   100)   score 0
+                      135° → (39.9,  39.9) score 25
+                       90° → (100,   15)   score 50
+                       45° → (160.1, 39.9) score 75
+                        0° → (185,  100)   score 100
+                  */}
+                  {/* green  0–25 */}
+                  <path d="M 15 100 A 85 85 0 0 1 39.9 39.9"
                     fill="none" stroke="#86efac" strokeWidth="16"/>
-                  {/* yellow segment 120°→60° */}
-                  <path d="M 57.5 26.4 A 85 85 0 0 1 142.5 26.4"
-                    fill="none" stroke="#fde68a" strokeWidth="16"/>
-                  {/* red segment 60°→0° */}
-                  <path d="M 142.5 26.4 A 85 85 0 0 1 185 100"
-                    fill="none" stroke="#fca5a5" strokeWidth="16"/>
+                  {/* orange 25–50 */}
+                  <path d="M 39.9 39.9 A 85 85 0 0 1 100 15"
+                    fill="none" stroke="#fb923c" strokeWidth="16"/>
+                  {/* light red 50–75 */}
+                  <path d="M 100 15 A 85 85 0 0 1 160.1 39.9"
+                    fill="none" stroke="#f87171" strokeWidth="16"/>
+                  {/* dark red 75–100 */}
+                  <path d="M 160.1 39.9 A 85 85 0 0 1 185 100"
+                    fill="none" stroke="#dc2626" strokeWidth="16"/>
                   {/* animated needle */}
                   <line x1="100" y1="100" x2="163" y2="100"
                     stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round"
