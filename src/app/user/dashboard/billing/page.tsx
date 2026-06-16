@@ -332,7 +332,7 @@ export default function BillingPage() {
       const res = await fetch(`${API_BASE}/api/payment/paypal-create-order`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ plan_id: planId, billing_period: period }),
+        body: JSON.stringify({ plan_id: planId, billing_period: period, country }),
       }).catch(() => null);
       const data = res ? await res.json().catch(() => ({})) : {};
       if (data?.error === 1) throw new Error(data.message || "Could not create order.");
@@ -374,7 +374,8 @@ export default function BillingPage() {
     const container = ppContainerRef.current;
     if (!container) return;
     if (!PAYPAL_CID) { setError("PayPal is not configured. Please contact support."); return; }
-    const loaded = await loadPayPal(PAYPAL_CID, "INR");
+    if (isIndia) { setError("PayPal is for international payments. Select a country outside India or use Razorpay."); return; }
+    const loaded = await loadPayPal(PAYPAL_CID, "USD");
     if (!loaded || !window.paypal) { setError("Failed to load PayPal. Please try again."); return; }
     const buttons = window.paypal.Buttons({
       fundingSource: window.paypal.FUNDING.PAYPAL,
@@ -384,7 +385,7 @@ export default function BillingPage() {
     buttons.render(container);
     ppInstanceRef.current = buttons;
     setPpRendered(true);
-  }, [ppRendered, sel, makePayPalConfig]);
+  }, [ppRendered, sel, makePayPalConfig, isIndia]);
 
   // ── Google Pay button renderer (international) ────────────────────────────
   const renderGooglePay = useCallback(async () => {
