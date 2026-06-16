@@ -51,8 +51,6 @@ export function HowItWorksSection() {
           ─────────────────────────────────────────── */}
           <li>
             <article className={s.card} aria-labelledby="sl-01">
-              <span className={s.num} aria-hidden="true">#01</span>
-
               <div className={s.visual}>
                 <div className={s.v01Grid}>
                   {CELLS.map((t, i) => (
@@ -81,8 +79,6 @@ export function HowItWorksSection() {
           ─────────────────────────────────────────── */}
           <li>
             <article className={s.card} aria-labelledby="sl-02">
-              <span className={s.num} aria-hidden="true">#02</span>
-
               <div className={s.visual}>
                 <div className={s.v02Wrap}>
                   {CREDS.map((r) => (
@@ -116,8 +112,6 @@ export function HowItWorksSection() {
           ─────────────────────────────────────────── */}
           <li>
             <article className={s.card} aria-labelledby="sl-03">
-              <span className={s.num} aria-hidden="true">#03</span>
-
               <div className={s.visual}>
                 <div className={s.v03Wrap}>
                   <div className={s.v03Hatch} aria-hidden="true" />
@@ -148,8 +142,6 @@ export function HowItWorksSection() {
           ─────────────────────────────────────────── */}
           <li>
             <article className={s.card} aria-labelledby="sl-04">
-              <span className={s.num} aria-hidden="true">#04</span>
-
               <div className={s.visual}>
                 <div className={s.v04Wrap}>
                   <div className={s.v04TabRow}>
@@ -190,8 +182,6 @@ export function HowItWorksSection() {
           ─────────────────────────────────────────── */}
           <li>
             <article className={s.card} aria-labelledby="sl-05">
-              <span className={s.num} aria-hidden="true">#05</span>
-
               <div className={s.visual}>
                 <div className={s.v05Wrap}>
                   {SEVERITY.map((sv, i) => (
@@ -231,8 +221,6 @@ export function HowItWorksSection() {
           ─────────────────────────────────────────── */}
           <li>
             <article className={s.card} aria-labelledby="sl-06">
-              <span className={s.num} aria-hidden="true">#06</span>
-
               <div className={s.visual}>
                 <div className={s.v06Wrap}>
                   {/* back card */}
