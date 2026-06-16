@@ -173,13 +173,23 @@ function loadRazorpay(): Promise<boolean> {
   });
 }
 
-function loadPayPal(clientId: string, currency: string): Promise<boolean> {
+function loadPayPal(clientId: string): Promise<boolean> {
   return new Promise(resolve => {
     const existingId = "paypal-js";
-    if (document.getElementById(existingId)) { resolve(true); return; }
+    // Remove stale SDK tag if loaded with wrong currency/client-id
+    const existing = document.getElementById(existingId);
+    if (existing) {
+      const src = (existing as HTMLScriptElement).src;
+      if (src.includes(clientId) && src.includes("currency=INR")) { resolve(true); return; }
+      existing.remove();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (window as any).paypal;
+    }
     const s = document.createElement("script");
     s.id = existingId;
-    s.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${currency}&intent=capture`;
+    // INR required for Indian PayPal merchant accounts (PPPL).
+    // International buyers still pay in their local currency — PayPal converts.
+    s.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=INR&intent=capture`;
     s.onload = () => resolve(true); s.onerror = () => resolve(false);
     document.body.appendChild(s);
   });
@@ -375,7 +385,7 @@ export default function BillingPage() {
     if (!container) return;
     if (!PAYPAL_CID) { setError("PayPal is not configured. Please contact support."); return; }
     if (isIndia) { setError("PayPal is for international payments. Select a country outside India or use Razorpay."); return; }
-    const loaded = await loadPayPal(PAYPAL_CID, "USD");
+    const loaded = await loadPayPal(PAYPAL_CID);
     if (!loaded || !window.paypal) { setError("Failed to load PayPal. Please try again."); return; }
     const buttons = window.paypal.Buttons({
       fundingSource: window.paypal.FUNDING.PAYPAL,
