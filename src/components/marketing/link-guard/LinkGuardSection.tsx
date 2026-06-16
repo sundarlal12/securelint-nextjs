@@ -1,18 +1,15 @@
 "use client";
-
 import s from "./LinkGuard.module.css";
 
-/* ── compact gauge for popup header ── */
+/* ── gauge ── */
 function PopupGauge() {
-  // center (40,38), r=28 — 4 segments, needle at 40% (108° standard)
-  // tip: (40+28*cos108°, 38-28*sin108°) = (40-8.65, 38-26.63) = (31.4, 11.4)
   return (
-    <svg viewBox="0 0 80 48" width="64" height="38" aria-hidden="true">
-      <path d="M 12 38 A 28 28 0 0 1 68 38" fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="6" strokeLinecap="round"/>
-      <path d="M 12 38 A 28 28 0 0 1 20.2 18.2" fill="none" stroke="#86efac" strokeWidth="6" strokeLinecap="round"/>
-      <path d="M 20.2 18.2 A 28 28 0 0 1 40 10"   fill="none" stroke="#fb923c" strokeWidth="6" strokeLinecap="round"/>
-      <path d="M 40 10 A 28 28 0 0 1 59.8 18.2"   fill="none" stroke="#f87171" strokeWidth="6" strokeLinecap="round"/>
-      <path d="M 59.8 18.2 A 28 28 0 0 1 68 38"   fill="none" stroke="#dc2626" strokeWidth="6" strokeLinecap="round"/>
+    <svg viewBox="0 0 80 48" width="60" height="36" aria-hidden="true">
+      <path d="M 12 38 A 28 28 0 0 1 68 38" fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="5.5" strokeLinecap="round"/>
+      <path d="M 12 38 A 28 28 0 0 1 20.2 18.2" fill="none" stroke="#86efac" strokeWidth="5.5" strokeLinecap="round"/>
+      <path d="M 20.2 18.2 A 28 28 0 0 1 40 10"  fill="none" stroke="#fb923c" strokeWidth="5.5" strokeLinecap="round"/>
+      <path d="M 40 10 A 28 28 0 0 1 59.8 18.2"  fill="none" stroke="#f87171" strokeWidth="5.5" strokeLinecap="round"/>
+      <path d="M 59.8 18.2 A 28 28 0 0 1 68 38"  fill="none" stroke="#dc2626" strokeWidth="5.5" strokeLinecap="round"/>
       <line x1="40" y1="38" x2="31.4" y2="11.4" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/>
       <circle cx="40" cy="38" r="3" fill="#fff"/>
       <text x="40" y="35" textAnchor="middle" fontSize="11" fontWeight="800" fill="#fff">40</text>
@@ -23,7 +20,7 @@ function PopupGauge() {
 /* ── mouse cursor SVG ── */
 function Cursor() {
   return (
-    <svg className={s.cursor} viewBox="0 0 20 24" width="18" height="22" aria-hidden="true">
+    <svg className={s.cursor} viewBox="0 0 20 24" width="16" height="20" aria-hidden="true">
       <path d="M1 1L1 18L5.5 14L8.5 21L11 20L8 13.5L14 13.5L1 1Z"
         fill="white" stroke="#1e293b" strokeWidth="1.5"
         strokeLinejoin="round" strokeLinecap="round"/>
@@ -69,11 +66,8 @@ export function LinkGuardSection() {
           </ul>
         </div>
 
-        {/* ── Right: animated mock browser ── */}
-        <div className={s.mockCol}
-          role="img"
-          aria-label="Animated demo: phishing email opens, mouse clicks the link, SecureLint popup blocks it">
-
+        {/* ── Right: animated mock ── */}
+        <div className={s.mockCol}>
           <div className={s.browser}>
 
             {/* chrome bar */}
@@ -81,47 +75,95 @@ export function LinkGuardSection() {
               <span className={s.dot} style={{ background: "#f87171" }}/>
               <span className={s.dot} style={{ background: "#fb923c" }}/>
               <span className={s.dot} style={{ background: "#4ade80" }}/>
-              <div className={s.addressBar}>mail.google.com/mail</div>
+              <div className={s.addressBar}>mail.google.com/mail/u/0</div>
             </div>
 
             <div className={s.browserBody}>
 
-              {/* ── Email content ── */}
+              {/* ════════════════════════════════════════
+                  PHASE 1: Outlook-style email view
+                  Fades in at 0%, fades OUT at 37%
+                  so zero overlap with popup
+              ════════════════════════════════════════ */}
               <div className={s.emailView}>
-                <div className={s.emailMeta}>
-                  <div className={s.emailAvatar}>⚠</div>
-                  <div>
-                    <div className={s.emailSender}>noreply@acc-verify-secure.net</div>
-                    <div className={s.emailSubject}>Account Notice · Action Required</div>
+
+                {/* subject bar */}
+                <div className={s.subjectBar}>
+                  <span className={s.subjectClose}>✕</span>
+                  <span className={s.subjectText}>Keeping Your Account Up to Date</span>
+                  <div className={s.subjectNavs}>
+                    <span className={s.subjectNav}>‹</span>
+                    <span className={s.subjectNav}>›</span>
                   </div>
                 </div>
-                <div className={s.emailDivider}/>
-                <div className={s.emailBody}>
-                  <p className={s.emailPara}>Hello,</p>
-                  <p className={s.emailPara}>
-                    We are reaching out with a reminder to review the information
-                    associated with your account.
-                  </p>
-                  <p className={s.emailPara}>
-                    Keeping your details current helps ensure continued access
-                    to available features and services.
-                  </p>
-                  <div className={s.emailCtaWrap}>
+
+                {/* sender row */}
+                <div className={s.senderRow}>
+                  <div className={s.senderAvatar}>MB</div>
+                  <div className={s.senderInfo}>
+                    <div className={s.senderTop}>
+                      <span className={s.senderName}>Microsoft account</span>
+                      <span className={s.senderEmail}> bill&lt;zn@cardcentrix.com&gt;</span>
+                      <span className={s.configBadge}>⬆ Config Profile (Critical) 85/100</span>
+                    </div>
+                    <div className={s.senderTo}>To: customer.5108047@outlook.com
+                      <span className={s.senderDate}>Tue 6/16 8:21 PM</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* junk warning */}
+                <div className={s.junkBar}>
+                  <span className={s.junkIcon}>ⓘ</span>
+                  <span>This message was identified as junk. We'll delete it after 30 days.</span>
+                </div>
+
+                {/* attachments */}
+                <div className={s.attachRow}>
+                  <span className={s.attachIcon}>📎</span>
+                  <span className={s.attachFile}>emails-cardcentrix.mobilecon…</span>
+                  <span className={s.attachSize}>6 KB</span>
+                  <span className={s.attachFile}>carddav-cardcentrix.mobilec…</span>
+                  <span className={s.attachSize}>6 KB</span>
+                  <span className={s.attachFile}>caldav-cardcentrix.mobilec…</span>
+                  <span className={s.attachSize}>7 KB</span>
+                </div>
+
+                {/* email body */}
+                <div className={s.emailBodyBg}>
+                  <div className={s.emailCard}>
+                    <div className={s.emailImgRow}>
+                      <span className={s.emailImgBox}>🖼</span>
+                      <span className={s.emailImgLabel}>Account Notice</span>
+                    </div>
+                    <p className={s.emailPara}>Hello,</p>
+                    <p className={s.emailPara}>
+                      We are reaching out with a reminder to review the information
+                      associated with your account.
+                    </p>
+                    {/* CTA button — cursor lands here, then pulses */}
                     <span className={s.emailCta}>Review Payment Information</span>
                   </div>
                 </div>
-              </div>
 
-              {/* ── Mouse cursor — animates from top-right to button ── */}
+              </div>{/* /emailView */}
+
+              {/* ════════════════════════════════════════
+                  Mouse cursor — travels top-right → button
+                  Button is at ≈ y:297px from browserBody top
+              ════════════════════════════════════════ */}
               <Cursor />
 
-              {/* ── SecureLint popup — slides in after click ── */}
+              {/* ════════════════════════════════════════
+                  PHASE 2: SecureLint popup
+                  Appears only AFTER email is fully gone (42%+)
+              ════════════════════════════════════════ */}
               <div className={s.popup}>
 
                 <div className={s.popupHead}>
                   <div className={s.popupHeadLeft}>
                     <div className={s.popupIcon}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" strokeWidth="3.5" strokeLinecap="round">
                         <line x1="5" y1="12" x2="19" y2="12"/>
                       </svg>
@@ -141,13 +183,10 @@ export function LinkGuardSection() {
                 <div className={s.popupBody}>
                   <div className={s.popupAlert}>
                     <span className={s.popupAlertUrl}>acc-verify-secure.net</span>
-                    {" "}has been identified as a{" "}
-                    <strong>malicious or phishing site</strong> by SecureLint.
-                    We strongly recommend you do not proceed.
+                    {" "}has been identified as a <strong>malicious or phishing site</strong> by
+                    SecureLint. We strongly recommend you do not proceed.
                   </div>
-
                   <div className={s.popupWhyLabel}>WHY THIS MATTERS</div>
-
                   <div className={s.popupCard}>
                     <div className={s.popupCardIcon}>🔒</div>
                     <div>
@@ -158,7 +197,6 @@ export function LinkGuardSection() {
                       </div>
                     </div>
                   </div>
-
                   <div className={s.popupDots}>
                     <span className={`${s.popupDot} ${s.dotActive}`}/>
                     <span className={s.popupDot}/><span className={s.popupDot}/><span className={s.popupDot}/>
@@ -183,9 +221,9 @@ export function LinkGuardSection() {
                   <span> · Email Security Platform</span>
                 </div>
 
-              </div>{/* /popup */}
+              </div>
 
-            </div>
+            </div>{/* /browserBody */}
           </div>
         </div>
 
