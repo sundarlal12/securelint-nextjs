@@ -41,6 +41,7 @@
   padding: 88px 0 72px;
 }
 
+/* ── tablet ≤ 900px ── */
 @media (max-width: 900px) {
   .textCol {
     padding: 56px 0 0;
@@ -78,7 +79,112 @@
   }
 }
 
+/* ── small tablet / large phone ≤ 768px ── */
+@media (max-width: 768px) {
+  .hero {
+    padding: 0 16px 40px;
+  }
+
+  .textCol {
+    padding: 44px 0 0;
+  }
+
+  .slideWrap {
+    min-height: 130px;
+  }
+
+  /* Hide floating chips — they overflow with negative offsets on narrow screens */
+  .chipC,
+  .chipH,
+  .chipM {
+    display: none;
+  }
+
+  .visualCol {
+    padding: 12px 0 56px;
+  }
+}
+
+/* ── mobile ≤ 480px ── */
+@media (max-width: 480px) {
+  .hero {
+    padding: 0 12px 28px;
+  }
+
+  .textCol {
+    padding: 32px 0 0;
+  }
+
+  .title {
+    font-size: clamp(26px, 8vw, 34px);
+    letter-spacing: -1px;
+  }
+
+  .slideWrap {
+    min-height: 150px;
+  }
+
+  .eyebrowRow {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  /* Stack CTA buttons vertically */
+  .btns {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .btnPrimary,
+  .btnGhost {
+    justify-content: center;
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+
+  .browserRow {
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .lead {
+    font-size: 14px;
+  }
+
+  .footerStat {
+    flex: 1 1 40%;
+    padding: 14px 6px;
+  }
+
+  .visualCol {
+    padding: 8px 0 48px;
+  }
+}
+
 /* ── Eyebrow row ─────────────────────────────────────────────── */
+
+/* Used in Hero.tsx as s.eyebrow — pill chip for the product label */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.15);
+  color: rgba(255,255,255,.85);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
 .eyebrowRow {
   display: flex;
   align-items: center;
