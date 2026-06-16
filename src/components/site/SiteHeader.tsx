@@ -10,6 +10,7 @@ import s from "./SiteHeader.module.css";
 const LINKS = [
   { label: "Home", href: "/" },
   { label: "Features", href: "/#features" },
+  { label: "Blog", href: "/blog" },
   { label: "Pricing", href: "/#pricing" },
   { label: "Privacy", href: "/privacy" },
   { label: "Support", href: "mailto:contact@vaptlabs.com" },
