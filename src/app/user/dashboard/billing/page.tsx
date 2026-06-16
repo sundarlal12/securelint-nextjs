@@ -187,9 +187,8 @@ function loadPayPal(clientId: string): Promise<boolean> {
     }
     const s = document.createElement("script");
     s.id = existingId;
-    // INR required for Indian PayPal merchant accounts (PPPL).
-    // International buyers still pay in their local currency — PayPal converts.
-    s.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=INR&intent=capture`;
+    // PayPal REST v2 does not support INR. USD required for international checkout.
+    s.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&intent=capture`;
     s.onload = () => resolve(true); s.onerror = () => resolve(false);
     document.body.appendChild(s);
   });
