@@ -4,7 +4,9 @@ export function MarketingCta() {
   return (
     <section className={s.section} aria-labelledby="cta-heading">
       <div className={s.inner}>
-        <h2 id="cta-heading">Start protecting your secrets today</h2>
+        <h2 id="cta-heading">Start protecting your secrets —{" "}
+          <em style={{ fontStyle: "italic", fontWeight: "inherit", opacity: 0.65 }}>install in seconds.</em>
+        </h2>
         <p>Install SecureLint in seconds — instant, private, and zero-config.</p>
         <a href="https://chromewebstore.google.com/detail/securelint-%E2%80%93-sensitive-da/nfakpphnajjbmejbmpnlnamncdplkbna" target="_blank" rel="noopener noreferrer" className={s.btn}>
           <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>

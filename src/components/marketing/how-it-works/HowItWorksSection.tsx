@@ -37,9 +37,8 @@ export function HowItWorksSection() {
         <div className={s.head}>
           <div className={s.overline}>The full toolkit</div>
           <h2 className={s.h2}>
-            Six ways SecureLint protects you.
-            <br />
-            <em className={s.italic}>One install. Always on.</em>
+            Six ways SecureLint protects you —{" "}
+            <em className={s.italic}>one install. Always on.</em>
           </h2>
         </div>
 

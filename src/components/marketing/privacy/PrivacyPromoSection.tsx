@@ -12,7 +12,9 @@ export function PrivacyPromoSection() {
   return (
     <section id="privacy-teaser" className={s.wrapper}>
       <div className={s.inner}>
-        <h2>Your data stays yours.</h2>
+        <h2>Your data stays yours —{" "}
+          <em style={{ fontStyle: "italic", color: "var(--ink-muted)", fontWeight: "inherit" }}>always private, always local.</em>
+        </h2>
         <p>
           SecureLint processes everything locally in your browser. We never read, store, or transmit your secrets. No
           tracking, no ads, no third-party SDKs — just pure, private protection.

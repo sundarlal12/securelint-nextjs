@@ -153,7 +153,9 @@ export function PricingSection() {
             <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#1a7f37", marginBottom: 10 }}>
               Pricing Plans
             </p>
-            <h2>Pro &amp; Enterprise — API Key Masking, Phishing Detection &amp; SSL Security</h2>
+            <h2>Simple, transparent pricing —{" "}
+              <em style={{ fontStyle: "italic", color: "var(--ink-muted)", fontWeight: 800 }}>protect secrets from day one.</em>
+            </h2>
             <p>
               Real-time secret masking, phishing detection, SSL checks, and domain age alerts on Pro.
               Enterprise adds team-wide DLP, email blocking, and admin dashboards for security teams.

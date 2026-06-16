@@ -52,7 +52,8 @@ export function FaqSection() {
       <div style={{ maxWidth: 800, margin: "0 auto" }}>
         <header style={{ textAlign: "center", marginBottom: 48 }}>
           <h2 style={{ fontSize: "clamp(24px,3.5vw,36px)", fontWeight: 800, color: "#0f172a", letterSpacing: "-0.7px", marginBottom: 12 }}>
-            Frequently asked questions
+            Frequently asked questions —{" "}
+            <em style={{ fontStyle: "italic", color: "#57606a", fontWeight: 800 }}>everything you need to know.</em>
           </h2>
           <p style={{ fontSize: 16, color: "#57606a", maxWidth: 520, margin: "0 auto" }}>
             Everything you need to know about SecureLint.

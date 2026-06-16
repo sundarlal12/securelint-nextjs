@@ -83,18 +83,28 @@ export function LinkGuardSection() {
             <div className={s.browserBody}>
 
               {/* ══════════════════════════════════
-                  SKELETON LOADER
-                  Visible during 0–6% (loop start)
+                  MAIL ICON LOADER
+                  Visible 0–7%: envelope opens → 
+                  morphs into loading ring
               ══════════════════════════════════ */}
-              <div className={s.skeleton} aria-hidden="true">
-                <div className={s.skelRow} style={{ width: "55%", height: 10 }}/>
-                <div className={s.skelRow} style={{ width: "90%", height: 8, marginTop: 10 }}/>
-                <div className={s.skelRow} style={{ width: "70%", height: 8, marginTop: 6 }}/>
-                <div className={s.skelDivider}/>
-                <div className={s.skelRow} style={{ width: "95%", height: 8 }}/>
-                <div className={s.skelRow} style={{ width: "80%", height: 8, marginTop: 6 }}/>
-                <div className={s.skelRow} style={{ width: "60%", height: 8, marginTop: 6 }}/>
-                <div className={s.skelRow} style={{ width: "40%", height: 28, marginTop: 12, borderRadius: 6 }}/>
+              <div className={s.mailLoader} aria-hidden="true">
+                {/* envelope body */}
+                <svg className={s.envelopeSvg} viewBox="0 0 64 48" width="64" height="48">
+                  {/* envelope body */}
+                  <rect x="2" y="8" width="60" height="38" rx="5" fill="#e2e8f0" stroke="#cbd5e1" strokeWidth="1.5"/>
+                  {/* envelope flap (animates open) */}
+                  <path className={s.envelopeFlap} d="M2 8 L32 28 L62 8" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinejoin="round"/>
+                  {/* left wing */}
+                  <line x1="2" y1="46" x2="22" y2="28" stroke="#cbd5e1" strokeWidth="1.5" strokeLinecap="round"/>
+                  {/* right wing */}
+                  <line x1="62" y1="46" x2="42" y2="28" stroke="#cbd5e1" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+                <div className={s.loaderLabel}>Loading mail…</div>
+                <div className={s.loaderDots}>
+                  <span className={s.loaderDot}/>
+                  <span className={s.loaderDot}/>
+                  <span className={s.loaderDot}/>
+                </div>
               </div>
 
               {/* ══════════════════════════════════
@@ -147,14 +157,24 @@ export function LinkGuardSection() {
                 {/* email body */}
                 <div className={s.emailBodyBg}>
                   <div className={s.emailCard}>
-                    <div className={s.emailImgRow}>
-                      <span className={s.emailImgBox}>🖼</span>
-                      <span className={s.emailImgLabel}>Account Notice</span>
+                    {/* Microsoft 4-square logo */}
+                    <div className={s.msLogoRow}>
+                      <div className={s.msLogo}>
+                        <span style={{ background: "#f25022" }}/>
+                        <span style={{ background: "#7fba00" }}/>
+                        <span style={{ background: "#00a4ef" }}/>
+                        <span style={{ background: "#ffb900" }}/>
+                      </div>
+                      <span className={s.msLogoText}>Microsoft</span>
                     </div>
                     <p className={s.emailPara}>Hello,</p>
                     <p className={s.emailPara}>
                       We are reaching out with a reminder to review the information
                       associated with your account.
+                    </p>
+                    <p className={s.emailPara}>
+                      Keeping your account details current helps ensure a smooth
+                      experience and continued access to available features and services.
                     </p>
                     <span className={s.emailCta}>Review Payment Information</span>
                   </div>

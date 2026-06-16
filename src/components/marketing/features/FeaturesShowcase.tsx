@@ -190,7 +190,9 @@ export function FeaturesShowcase() {
     <section id="features" className={s.section}>
       <div className={s.inner}>
         <div className={s.header}>
-          <h2>API Key Masking, Phishing Detection &amp; Browser DLP — All in One Extension</h2>
+          <h2>API Key Masking &amp; Phishing Detection —{" "}
+            <em style={{ fontStyle: "italic", color: "var(--ink-muted)", fontWeight: 800 }}>All in One Extension.</em>
+          </h2>
           <p>
             From real-time credential leak prevention to enterprise email DLP — SecureLint stops API keys, passwords,
             and secrets from leaking across every web editor, email client, and tool you use.
