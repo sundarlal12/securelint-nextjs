@@ -2,30 +2,31 @@
 
 import s from "./LinkGuard.module.css";
 
-/* ── Mini gauge SVG for the popup ── */
+/* ── compact gauge for popup header ── */
 function PopupGauge() {
-  // viewBox 0 0 100 58, center (50,50), r=38
-  // Arcs: 180°→135° green, 135°→90° orange, 90°→45° light-red, 45°→0° dark-red
-  // Needle at score 40 → 40% of 180° = 72° from right = 108° standard
-  // Needle tip: (50+38*cos(108°), 50-38*sin(108°)) = (38.3, 13.9)
+  // center (40,38), r=28 — 4 segments, needle at 40% (108° standard)
+  // tip: (40+28*cos108°, 38-28*sin108°) = (40-8.65, 38-26.63) = (31.4, 11.4)
   return (
-    <svg viewBox="0 0 100 58" width="80" height="46" aria-hidden="true">
-      {/* bg track */}
-      <path d="M 12 50 A 38 38 0 0 1 88 50" fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="7" strokeLinecap="round"/>
-      {/* green 180°→135° */}
-      <path d="M 12 50 A 38 38 0 0 1 23.1 23.1" fill="none" stroke="#86efac" strokeWidth="7" strokeLinecap="round"/>
-      {/* orange 135°→90° */}
-      <path d="M 23.1 23.1 A 38 38 0 0 1 50 12" fill="none" stroke="#fb923c" strokeWidth="7" strokeLinecap="round"/>
-      {/* light-red 90°→45° */}
-      <path d="M 50 12 A 38 38 0 0 1 76.9 23.1" fill="none" stroke="#f87171" strokeWidth="7" strokeLinecap="round"/>
-      {/* dark-red 45°→0° */}
-      <path d="M 76.9 23.1 A 38 38 0 0 1 88 50" fill="none" stroke="#dc2626" strokeWidth="7" strokeLinecap="round"/>
-      {/* needle */}
-      <line x1="50" y1="50" x2="38.3" y2="13.9" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
-      {/* pivot */}
-      <circle cx="50" cy="50" r="3.5" fill="#fff"/>
-      {/* score */}
-      <text x="50" y="47" textAnchor="middle" fontSize="13" fontWeight="800" fill="#fff">40</text>
+    <svg viewBox="0 0 80 48" width="64" height="38" aria-hidden="true">
+      <path d="M 12 38 A 28 28 0 0 1 68 38" fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="6" strokeLinecap="round"/>
+      <path d="M 12 38 A 28 28 0 0 1 20.2 18.2" fill="none" stroke="#86efac" strokeWidth="6" strokeLinecap="round"/>
+      <path d="M 20.2 18.2 A 28 28 0 0 1 40 10"   fill="none" stroke="#fb923c" strokeWidth="6" strokeLinecap="round"/>
+      <path d="M 40 10 A 28 28 0 0 1 59.8 18.2"   fill="none" stroke="#f87171" strokeWidth="6" strokeLinecap="round"/>
+      <path d="M 59.8 18.2 A 28 28 0 0 1 68 38"   fill="none" stroke="#dc2626" strokeWidth="6" strokeLinecap="round"/>
+      <line x1="40" y1="38" x2="31.4" y2="11.4" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/>
+      <circle cx="40" cy="38" r="3" fill="#fff"/>
+      <text x="40" y="35" textAnchor="middle" fontSize="11" fontWeight="800" fill="#fff">40</text>
+    </svg>
+  );
+}
+
+/* ── mouse cursor SVG ── */
+function Cursor() {
+  return (
+    <svg className={s.cursor} viewBox="0 0 20 24" width="18" height="22" aria-hidden="true">
+      <path d="M1 1L1 18L5.5 14L8.5 21L11 20L8 13.5L14 13.5L1 1Z"
+        fill="white" stroke="#1e293b" strokeWidth="1.5"
+        strokeLinejoin="round" strokeLinecap="round"/>
     </svg>
   );
 }
@@ -33,7 +34,7 @@ function PopupGauge() {
 const CHECKS = [
   "Scans every link before you click",
   "Flags phishing, impersonation & brand spoofing",
-  "Shows trust score with visual gauge",
+  "Shows trust score with a live visual gauge",
   "Works silently inside Gmail, Outlook & Webmail",
 ];
 
@@ -68,26 +69,25 @@ export function LinkGuardSection() {
           </ul>
         </div>
 
-        {/* ── Right: animated mock ── */}
+        {/* ── Right: animated mock browser ── */}
         <div className={s.mockCol}
           role="img"
-          aria-label="Email with a phishing link gets intercepted by SecureLint's Unsafe Link Detected popup">
+          aria-label="Animated demo: phishing email opens, mouse clicks the link, SecureLint popup blocks it">
 
           <div className={s.browser}>
+
             {/* chrome bar */}
             <div className={s.browserBar} aria-hidden="true">
-              <span className={s.dot} style={{ background: "#f87171" }} />
-              <span className={s.dot} style={{ background: "#fb923c" }} />
-              <span className={s.dot} style={{ background: "#4ade80" }} />
+              <span className={s.dot} style={{ background: "#f87171" }}/>
+              <span className={s.dot} style={{ background: "#fb923c" }}/>
+              <span className={s.dot} style={{ background: "#4ade80" }}/>
               <div className={s.addressBar}>mail.google.com/mail</div>
             </div>
 
             <div className={s.browserBody}>
 
-              {/* ── Email view — fades in, then popup covers it ── */}
+              {/* ── Email content ── */}
               <div className={s.emailView}>
-
-                {/* email header */}
                 <div className={s.emailMeta}>
                   <div className={s.emailAvatar}>⚠</div>
                   <div>
@@ -95,10 +95,7 @@ export function LinkGuardSection() {
                     <div className={s.emailSubject}>Account Notice · Action Required</div>
                   </div>
                 </div>
-
-                <div className={s.emailDivider} />
-
-                {/* email body */}
+                <div className={s.emailDivider}/>
                 <div className={s.emailBody}>
                   <p className={s.emailPara}>Hello,</p>
                   <p className={s.emailPara}>
@@ -106,26 +103,26 @@ export function LinkGuardSection() {
                     associated with your account.
                   </p>
                   <p className={s.emailPara}>
-                    Keeping your account details current helps ensure a smooth
-                    experience and continued access to available features.
+                    Keeping your details current helps ensure continued access
+                    to available features and services.
                   </p>
-                  {/* the CTA link — pulses before popup appears */}
                   <div className={s.emailCtaWrap}>
                     <span className={s.emailCta}>Review Payment Information</span>
                   </div>
                 </div>
               </div>
 
-              {/* ── SecureLint popup — slides in after "click" ── */}
-              <div className={s.popup} aria-live="assertive">
+              {/* ── Mouse cursor — animates from top-right to button ── */}
+              <Cursor />
 
-                {/* red header */}
+              {/* ── SecureLint popup — slides in after click ── */}
+              <div className={s.popup}>
+
                 <div className={s.popupHead}>
                   <div className={s.popupHeadLeft}>
                     <div className={s.popupIcon}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" strokeWidth="3" strokeLinecap="round"
-                        aria-hidden="true">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" strokeWidth="3.5" strokeLinecap="round">
                         <line x1="5" y1="12" x2="19" y2="12"/>
                       </svg>
                     </div>
@@ -136,12 +133,11 @@ export function LinkGuardSection() {
                     </div>
                   </div>
                   <div className={s.popupGaugeWrap}>
-                    <PopupGauge />
+                    <PopupGauge/>
                     <div className={s.popupUnsafe}>UNSAFE</div>
                   </div>
                 </div>
 
-                {/* body */}
                 <div className={s.popupBody}>
                   <div className={s.popupAlert}>
                     <span className={s.popupAlertUrl}>acc-verify-secure.net</span>
@@ -151,6 +147,7 @@ export function LinkGuardSection() {
                   </div>
 
                   <div className={s.popupWhyLabel}>WHY THIS MATTERS</div>
+
                   <div className={s.popupCard}>
                     <div className={s.popupCardIcon}>🔒</div>
                     <div>
@@ -162,16 +159,12 @@ export function LinkGuardSection() {
                     </div>
                   </div>
 
-                  {/* pagination dots */}
                   <div className={s.popupDots}>
-                    <span className={`${s.popupDot} ${s.dotActive}`} />
-                    <span className={s.popupDot} />
-                    <span className={s.popupDot} />
-                    <span className={s.popupDot} />
+                    <span className={`${s.popupDot} ${s.dotActive}`}/>
+                    <span className={s.popupDot}/><span className={s.popupDot}/><span className={s.popupDot}/>
                   </div>
                 </div>
 
-                {/* footer buttons */}
                 <div className={s.popupFoot}>
                   <div className={s.popupDisclaimer}>
                     By proceeding you accept the associated risks per your org's policy.
@@ -182,12 +175,10 @@ export function LinkGuardSection() {
                   </div>
                 </div>
 
-                {/* branding */}
                 <div className={s.popupBrand}>
                   <img src="https://securelint.in/icons/icon-128.png"
-                    alt="SecureLint" width="14" height="14"
-                    className={s.popupBrandLogo}/>
-                  <span>SecureLint ·{" "}</span>
+                    alt="" width="12" height="12" className={s.popupBrandLogo}/>
+                  <span>SecureLint · </span>
                   <span className={s.popupBrandLink}>securelint.in</span>
                   <span> · Email Security Platform</span>
                 </div>

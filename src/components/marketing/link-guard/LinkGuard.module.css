@@ -1,5 +1,5 @@
 /* =============================================================
-   Section — white bg, same style as PhishingDemo / MeetingMode
+   Section
 ============================================================= */
 .section {
   background: var(--white);
@@ -17,464 +17,219 @@
 }
 
 @media (max-width: 960px) {
-  .inner {
-    grid-template-columns: 1fr;
-    gap: 48px;
-    padding: 64px 16px;
-  }
+  .inner { grid-template-columns: 1fr; gap: 48px; padding: 64px 16px; }
 }
 
 /* =============================================================
-   Left: text column
+   Left: text
 ============================================================= */
 .overline {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--green);
-  margin-bottom: 14px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .14em; color: var(--green); margin-bottom: 14px;
 }
-
 .h2 {
-  font-size: clamp(28px, 3.6vw, 44px);
-  font-weight: 800;
-  letter-spacing: -1.2px;
-  line-height: 1.1;
-  color: var(--ink);
-  margin: 0 0 20px;
+  font-size: clamp(28px,3.6vw,44px); font-weight: 800; letter-spacing: -1.2px;
+  line-height: 1.1; color: var(--ink); margin: 0 0 20px;
 }
-
-.italic {
-  font-style: italic;
-  color: var(--ink-muted);
-}
-
+.italic { font-style: italic; color: var(--ink-muted); }
 .desc {
-  font-size: 16px;
-  line-height: 1.75;
-  color: var(--ink-muted);
-  margin: 0 0 32px;
-  max-width: 480px;
+  font-size: 16px; line-height: 1.75; color: var(--ink-muted);
+  margin: 0 0 32px; max-width: 480px;
 }
+@media (max-width: 960px) { .desc { max-width: 100%; } }
 
-@media (max-width: 960px) {
-  .desc { max-width: 100%; }
-}
-
-.checks {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.checkItem {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  font-size: 15px;
-  color: var(--ink);
-}
-
-.checkIcon {
-  flex-shrink: 0;
-  margin-top: 2px;
-  color: var(--ink-muted);
-}
+.checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.checkItem { display: flex; align-items: flex-start; gap: 12px; font-size: 15px; color: var(--ink); }
+.checkIcon { flex-shrink: 0; margin-top: 2px; color: var(--ink-muted); }
 
 /* =============================================================
    Right: mock browser
 ============================================================= */
-.mockCol {
-  display: flex;
-  justify-content: center;
-}
+.mockCol { display: flex; justify-content: center; }
 
 .browser {
-  width: 100%;
-  max-width: 420px;
-  border-radius: 14px;
-  background: #fff;
-  box-shadow:
-    0 1px 3px rgba(0,0,0,.06),
-    0 8px 24px rgba(0,0,0,.09),
-    0 24px 56px -12px rgba(0,0,0,.13);
+  width: 100%; max-width: 420px;
+  border-radius: 14px; background: #fff; overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.1), 0 24px 56px -12px rgba(0,0,0,.14);
   outline: 1px solid rgba(14,16,26,.08);
-  overflow: hidden;
 }
 
 .browserBar {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  height: 36px;
-  padding: 0 14px;
-  background: #f8f9fa;
-  border-bottom: 1px solid rgba(14,16,26,.06);
+  display: flex; align-items: center; gap: 5px; height: 36px; padding: 0 14px;
+  background: #f8f9fa; border-bottom: 1px solid rgba(14,16,26,.06);
 }
-
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
+.dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .addressBar {
-  flex: 1;
-  margin-left: 10px;
-  height: 20px;
-  border-radius: 6px;
-  background: rgba(255,255,255,.85);
-  border: 1px solid rgba(14,16,26,.08);
-  font-size: 9.5px;
-  color: var(--ink-muted);
-  display: flex;
-  align-items: center;
-  padding: 0 8px;
-  font-family: ui-monospace, monospace;
+  flex: 1; margin-left: 10px; height: 20px; border-radius: 6px;
+  background: rgba(255,255,255,.85); border: 1px solid rgba(14,16,26,.08);
+  font-size: 9px; color: var(--ink-muted); display: flex; align-items: center;
+  padding: 0 8px; font-family: ui-monospace, monospace;
 }
 
+/* Fixed height so popup fits perfectly */
 .browserBody {
   position: relative;
-  min-height: 310px;
+  height: 390px;
   overflow: hidden;
 }
 
 /* =============================================================
    Email view
-   Timeline (12s loop):
-     0–7%   : fade in
-     7–33%  : visible (user "reading")
-     33–38% : CTA button pulses → click effect
-     38–92% : hidden (popup covers)
-     92–100%: fade out for reset
+   12s loop: fade-in 0–6% | visible 6–32% | click 32–38% | hidden 38–94% | fade-out 94–100%
 ============================================================= */
 .emailView {
-  padding: 16px 18px 18px;
+  padding: 14px 16px 16px;
   animation: emailLoop 12s ease-in-out infinite;
-  animation-fill-mode: both;
 }
 
 @keyframes emailLoop {
-  0%          { opacity: 0; }
-  7%, 86%     { opacity: 1; }
-  92%, 100%   { opacity: 0; }
+  0%        { opacity: 0; }
+  6%, 87%   { opacity: 1; }
+  93%, 100% { opacity: 0; }
 }
 
-.emailMeta {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 10px;
-}
+.emailMeta { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
 
 .emailAvatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #fef2f2;
-  border: 1px solid #fca5a5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  flex-shrink: 0;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #fef2f2; border: 1px solid #fca5a5;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0;
 }
+.emailSender  { font-size: 9.5px; color: #dc2626; font-weight: 600; font-family: ui-monospace,monospace; }
+.emailSubject { font-size: 10.5px; font-weight: 700; color: var(--ink); margin-top: 2px; }
 
-.emailSender {
-  font-size: 10px;
-  color: #dc2626;
-  font-weight: 600;
-  font-family: ui-monospace, monospace;
-}
+.emailDivider { height: 1px; background: rgba(14,16,26,.06); margin-bottom: 10px; }
 
-.emailSubject {
-  font-size: 10.5px;
-  font-weight: 700;
-  color: var(--ink);
-  margin-top: 2px;
-}
+.emailBody { display: flex; flex-direction: column; gap: 5px; }
+.emailPara  { font-size: 10.5px; line-height: 1.6; color: var(--ink); margin: 0; }
 
-.emailDivider {
-  height: 1px;
-  background: rgba(14,16,26,.06);
-  margin-bottom: 12px;
-}
+.emailCtaWrap { margin-top: 10px; }
 
-.emailBody {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.emailPara {
-  font-size: 11px;
-  line-height: 1.6;
-  color: var(--ink);
-  margin: 0;
-}
-
-/* CTA button — pulses red at 33–38% to simulate "click" */
-.emailCtaWrap {
-  margin-top: 10px;
-}
-
+/* CTA button pulses red at 32–38% */
 .emailCta {
-  display: inline-block;
-  background: var(--ink);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 8px 18px;
-  border-radius: 6px;
-  cursor: pointer;
+  display: inline-block; background: var(--ink); color: #fff;
+  font-size: 10.5px; font-weight: 700; padding: 8px 16px; border-radius: 6px;
   animation: ctaClick 12s ease-in-out infinite;
-  animation-fill-mode: both;
+}
+@keyframes ctaClick {
+  0%, 30%   { box-shadow: 0 0 0 0 rgba(220,38,38,0);    transform: scale(1); }
+  34%       { box-shadow: 0 0 0 6px rgba(220,38,38,.3);  transform: scale(.95); }
+  38%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0);    transform: scale(1); }
 }
 
-@keyframes ctaClick {
-  0%, 31%  { box-shadow: 0 0 0 0 rgba(220,38,38,0);   transform: scale(1); }
-  34%      { box-shadow: 0 0 0 6px rgba(220,38,38,.25); transform: scale(0.96); }
-  37%, 100%{ box-shadow: 0 0 0 0 rgba(220,38,38,0);   transform: scale(1); }
+/* =============================================================
+   Mouse cursor
+   Appears at 10%, travels from top-right area to the button,
+   clicks at 34%, disappears at 39%
+
+   Starting position: translate(200px, 30px)  — top-right
+   Button position:   translate(22px, 220px)  — over the CTA button
+============================================================= */
+.cursor {
+  position: absolute;
+  top: 0; left: 0;
+  z-index: 10;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.25));
+  animation: cursorMove 12s ease-in-out infinite;
+}
+
+@keyframes cursorMove {
+  0%, 9%    { opacity: 0; transform: translate(210px, 35px); }
+  13%       { opacity: 1; transform: translate(210px, 35px); }
+  32%       { opacity: 1; transform: translate(24px, 222px); }
+  35%       { opacity: 1; transform: translate(24px, 222px) scale(.88); }
+  39%, 100% { opacity: 0; transform: translate(24px, 222px); }
 }
 
 /* =============================================================
    SecureLint popup overlay
-   Appears at 38%, fully visible by 44%, holds until 86%, fades 92%
+   Slides up at 38%, fully visible by 44%, holds until 87%, fades 93%
 ============================================================= */
 .popup {
-  position: absolute;
-  inset: 0;
+  position: absolute; inset: 0;
   background: #fff;
-  border-radius: 14px;
-  display: flex;
-  flex-direction: column;
+  display: flex; flex-direction: column;
   overflow: hidden;
   animation: popupLoop 12s ease-out infinite;
-  animation-fill-mode: both;
 }
 
 @keyframes popupLoop {
-  0%, 37%     { opacity: 0; transform: translateY(12px); pointer-events: none; }
-  44%, 86%    { opacity: 1; transform: translateY(0);    pointer-events: auto; }
-  92%, 100%   { opacity: 0; transform: translateY(12px); pointer-events: none; }
+  0%, 37%   { opacity: 0; transform: translateY(16px); pointer-events: none; }
+  44%, 87%  { opacity: 1; transform: translateY(0);    pointer-events: auto; }
+  93%, 100% { opacity: 0; transform: translateY(16px); pointer-events: none; }
 }
 
-/* ── Popup header (dark red) ── */
+/* ── header (dark red) ── */
 .popupHead {
-  background: #7f1d1d;
-  padding: 12px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  background: #7f1d1d; padding: 12px 14px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  flex-shrink: 0;
 }
-
-.popupHeadLeft {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
+.popupHeadLeft { display: flex; align-items: flex-start; gap: 10px; }
 .popupIcon {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: #dc2626;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  flex-shrink: 0;
-  margin-top: 2px;
+  width: 26px; height: 26px; border-radius: 7px; background: #dc2626;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; flex-shrink: 0; margin-top: 2px;
 }
+.popupLabel { font-size: 8px; font-weight: 700; letter-spacing: .12em; color: rgba(255,255,255,.6); text-transform: uppercase; margin-bottom: 2px; }
+.popupTitle { font-size: 14px; font-weight: 800; color: #fff; line-height: 1.2; }
+.popupUrl   { font-size: 8.5px; color: rgba(255,255,255,.5); font-family: ui-monospace,monospace; margin-top: 2px; }
+.popupGaugeWrap { display: flex; flex-direction: column; align-items: center; gap: 1px; flex-shrink: 0; }
+.popupUnsafe { font-size: 8px; font-weight: 800; letter-spacing: .12em; color: rgba(255,255,255,.7); text-transform: uppercase; }
 
-.popupLabel {
-  font-size: 8.5px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: rgba(255,255,255,.65);
-  text-transform: uppercase;
-  margin-bottom: 2px;
-}
-
-.popupTitle {
-  font-size: 14px;
-  font-weight: 800;
-  color: #fff;
-  line-height: 1.2;
-}
-
-.popupUrl {
-  font-size: 9px;
-  color: rgba(255,255,255,.55);
-  font-family: ui-monospace, monospace;
-  margin-top: 2px;
-}
-
-.popupGaugeWrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  flex-shrink: 0;
-}
-
-.popupUnsafe {
-  font-size: 8.5px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  color: rgba(255,255,255,.75);
-  text-transform: uppercase;
-}
-
-/* ── Popup body ── */
+/* ── body ── */
 .popupBody {
-  padding: 12px 14px 8px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  padding: 10px 14px 6px; flex: 1;
+  display: flex; flex-direction: column; gap: 7px; overflow: hidden;
 }
 
 .popupAlert {
-  background: #fef2f2;
-  border-left: 3px solid #dc2626;
-  border-radius: 4px;
-  padding: 8px 10px;
-  font-size: 10.5px;
-  line-height: 1.55;
-  color: #1e293b;
+  background: #fef2f2; border-left: 3px solid #dc2626;
+  border-radius: 4px; padding: 7px 9px;
+  font-size: 10px; line-height: 1.55; color: #1e293b;
 }
+.popupAlertUrl { color: #dc2626; font-weight: 700; font-family: ui-monospace,monospace; }
 
-.popupAlertUrl {
-  color: #dc2626;
-  font-weight: 700;
-  font-family: ui-monospace, monospace;
-}
-
-.popupWhyLabel {
-  font-size: 8.5px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
-}
+.popupWhyLabel { font-size: 8px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-muted); }
 
 .popupCard {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  border: 1px solid rgba(14,16,26,.08);
-  border-radius: 8px;
-  padding: 8px 10px;
+  display: flex; align-items: flex-start; gap: 8px;
+  border: 1px solid rgba(14,16,26,.08); border-radius: 8px; padding: 8px 10px;
 }
+.popupCardIcon  { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+.popupCardTitle { font-size: 10px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
+.popupCardDesc  { font-size: 9px; line-height: 1.55; color: var(--ink-muted); }
 
-.popupCardIcon {
-  font-size: 16px;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
+.popupDots  { display: flex; gap: 5px; justify-content: center; }
+.popupDot   { width: 6px; height: 6px; border-radius: 50%; background: rgba(14,16,26,.15); }
+.dotActive  { background: #dc2626; }
 
-.popupCardTitle {
-  font-size: 10.5px;
-  font-weight: 700;
-  color: var(--ink);
-  margin-bottom: 3px;
-}
-
-.popupCardDesc {
-  font-size: 9.5px;
-  line-height: 1.55;
-  color: var(--ink-muted);
-}
-
-/* pagination dots */
-.popupDots {
-  display: flex;
-  gap: 5px;
-  justify-content: center;
-  padding: 2px 0;
-}
-
-.popupDot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: rgba(14,16,26,.15);
-}
-
-.dotActive {
-  background: #dc2626;
-}
-
-/* ── Popup footer ── */
+/* ── footer ── */
 .popupFoot {
   border-top: 1px solid rgba(14,16,26,.07);
-  padding: 8px 14px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
+  padding: 7px 14px 8px; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 6px;
 }
-
-.popupDisclaimer {
-  font-size: 8.5px;
-  color: var(--ink-muted);
-  line-height: 1.5;
-}
-
-.popupBtns {
-  display: flex;
-  gap: 8px;
-}
-
+.popupDisclaimer { font-size: 8.5px; color: var(--ink-muted); line-height: 1.4; }
+.popupBtns { display: flex; gap: 8px; }
 .btnDismiss {
-  flex: 1;
-  padding: 7px 0;
-  border-radius: 8px;
-  border: 1.5px solid rgba(14,16,26,.15);
-  background: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--ink);
-  cursor: pointer;
+  flex: 1; padding: 7px 0; border-radius: 7px;
+  border: 1.5px solid rgba(14,16,26,.15); background: #fff;
+  font-size: 10.5px; font-weight: 700; color: var(--ink); cursor: pointer;
 }
-
 .btnVisit {
-  flex: 1.4;
-  padding: 7px 0;
-  border-radius: 8px;
-  border: none;
-  background: #dc2626;
-  font-size: 11px;
-  font-weight: 700;
-  color: #fff;
-  cursor: pointer;
+  flex: 1.4; padding: 7px 0; border-radius: 7px;
+  border: none; background: #dc2626;
+  font-size: 10.5px; font-weight: 700; color: #fff; cursor: pointer;
 }
 
-/* ── Popup branding ── */
+/* ── brand strip ── */
 .popupBrand {
   border-top: 1px solid rgba(14,16,26,.06);
-  padding: 6px 14px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 8.5px;
-  color: var(--ink-muted);
+  padding: 5px 14px; display: flex; align-items: center; gap: 4px;
+  font-size: 8px; color: var(--ink-muted); flex-shrink: 0;
 }
-
-.popupBrandLogo {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-  object-fit: cover;
-}
-
-.popupBrandLink {
-  color: var(--green);
-  font-weight: 700;
-}
+.popupBrandLogo { border-radius: 3px; object-fit: cover; }
+.popupBrandLink { color: var(--green); font-weight: 700; }
