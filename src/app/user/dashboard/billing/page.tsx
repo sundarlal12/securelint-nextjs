@@ -374,7 +374,7 @@ export default function BillingPage() {
     const container = ppContainerRef.current;
     if (!container) return;
     if (!PAYPAL_CID) { setError("PayPal is not configured. Please contact support."); return; }
-    const loaded = await loadPayPal(PAYPAL_CID, "USD");
+    const loaded = await loadPayPal(PAYPAL_CID, "INR");
     if (!loaded || !window.paypal) { setError("Failed to load PayPal. Please try again."); return; }
     const buttons = window.paypal.Buttons({
       fundingSource: window.paypal.FUNDING.PAYPAL,
