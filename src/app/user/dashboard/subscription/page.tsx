@@ -126,8 +126,10 @@ export default function SubscriptionPage() {
           setPayuNotice(`${planId.charAt(0).toUpperCase() + planId.slice(1)} plan activated successfully.`);
           localStorage.setItem("user_plan_status", "active");
           localStorage.setItem("user_plan_id", planId);
-        } else {
+        } else if (payuTxnid) {
           setPayuNotice("Payment received. Your plan is still activating — refresh in a moment if needed.");
+        } else {
+          setPayuNotice("Payment may have succeeded but activation did not complete. Please contact support or try again from Billing.");
         }
         router.replace("/user/dashboard/subscription");
       }

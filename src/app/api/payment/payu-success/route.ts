@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
   formData.forEach((value, key) => {
     params.append(key, value.toString());
   });
+  const txnid = formData.get("txnid")?.toString() || "";
 
   try {
     const backendRes = await fetch(`${API_BASE}/api/payment/payu-success`, {
@@ -25,7 +26,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.redirect(location, 303);
     }
   } catch {
-    // Backend unreachable — do not show a false success state.
+    // Backend unreachable — fall through to txnid-based recovery below.
+  }
+
+  // PayU already charged the user; preserve txnid so /subscription can call payu-verify.
+  if (txnid) {
+    return NextResponse.redirect(
+      `${APP_ORIGIN}/user/dashboard/subscription?payu=success&txnid=${encodeURIComponent(txnid)}`,
+      303,
+    );
   }
 
   return NextResponse.redirect(
