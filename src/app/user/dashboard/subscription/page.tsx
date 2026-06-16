@@ -113,7 +113,7 @@ export default function SubscriptionPage() {
 
       const [freshPlans, freshProfile] = await Promise.all([
         revalidatePlans(),
-        revalidateProfile(authToken),
+        revalidateProfile(authToken ?? ""),
       ]);
 
       const plans  = freshPlans.length  ? freshPlans  : cachedPlans;
