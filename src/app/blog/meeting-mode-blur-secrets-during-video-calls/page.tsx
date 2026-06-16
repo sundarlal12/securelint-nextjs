@@ -136,17 +136,13 @@ export default function MeetingModeBlogPage() {
               </h1>
             </header>
 
-            {/* Cover */}
-            <div className={s.coverBanner}
-              style={{ background: "linear-gradient(135deg,#1e293b 0%,#334155 60%,#0f172a 100%)" }}
-              aria-hidden="true">
-              <span className={s.coverBannerDeco1} style={{ background: "#4ade80" }}/>
-              <span className={s.coverBannerDeco2} style={{ background: "#4ade80" }}/>
-              <p className={s.coverBannerText}>
-                Meeting Mode —<br/>
-                <span style={{ color: "#4ade80" }}>Blur secrets. Automatically.</span>
-              </p>
-            </div>
+            {/* Cover — real SVG banner */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/securelint_banner_diagonal.svg"
+              alt="SecureLint Meeting Mode — blur secrets during screen share"
+              className={s.articleBannerImg}
+            />
 
             {/* ── Article Body ── */}
             <div className={s.prose}>

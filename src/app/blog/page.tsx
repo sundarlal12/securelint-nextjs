@@ -76,22 +76,33 @@ export default function BlogPage() {
               {POSTS.map((post) => (
                 <article key={post.slug} className={s.card}>
 
-                  {/* Cover — styled banner with short title text */}
+                  {/* Cover */}
                   <Link href={`/blog/${post.slug}`} className={s.coverWrap} tabIndex={-1} aria-hidden="true">
-                    <div className={s.cover} style={{ background: post.gradient }}>
-                      {/* decorative circles */}
-                      <span className={s.deco1} style={{ background: post.accentColor }}/>
-                      <span className={s.deco2} style={{ background: post.accentColor }}/>
-                      {/* short title on cover */}
-                      <div className={s.coverTextWrap}>
-                        {post.shortTitle.split("\n").map((line, i) => (
-                          <span key={i} className={s.coverLine}
-                            style={i === 1 ? { color: post.accentColor } : undefined}>
-                            {line}
-                          </span>
-                        ))}
+                    {"imageCover" in post && post.imageCover ? (
+                      /* Real image cover for posts that have one */
+                      <div className={s.cover} style={{ background: "#0f172a" }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={post.imageCover}
+                          alt={post.title}
+                          className={s.coverImg}
+                        />
                       </div>
-                    </div>
+                    ) : (
+                      /* Gradient + text cover for posts without an image */
+                      <div className={s.cover} style={{ background: post.gradient }}>
+                        <span className={s.deco1} style={{ background: post.accentColor }}/>
+                        <span className={s.deco2} style={{ background: post.accentColor }}/>
+                        <div className={s.coverTextWrap}>
+                          {post.shortTitle.split("\n").map((line, i) => (
+                            <span key={i} className={s.coverLine}
+                              style={i === 1 ? { color: post.accentColor } : undefined}>
+                              {line}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </Link>
 
                   {/* Body */}

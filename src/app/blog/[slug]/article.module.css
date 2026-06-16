@@ -60,7 +60,18 @@
   margin: 0;
 }
 
-/* cover banner */
+/* Real image banner (for articles with actual SVG/PNG covers) */
+.articleBannerImg {
+  display: block;
+  width: 100%;
+  border-radius: 12px;
+  margin: 28px 0 36px;
+  aspect-ratio: 1200 / 480;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* CSS gradient banner fallback */
 .coverBanner {
   border-radius: 12px; overflow: hidden;
   aspect-ratio: 1200 / 480;
