@@ -9,7 +9,7 @@ export const POSTS = [
     gradient: "linear-gradient(135deg,#1e293b 0%,#334155 60%,#0f172a 100%)",
     accentColor: "#4ade80",
     /* Real banner images — used on the listing card cover and article header */
-    imageCover: "/securelint_banner_v2_fullsize.svg",
+    imageCover: "/securelint_zoom_meet_banner.svg",
     imageBanner: "/securelint_banner_diagonal.svg",
   },
   {
