@@ -6,6 +6,7 @@ import {
   FaqSection,
   HeroSection,
   HowItWorksSection,
+  LinkGuardSection,
   MarketingCta,
   MeetingModeSection,
   PhishingDemoSection,
@@ -48,6 +49,7 @@ export default function HomePage() {
         <HowItWorksSection />
         <PhishingDemoSection />
         <MeetingModeSection />
+        <LinkGuardSection />
         <PricingSection />
         <PlanComparison />
         <FaqSection />
