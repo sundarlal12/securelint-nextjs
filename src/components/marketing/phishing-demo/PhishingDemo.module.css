@@ -1,0 +1,363 @@
+/* =============================================================
+   Section shell
+============================================================= */
+.section {
+  background: var(--white);
+  border-top: 1px solid var(--green-border);
+}
+
+.inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 96px 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 72px;
+  align-items: center;
+}
+
+@media (max-width: 960px) {
+  .inner {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    padding: 64px 16px;
+  }
+}
+
+/* =============================================================
+   Left: text column
+============================================================= */
+.overline {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--green);
+  margin-bottom: 14px;
+}
+
+.h2 {
+  font-size: clamp(28px, 3.6vw, 44px);
+  font-weight: 800;
+  letter-spacing: -1.2px;
+  line-height: 1.1;
+  color: var(--ink);
+  margin: 0 0 20px;
+}
+
+.italic {
+  font-style: italic;
+  color: var(--ink-muted);
+}
+
+.desc {
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--ink-muted);
+  margin: 0 0 32px;
+  max-width: 480px;
+}
+
+@media (max-width: 960px) {
+  .desc {
+    max-width: 100%;
+  }
+}
+
+.checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.checkItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.checkIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--ink-muted);
+}
+
+/* =============================================================
+   Right: mock card
+============================================================= */
+.mockCol {
+  display: flex;
+  justify-content: center;
+}
+
+.card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,.07), 0 20px 60px -12px rgba(0,0,0,.14);
+  outline: 1px solid rgba(14,16,26,.08);
+  width: 100%;
+  max-width: 440px;
+  overflow: hidden;
+}
+
+/* ── Gauge row ── */
+.gaugeRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 20px 0;
+  gap: 12px;
+}
+
+.gaugeWrap {
+  flex-shrink: 0;
+  width: 160px;
+}
+
+.gaugeSvg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Needle sweeps in from 0° (left) to ~0° (right) on load */
+.needleAnim {
+  transform-origin: 100px 100px;
+  transform: rotate(-180deg);
+  animation: needleSweep 1.2s cubic-bezier(0.16,1,0.3,1) 0.3s forwards;
+}
+
+@keyframes needleSweep {
+  from { transform: rotate(-180deg); }
+  to   { transform: rotate(0deg); }
+}
+
+/* ── Status chips ── */
+.chipsCol {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.chipYellow {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: #fefce8;
+  border: 1px solid #fde047;
+  color: #854d0e;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.chipRed {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.chipUser {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  border: 1px solid rgba(14,16,26,.1);
+  color: var(--ink-muted);
+}
+
+/* ── Threat badge ── */
+.threatBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 20px 0;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 10px;
+  padding: 8px 14px;
+  color: #dc2626;
+  font-size: 13px;
+}
+
+.threatLabel {
+  font-weight: 800;
+}
+
+.threatSub {
+  font-weight: 400;
+  color: #ef4444;
+  font-size: 12px;
+}
+
+.threatScore {
+  margin-left: auto;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #f0f0f0;
+  margin-top: 14px;
+  padding: 0 4px;
+  gap: 2px;
+}
+
+.tab {
+  flex: 1;
+  padding: 8px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-muted);
+  text-align: center;
+  cursor: default;
+  border-bottom: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.tabActive {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+.tabAlert {
+  font-size: 9px;
+  font-weight: 700;
+  color: #ea580c;
+  background: #fff7ed;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+/* ── Signals ── */
+.signals {
+  padding: 6px 0 4px;
+}
+
+.sigRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f9f9f9;
+  opacity: 0;
+  animation: rowIn 0.4s ease-out forwards;
+}
+
+.sigRow:last-child {
+  border-bottom: none;
+}
+
+@keyframes rowIn {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.sigIcon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.sigText {
+  flex: 1;
+  font-size: 12px;
+  color: var(--ink-2);
+  line-height: 1.4;
+  min-width: 0;
+}
+
+.sigTextBold {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.sigChevron {
+  color: #d1d5db;
+  font-size: 18px;
+  flex-shrink: 0;
+  font-weight: 300;
+}
+
+/* ── Card footer ── */
+.cardFoot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.footLogo {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.footText {
+  font-size: 11px;
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+/* =============================================================
+   Responsive
+============================================================= */
+@media (max-width: 480px) {
+  .card {
+    max-width: 100%;
+  }
+
+  .gaugeWrap {
+    width: 140px;
+  }
+
+  .tab {
+    font-size: 11px;
+    padding: 7px 2px;
+  }
+
+  .sigText {
+    font-size: 11px;
+  }
+}

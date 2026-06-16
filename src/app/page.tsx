@@ -7,6 +7,7 @@ import {
   HeroSection,
   HowItWorksSection,
   MarketingCta,
+  PhishingDemoSection,
   PlanComparison,
   PricingSection,
   PrivacyPromoSection,
@@ -44,6 +45,7 @@ export default function HomePage() {
         {/* <TrustedStrip /> */}
         <FeaturesShowcase />
         <HowItWorksSection />
+        <PhishingDemoSection />
         <PricingSection />
         <PlanComparison />
         <FaqSection />
