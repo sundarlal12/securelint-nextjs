@@ -107,6 +107,7 @@
 ============================================================= */
 .emailView {
   position: absolute; inset: 0; overflow: hidden;
+  display: flex; flex-direction: column;  /* lets emailBodyBg flex:1 work */
   animation: emailLoop 12s ease-in-out infinite;
   animation-fill-mode: both;
 }
@@ -177,31 +178,41 @@
 .attachFile { font-size: 8px; color: var(--ink); font-weight: 500; }
 .attachSize { font-size: 7.5px; color: var(--ink-muted); margin-left: 2px; }
 
-/* email body */
-.emailBodyBg { background: #f1f5f9; padding: 7px; }
+/* email body — flex:1 so it fills remaining height, no empty gap */
+.emailBodyBg {
+  flex: 1;                 /* fills all remaining height below headers */
+  background: #f1f5f9;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+}
 
 .emailCard {
-  background: #fff; border-radius: 5px; padding: 9px 10px;
-  display: flex; flex-direction: column; gap: 4px;
+  flex: 1;                 /* card grows to fill emailBodyBg */
+  background: #fff; border-radius: 5px; padding: 12px 12px;
+  display: flex; flex-direction: column; gap: 6px;
 }
+
 /* Microsoft logo row */
 .msLogoRow {
   display: flex; align-items: center; justify-content: center; gap: 6px;
-  padding-bottom: 6px; border-bottom: 1px solid rgba(14,16,26,.05); margin-bottom: 4px;
+  padding-bottom: 8px; border-bottom: 1px solid rgba(14,16,26,.05); margin-bottom: 2px;
 }
 .msLogo {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 1.5px;
-  width: 16px; height: 16px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
+  width: 18px; height: 18px;
 }
 .msLogo span { border-radius: 1px; }
-.msLogoText { font-size: 10px; font-weight: 600; color: var(--ink); }
-.emailPara { font-size: 10px; line-height: 1.5; color: var(--ink); margin: 0; }
+.msLogoText { font-size: 11px; font-weight: 700; color: var(--ink); }
 
-/* CTA button — pulses at click phase (34–38%) */
+.emailPara { font-size: 11px; line-height: 1.6; color: var(--ink); margin: 0; }
+
+/* CTA — full width block, cursor lands here */
 .emailCta {
-  display: inline-block; background: #1e293b; color: #fff;
-  font-size: 10px; font-weight: 700; padding: 7px 14px; border-radius: 5px;
-  cursor: pointer; margin-top: 3px;
+  display: block; text-align: center;
+  background: #1e293b; color: #fff;
+  font-size: 11px; font-weight: 700; padding: 9px 0; border-radius: 5px;
+  cursor: pointer; margin-top: 2px;
   animation: ctaClick 12s ease-in-out infinite;
 }
 @keyframes ctaClick {
@@ -229,9 +240,9 @@
 @keyframes cursorAnim {
   0%, 8%   { opacity: 0; transform: translate(220px, 20px); }
   12%      { opacity: 1; transform: translate(220px, 20px); }
-  33%      { opacity: 1; transform: translate(22px, 298px); }
-  36%      { opacity: 1; transform: translate(22px, 298px) scale(.85); }
-  39%,100% { opacity: 0; transform: translate(22px, 298px); }
+  33%      { opacity: 1; transform: translate(40px, 282px); }
+  36%      { opacity: 1; transform: translate(40px, 282px) scale(.85); }
+  39%,100% { opacity: 0; transform: translate(40px, 282px); }
 }
 
 /* =============================================================
