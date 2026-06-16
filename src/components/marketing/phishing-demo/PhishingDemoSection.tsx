@@ -300,7 +300,14 @@ export function PhishingDemoSection() {
 
             {/* ── Footer ── */}
             <div className={s.cardFoot}>
-              <span className={s.footLogo} aria-hidden="true">S</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://securelint.in/icons/icon-128.png"
+                alt="SecureLint"
+                width={18}
+                height={18}
+                className={s.footLogo}
+              />
               <span className={s.footText}>SecureLint · securelint.in</span>
             </div>
 
