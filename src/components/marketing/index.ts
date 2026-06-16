@@ -4,6 +4,7 @@ export { TrustedStrip } from "./trusted/TrustedStrip";
 export { FeaturesShowcase } from "./features/FeaturesShowcase";
 export { HowItWorksSection } from "./how-it-works/HowItWorksSection";
 export { PhishingDemoSection } from "./phishing-demo/PhishingDemoSection";
+export { MeetingModeSection } from "./meeting-mode/MeetingModeSection";
 export { PricingSection } from "./pricing/PricingSection";
 export { PlanComparison } from "./pricing/PlanComparison";
 export { PrivacyPromoSection } from "./privacy/PrivacyPromoSection";

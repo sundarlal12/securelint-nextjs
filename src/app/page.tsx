@@ -7,6 +7,7 @@ import {
   HeroSection,
   HowItWorksSection,
   MarketingCta,
+  MeetingModeSection,
   PhishingDemoSection,
   PlanComparison,
   PricingSection,
@@ -46,6 +47,7 @@ export default function HomePage() {
         <FeaturesShowcase />
         <HowItWorksSection />
         <PhishingDemoSection />
+        <MeetingModeSection />
         <PricingSection />
         <PlanComparison />
         <FaqSection />
