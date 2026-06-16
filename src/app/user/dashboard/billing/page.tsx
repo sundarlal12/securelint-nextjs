@@ -383,7 +383,7 @@ export default function BillingPage() {
     const container = ppContainerRef.current;
     if (!container) return;
     if (!PAYPAL_CID) { setError("PayPal is not configured. Please contact support."); return; }
-    if (isIndia) { setError("PayPal is for international payments. Select a country outside India or use Razorpay."); return; }
+    if (isIndia) return; // Panel shows its own notice — no error toast needed
     const loaded = await loadPayPal(PAYPAL_CID);
     if (!loaded || !window.paypal) { setError("Failed to load PayPal. Please try again."); return; }
     const buttons = window.paypal.Buttons({
@@ -870,20 +870,37 @@ export default function BillingPage() {
                 </div>
 
                 {/* ── PayPal panel ──
-                    Same rule: ppContainerRef has zero React children. */}
+                    PayPal REST API does not support Indian buyers/merchants in USD.
+                    Show a clear notice for Indian IP; render buttons only for genuine
+                    international visitors. */}
                 <div style={{ display: intlTab === "paypal" ? "block" : "none" }}>
-                  {/* Spinner lives OUTSIDE the ref */}
-                  {!ppRendered && (
-                    <div style={{ display:"flex", justifyContent:"center", padding:"14px 0" }}>
-                      <div style={{ width:22, height:22, border:`3px solid ${BORDER}`, borderTop:`3px solid #003087`, borderRadius:"50%", animation:"spin .8s linear infinite" }} />
+                  {isIndia ? (
+                    <div style={{
+                      padding:"18px 20px", borderRadius:10,
+                      background:"#fffbeb", border:"1px solid #fde68a",
+                      fontSize:13, color:"#92400e", textAlign:"center", lineHeight:1.6,
+                    }}>
+                      <div style={{ fontSize:20, marginBottom:6 }}>🌍</div>
+                      <strong>PayPal is not available for payments from India.</strong><br />
+                      PayPal does not support Indian residents paying Indian merchants via their REST checkout.<br />
+                      <span style={{ color:MUTED }}>Please use <strong>Razorpay</strong> or <strong>PayU</strong> for Indian payments.</span>
                     </div>
-                  )}
-                  {/* SDK-owned container — always empty from React's perspective */}
-                  <div ref={ppContainerRef} style={{ width:"100%", minHeight: ppRendered ? 52 : 0 }} />
-                  {ppRendered && (
-                    <div style={{ fontSize:12, color:MUTED, textAlign:"center", marginTop:8 }}>
-                      🔒 Secured by PayPal · Credit &amp; debit cards accepted
-                    </div>
+                  ) : (
+                    <>
+                      {/* Spinner lives OUTSIDE the ref */}
+                      {!ppRendered && (
+                        <div style={{ display:"flex", justifyContent:"center", padding:"14px 0" }}>
+                          <div style={{ width:22, height:22, border:`3px solid ${BORDER}`, borderTop:`3px solid #003087`, borderRadius:"50%", animation:"spin .8s linear infinite" }} />
+                        </div>
+                      )}
+                      {/* SDK-owned container — always empty from React's perspective */}
+                      <div ref={ppContainerRef} style={{ width:"100%", minHeight: ppRendered ? 52 : 0 }} />
+                      {ppRendered && (
+                        <div style={{ fontSize:12, color:MUTED, textAlign:"center", marginTop:8 }}>
+                          🔒 Secured by PayPal · International cards &amp; wallets accepted
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 
