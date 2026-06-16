@@ -83,6 +83,11 @@
 @media (max-width: 768px) {
   .hero {
     padding: 0 16px 40px;
+    overflow-x: hidden;
+  }
+
+  .inner {
+    overflow: hidden;
   }
 
   .textCol {
@@ -100,8 +105,16 @@
     display: none;
   }
 
+  /* Clip any residual overflow from editor card */
+  .visualWrap {
+    overflow: hidden;
+    width: 100%;
+    max-width: 100%;
+  }
+
   .visualCol {
     padding: 12px 0 56px;
+    overflow: hidden;
   }
 }
 
@@ -109,19 +122,35 @@
 @media (max-width: 480px) {
   .hero {
     padding: 0 12px 28px;
+    overflow-x: hidden;
   }
 
   .textCol {
     padding: 32px 0 0;
   }
 
+  /* Smaller font so long slide titles fit within ~336px */
   .title {
-    font-size: clamp(26px, 8vw, 34px);
-    letter-spacing: -1px;
+    font-size: clamp(20px, 6vw, 26px);
+    letter-spacing: -0.5px;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 
   .slideWrap {
-    min-height: 150px;
+    min-height: 160px;
+    overflow: hidden;
+  }
+
+  /* Allow long "Now scanning for…" text to wrap */
+  .slideAccent {
+    flex-wrap: wrap;
+    word-break: break-word;
+  }
+
+  .lead {
+    font-size: 14px;
+    max-width: 100%;
   }
 
   .eyebrowRow {
@@ -129,6 +158,14 @@
     align-items: center;
     gap: 8px;
     margin-bottom: 20px;
+  }
+
+  /* Eyebrow chips: allow text to shrink on very narrow screens */
+  .eyebrow,
+  .eyebrowChipGreen {
+    white-space: normal;
+    text-align: center;
+    font-size: 11px;
   }
 
   /* Stack CTA buttons vertically */
@@ -153,10 +190,6 @@
     margin-bottom: 24px;
   }
 
-  .lead {
-    font-size: 14px;
-  }
-
   .footerStat {
     flex: 1 1 40%;
     padding: 14px 6px;
@@ -164,6 +197,7 @@
 
   .visualCol {
     padding: 8px 0 48px;
+    overflow: hidden;
   }
 }
 
