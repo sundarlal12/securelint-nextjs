@@ -1,10 +1,10 @@
 "use client";
 import s from "./LinkGuard.module.css";
 
-/* ── gauge ── */
+/* ── compact gauge ── */
 function PopupGauge() {
   return (
-    <svg viewBox="0 0 80 48" width="60" height="36" aria-hidden="true">
+    <svg viewBox="0 0 80 48" width="56" height="34" aria-hidden="true">
       <path d="M 12 38 A 28 28 0 0 1 68 38" fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="5.5" strokeLinecap="round"/>
       <path d="M 12 38 A 28 28 0 0 1 20.2 18.2" fill="none" stroke="#86efac" strokeWidth="5.5" strokeLinecap="round"/>
       <path d="M 20.2 18.2 A 28 28 0 0 1 40 10"  fill="none" stroke="#fb923c" strokeWidth="5.5" strokeLinecap="round"/>
@@ -17,7 +17,7 @@ function PopupGauge() {
   );
 }
 
-/* ── mouse cursor SVG ── */
+/* ── mouse cursor ── */
 function Cursor() {
   return (
     <svg className={s.cursor} viewBox="0 0 20 24" width="16" height="20" aria-hidden="true">
@@ -75,16 +75,33 @@ export function LinkGuardSection() {
               <span className={s.dot} style={{ background: "#f87171" }}/>
               <span className={s.dot} style={{ background: "#fb923c" }}/>
               <span className={s.dot} style={{ background: "#4ade80" }}/>
-              <div className={s.addressBar}>mail.google.com/mail/u/0</div>
+              <div className={s.addressBar}>
+                outlook.live.com/mail/junkemail/id/AAkALg…
+              </div>
             </div>
 
             <div className={s.browserBody}>
 
-              {/* ════════════════════════════════════════
-                  PHASE 1: Outlook-style email view
-                  Fades in at 0%, fades OUT at 37%
-                  so zero overlap with popup
-              ════════════════════════════════════════ */}
+              {/* ══════════════════════════════════
+                  SKELETON LOADER
+                  Visible during 0–6% (loop start)
+              ══════════════════════════════════ */}
+              <div className={s.skeleton} aria-hidden="true">
+                <div className={s.skelRow} style={{ width: "55%", height: 10 }}/>
+                <div className={s.skelRow} style={{ width: "90%", height: 8, marginTop: 10 }}/>
+                <div className={s.skelRow} style={{ width: "70%", height: 8, marginTop: 6 }}/>
+                <div className={s.skelDivider}/>
+                <div className={s.skelRow} style={{ width: "95%", height: 8 }}/>
+                <div className={s.skelRow} style={{ width: "80%", height: 8, marginTop: 6 }}/>
+                <div className={s.skelRow} style={{ width: "60%", height: 8, marginTop: 6 }}/>
+                <div className={s.skelRow} style={{ width: "40%", height: 28, marginTop: 12, borderRadius: 6 }}/>
+              </div>
+
+              {/* ══════════════════════════════════
+                  OUTLOOK EMAIL VIEW
+                  Visible from 6% → stays visible
+                  even while popup is showing
+              ══════════════════════════════════ */}
               <div className={s.emailView}>
 
                 {/* subject bar */}
@@ -97,7 +114,7 @@ export function LinkGuardSection() {
                   </div>
                 </div>
 
-                {/* sender row */}
+                {/* sender */}
                 <div className={s.senderRow}>
                   <div className={s.senderAvatar}>MB</div>
                   <div className={s.senderInfo}>
@@ -106,7 +123,8 @@ export function LinkGuardSection() {
                       <span className={s.senderEmail}> bill&lt;zn@cardcentrix.com&gt;</span>
                       <span className={s.configBadge}>⬆ Config Profile (Critical) 85/100</span>
                     </div>
-                    <div className={s.senderTo}>To: customer.5108047@outlook.com
+                    <div className={s.senderTo}>
+                      To: customer.5108047@outlook.com
                       <span className={s.senderDate}>Tue 6/16 8:21 PM</span>
                     </div>
                   </div>
@@ -121,12 +139,9 @@ export function LinkGuardSection() {
                 {/* attachments */}
                 <div className={s.attachRow}>
                   <span className={s.attachIcon}>📎</span>
-                  <span className={s.attachFile}>emails-cardcentrix.mobilecon…</span>
-                  <span className={s.attachSize}>6 KB</span>
-                  <span className={s.attachFile}>carddav-cardcentrix.mobilec…</span>
-                  <span className={s.attachSize}>6 KB</span>
-                  <span className={s.attachFile}>caldav-cardcentrix.mobilec…</span>
-                  <span className={s.attachSize}>7 KB</span>
+                  <span className={s.attachFile}>emails-cardcentrix.mobilecon… <span className={s.attachSize}>6 KB</span></span>
+                  <span className={s.attachFile}>carddav-cardcentrix.mobilec… <span className={s.attachSize}>6 KB</span></span>
+                  <span className={s.attachFile}>caldav-cardcentrix.mobilec… <span className={s.attachSize}>7 KB</span></span>
                 </div>
 
                 {/* email body */}
@@ -141,29 +156,30 @@ export function LinkGuardSection() {
                       We are reaching out with a reminder to review the information
                       associated with your account.
                     </p>
-                    {/* CTA button — cursor lands here, then pulses */}
                     <span className={s.emailCta}>Review Payment Information</span>
                   </div>
                 </div>
 
               </div>{/* /emailView */}
 
-              {/* ════════════════════════════════════════
-                  Mouse cursor — travels top-right → button
-                  Button is at ≈ y:297px from browserBody top
-              ════════════════════════════════════════ */}
+              {/* ══════════════════════════════════
+                  Mouse cursor
+                  Appears at 10%, travels to button,
+                  clicks at 34%, disappears at 39%
+              ══════════════════════════════════ */}
               <Cursor />
 
-              {/* ════════════════════════════════════════
-                  PHASE 2: SecureLint popup
-                  Appears only AFTER email is fully gone (42%+)
-              ════════════════════════════════════════ */}
+              {/* ══════════════════════════════════
+                  SECURELINT POPUP — floating card
+                  Small card at top, email visible below
+                  Appears at 42%, fades at 87%
+              ══════════════════════════════════ */}
               <div className={s.popup}>
 
                 <div className={s.popupHead}>
                   <div className={s.popupHeadLeft}>
                     <div className={s.popupIcon}>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" strokeWidth="3.5" strokeLinecap="round">
                         <line x1="5" y1="12" x2="19" y2="12"/>
                       </svg>
@@ -183,30 +199,12 @@ export function LinkGuardSection() {
                 <div className={s.popupBody}>
                   <div className={s.popupAlert}>
                     <span className={s.popupAlertUrl}>acc-verify-secure.net</span>
-                    {" "}has been identified as a <strong>malicious or phishing site</strong> by
-                    SecureLint. We strongly recommend you do not proceed.
-                  </div>
-                  <div className={s.popupWhyLabel}>WHY THIS MATTERS</div>
-                  <div className={s.popupCard}>
-                    <div className={s.popupCardIcon}>🔒</div>
-                    <div>
-                      <div className={s.popupCardTitle}>Phishing Sites Steal Credentials</div>
-                      <div className={s.popupCardDesc}>
-                        Clicking this link can expose your email, passwords, and
-                        banking credentials to attackers in real time.
-                      </div>
-                    </div>
-                  </div>
-                  <div className={s.popupDots}>
-                    <span className={`${s.popupDot} ${s.dotActive}`}/>
-                    <span className={s.popupDot}/><span className={s.popupDot}/><span className={s.popupDot}/>
+                    {" "}has been identified as a <strong>malicious or phishing site</strong>{" "}
+                    by SecureLint. Do not proceed.
                   </div>
                 </div>
 
                 <div className={s.popupFoot}>
-                  <div className={s.popupDisclaimer}>
-                    By proceeding you accept the associated risks per your org's policy.
-                  </div>
                   <div className={s.popupBtns}>
                     <button className={s.btnDismiss}>Dismiss</button>
                     <button className={s.btnVisit}>⚠ Visit Anyway</button>
@@ -215,7 +213,7 @@ export function LinkGuardSection() {
 
                 <div className={s.popupBrand}>
                   <img src="https://securelint.in/icons/icon-128.png"
-                    alt="" width="12" height="12" className={s.popupBrandLogo}/>
+                    alt="" width="11" height="11" className={s.popupBrandLogo}/>
                   <span>SecureLint · </span>
                   <span className={s.popupBrandLink}>securelint.in</span>
                   <span> · Email Security Platform</span>
