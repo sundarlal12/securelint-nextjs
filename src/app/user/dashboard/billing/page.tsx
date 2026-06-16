@@ -585,14 +585,58 @@ export default function BillingPage() {
     <div style={{ width:"100%" }}>
       <style>{`
         @keyframes spin{to{transform:rotate(360deg)}}
+
+        /* ── plan row (step 1) ── */
         .billing-plan-row{transition:all .15s;}
         .billing-plan-row:hover{border-color:#007b70 !important;background:#f0fdfb !important;}
+        .billing-plan-row-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;}
+
+        /* ── step-1 container ── */
+        .billing-step1-wrap{max-width:660px;margin:0 auto;padding:0 16px;}
+
+        /* ── step-2 two-column layout ── */
+        .billing-pay-wrap{
+          display:flex;flex-direction:row;
+          max-width:860px;margin:0 auto;
+          border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.08);
+          border:1px solid #e5e7eb;overflow:hidden;background:#fff;
+        }
+        .billing-summary-col{
+          width:38%;min-width:240px;
+          background:#f9fafa;border-right:1px solid #e5e7eb;
+          padding:36px 28px;display:flex;flex-direction:column;
+        }
+        .billing-form-col{flex:1;padding:36px 32px;min-width:0;}
+
+        /* ── address 2-col grids ── */
+        .billing-2col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
+
+        /* ── inputs ── */
         input:focus,select:focus{border-color:#007b70 !important;box-shadow:0 0 0 3px rgba(0,123,112,.1);}
+
+        /* ── mobile ── */
+        @media(max-width:640px){
+          .billing-step1-wrap{padding:0 4px;}
+
+          .billing-plan-row{padding:16px 14px !important;}
+          .billing-plan-row-inner{flex-direction:column;align-items:flex-start;gap:10px;}
+
+          .billing-pay-wrap{flex-direction:column;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.08);}
+          .billing-summary-col{width:100%;min-width:0;border-right:none;border-bottom:1px solid #e5e7eb;padding:20px 16px;}
+          .billing-form-col{padding:20px 16px;}
+          .billing-2col{grid-template-columns:1fr;}
+        }
+
+        /* ── tablet ── */
+        @media(min-width:641px) and (max-width:900px){
+          .billing-summary-col{width:42%;min-width:0;padding:28px 20px;}
+          .billing-form-col{padding:28px 22px;}
+        }
       `}</style>
 
       {/* Page title — choose step only */}
       {step === "choose" && (
-        <div style={{ maxWidth:660, margin:"0 auto", textAlign:"center", marginBottom:44 }}>
+        <div className="billing-step1-wrap" style={{ textAlign:"center", marginBottom:44 }}>
           <h1 style={{ fontSize:30, fontWeight:800, color:TEXT, marginBottom:8, letterSpacing:"-0.6px", lineHeight:1.2 }}>
             {`Choose a billing option for your ${planName} plan`}
           </h1>
@@ -604,7 +648,7 @@ export default function BillingPage() {
 
       {/* ── Step 1: Choose billing ── */}
       {step === "choose" && (
-        <div style={{ maxWidth:660, margin:"0 auto" }}>
+        <div className="billing-step1-wrap">
           {priceLoad ? (
             <div style={{ display:"flex", justifyContent:"center", padding:"60px 0" }}>
               <div style={{ width:28, height:28, border:`3px solid ${BORDER}`, borderTop:`3px solid ${G}`, borderRadius:"50%", animation:"spin .8s linear infinite" }} />
@@ -621,9 +665,9 @@ export default function BillingPage() {
                       border: isSelected ? `2px solid ${G}` : `1px solid ${BORDER}`,
                       borderRadius:12, background: isSelected ? "#f0fdfb" : idx===0 ? "#fff" : "#f9fafb",
                       cursor:"pointer", position:"relative",
-                      display:"flex", alignItems:"center", justifyContent:"space-between", gap:16,
                       boxShadow: isSelected ? `0 0 0 3px ${G}18` : "0 2px 8px rgba(0,0,0,.04)",
                     }}>
+                  <div className="billing-plan-row-inner">
                     {p.badge && (
                       <div style={{ position:"absolute", top:-13, left:18, background:G, color:"#fff", fontSize:10, fontWeight:800, padding:"3px 12px", borderRadius:5, textTransform:"uppercase", letterSpacing:"0.08em", whiteSpace:"nowrap" }}>
                         {p.badge}
@@ -657,6 +701,7 @@ export default function BillingPage() {
                         Select
                       </button>
                     </div>
+                  </div>{/* end billing-plan-row-inner */}
                   </div>
                 );
               })}
@@ -667,10 +712,10 @@ export default function BillingPage() {
 
       {/* ── Step 2: Payment ── */}
       {step === "pay" && sel && (
-        <div style={{ maxWidth:860, margin:"0 auto", display:"flex", gap:0, borderRadius:16, boxShadow:"0 8px 40px rgba(0,0,0,.08)", border:`1px solid ${BORDER}`, overflow:"hidden", background:"#fff" }}>
+        <div className="billing-pay-wrap">
 
           {/* Order summary — left */}
-          <div style={{ width:"38%", minWidth:260, background:"#f9fafa", borderRight:`1px solid ${BORDER}`, padding:"36px 28px", display:"flex", flexDirection:"column" }}>
+          <div className="billing-summary-col">
             <h2 style={{ fontSize:18, fontWeight:800, color:TEXT, marginBottom:24 }}>Your order summary</h2>
             <div style={{ fontSize:14, display:"flex", justifyContent:"space-between", marginBottom:12 }}>
               <span style={{ color:MUTED }}>Plan</span>
@@ -711,7 +756,7 @@ export default function BillingPage() {
           </div>
 
           {/* Payment form — right */}
-          <div style={{ flex:1, padding:"36px 32px" }}>
+          <div className="billing-form-col">
             <h2 style={{ fontSize:22, fontWeight:800, color:TEXT, marginBottom:24, letterSpacing:"-0.4px" }}>Enter your payment details</h2>
 
             {error   && <div style={{ padding:"10px 14px", borderRadius:8, background:"#fef2f2", border:"1px solid #fca5a5", color:"#dc2626", fontSize:13, marginBottom:16 }}>{error}</div>}
@@ -725,7 +770,7 @@ export default function BillingPage() {
                   <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Rahul Sharma" style={INP} />
                 </div>
                 {/* Country + State side-by-side */}
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:18 }}>
+                <div className="billing-2col">
                   <div>
                     <label style={LBL}>Country / Region</label>
                     <select value={country} onChange={e => setCountry(e.target.value)} style={{ ...INP, appearance:"none", cursor:"pointer" }}>
@@ -746,7 +791,7 @@ export default function BillingPage() {
                   </div>
                 </div>
                 {/* Pincode + City */}
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:18 }}>
+                <div className="billing-2col">
                   <div>
                     <label style={LBL}>Pincode</label>
                     <input type="text" value={pincode} onChange={e => setPincode(e.target.value)} placeholder="400001" style={INP} maxLength={10} />
