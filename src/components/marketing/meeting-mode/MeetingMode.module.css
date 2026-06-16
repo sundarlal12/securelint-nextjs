@@ -234,24 +234,27 @@
   background: rgba(255,255,255,.78);
 }
 
-.armourDots {
+.armourRedact {
   position: absolute;
-  top: 7px;
+  top: 8px;
   left: 8px;
   right: 8px;
   display: flex;
-  align-items: center;
-  gap: 3px;
+  flex-direction: column;
+  gap: 4px;
   z-index: 1;
 }
 
-.armourDot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--ink);
-  opacity: 0.45;
-  flex-shrink: 0;
+.armourStars {
+  font-size: 10px;
+  font-weight: 700;
+  font-family: ui-monospace, monospace;
+  color: var(--ink);
+  opacity: 0.55;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
 }
 
 .armourLock {

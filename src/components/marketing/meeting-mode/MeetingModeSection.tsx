@@ -5,42 +5,42 @@ import s from "./MeetingMode.module.css";
 /* ── 4 open tabs — content visible before armour slides in ── */
 const TABS = [
   {
-    title: "AWS Console",
+    title: "Jira — Project",
     lines: [
-      { bold: "AKIAIOSFODNN7EX",  rest: " — Access Key ID" },
-      { bold: "wJalrXUtnFEMI/K…", rest: " — Secret Key" },
+      { bold: "jira_api_***************", rest: " — API token" },
+      { bold: "atlassian_***********",    rest: " — OAuth secret" },
     ],
     armour: s.armourA,
   },
   {
-    title: "Stripe — API Keys",
+    title: "Stripe — Payouts",
     lines: [
-      { bold: "sk_live_51Abc…XYZ", rest: " — Secret key" },
-      { bold: "rk_live_43Def…ABC", rest: " — Restricted" },
+      { bold: "sk_live_**************", rest: " — Secret key" },
+      { bold: "rk_live_**************", rest: " — Restricted" },
     ],
     armour: s.armourB,
   },
   {
-    title: "GitHub — Secrets",
+    title: "Razorpay — Keys",
     lines: [
-      { bold: "ghp_a1B2c3D4e5F6",  rest: " — PAT" },
-      { bold: "ghs_xYzAbCdEfGhIj", rest: " — Actions secret" },
+      { bold: "rzp_live_***********", rest: " — Key ID" },
+      { bold: "********************", rest: " — Key Secret" },
     ],
     armour: s.armourC,
   },
   {
-    title: "Notion — Creds",
+    title: "OpenAI — API",
     lines: [
-      { bold: "secret_KxQe7…fGhIj", rest: " — Integration" },
-      { bold: "ntn_12abc…xyz99",    rest: " — API key" },
+      { bold: "sk-proj-***************", rest: " — Project key" },
+      { bold: "sk-org-****************", rest: " — Org key" },
     ],
     armour: s.armourD,
   },
 ];
 
 const CHECKS = [
-  "Auto-detects Zoom, Meet & Teams",
-  "Blurs API keys, tokens & credentials",
+  "Auto-detects Google Meet, Zoom & Teams",
+  "Masks Jira, Stripe, Razorpay, OpenAI & more",
   "Protects every open tab simultaneously",
   "Lifts instantly when the call ends",
 ];
@@ -64,7 +64,7 @@ export function MeetingModeSection() {
 
         {/* ── Left: animated mock browser ── */}
         <div className={s.mockCol} role="img"
-          aria-label="Meeting Mode blurring open tabs the moment a Zoom call starts">
+          aria-label="Meeting Mode blurring open tabs the moment a Google Meet call starts">
           <div className={s.browser}>
 
             {/* browser chrome */}
@@ -85,7 +85,7 @@ export function MeetingModeSection() {
                   <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/>
                   <rect x="2" y="6" width="14" height="12" rx="2"/>
                 </svg>
-                Zoom call detected
+                Google Meet detected
               </div>
 
               {/* 2 × 2 tab grid */}
@@ -112,11 +112,10 @@ export function MeetingModeSection() {
                     {/* ── armour overlay ── */}
                     <div className={`${s.armour} ${tab.armour}`} aria-hidden="true">
                       <div className={s.armourBg} />
-                      {/* redaction dots */}
-                      <div className={s.armourDots}>
-                        {Array.from({ length: 13 }).map((_, i) => (
-                          <span key={i} className={s.armourDot} />
-                        ))}
+                      {/* redacted text rows */}
+                      <div className={s.armourRedact}>
+                        <span className={s.armourStars}>*** *** *** *** *** ***</span>
+                        <span className={s.armourStars}>*** *** *** ***</span>
                       </div>
                       {/* lock icon */}
                       <div className={s.armourLock}><Lock size={18} /></div>
