@@ -72,7 +72,7 @@ export function MeetingModeSection() {
               <span className={s.dot} style={{ background: "#f87171" }} />
               <span className={s.dot} style={{ background: "#fb923c" }} />
               <span className={s.dot} style={{ background: "#4ade80" }} />
-              <div className={s.addressBar}>meeting mode</div>
+              <div className={s.addressBar}>https://meet.google.com/dxj-phgm-pct</div>
             </div>
 
             <div className={s.browserBody}>
