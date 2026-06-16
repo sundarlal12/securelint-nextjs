@@ -104,7 +104,7 @@
 .coverImage {
   display: block;
   width: 100%;
-  aspect-ratio: 1200 / 630;
+  aspect-ratio: 900 / 480;   /* matches SVG content viewBox exactly */
   overflow: hidden;
   background-size: cover;
   background-position: center;
