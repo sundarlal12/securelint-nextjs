@@ -261,8 +261,9 @@ export function HowItWorksSection() {
 
               <h3 id="sl-06" className={s.cardTitle}>14-Layer Engine</h3>
               <p className={s.cardDesc}>
-                XSS detection, crypto drain guards, HIBP breach checks, SSL validation,
-                pastejack protection — each layer runs silently in parallel.
+                Real-time phishing mail detection with trust scores, brand impersonation alerts,
+                crypto drain guards, HIBP breach checks, SSL validation — every layer runs
+                silently in parallel.
               </p>
             </article>
           </li>
