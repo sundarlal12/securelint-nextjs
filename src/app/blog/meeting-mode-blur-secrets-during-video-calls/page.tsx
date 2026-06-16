@@ -109,32 +109,31 @@ export default function MeetingModeBlogPage() {
           {/* ── Main article ── */}
           <article className={s.article}>
 
-            <nav className={s.breadcrumb} aria-label="Breadcrumb">
-              <Link href="/">Home</Link>
-              <span className={s.breadSep}>/</span>
-              <Link href="/blog">Blog</Link>
-              <span className={s.breadSep}>/</span>
-              <span>Meeting Mode</span>
-            </nav>
-
-            <Link href="/blog" className={s.backLink}>← Back to all articles</Link>
-
             <header className={s.header}>
-              <span className={s.category}>Meeting Security</span>
-              <h1 className={s.h1}>
-                Meeting Mode: How SecureLint Blurs Secrets the Second a Video Call Starts
-              </h1>
+              {/* Author row — appears above the title, matching reference */}
               <address className={s.authorRow} aria-label="Author and publication info">
-                <div className={s.avatar} aria-hidden="true">S</div>
-                <div>
+                <div className={s.avatar}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="https://securelint.in/icons/icon-128.png"
+                    alt="SecureLint"
+                    className={s.avatarImg}
+                  />
+                </div>
+                <div className={s.authorInfo}>
                   <p className={s.authorName}>SecureLint Research Team</p>
+                  <p className={s.authorRole}>VAPTLabs Security Research</p>
                   <div className={s.authorMeta}>
-                    <span><time dateTime="2026-06-16">Jun 16, 2026</time></span>
+                    <time dateTime="2026-06-16">Jun 16, 2026</time>
                     <span>·</span>
                     <span>7 min read</span>
                   </div>
                 </div>
               </address>
+
+              <h1 className={s.h1}>
+                Meeting Mode: How SecureLint Blurs Secrets the Second a Video Call Starts
+              </h1>
             </header>
 
             {/* Cover */}

@@ -162,34 +162,24 @@ function MeetingModeArticle({ post }: { post: typeof POSTS[number] }) {
       {/* ── Main article ── */}
       <article className={s.article}>
 
-        {/* Breadcrumb */}
-        <nav className={s.breadcrumb} aria-label="Breadcrumb">
-          <Link href="/">Home</Link>
-          <span className={s.breadSep}>/</span>
-          <Link href="/blog">Blog</Link>
-          <span className={s.breadSep}>/</span>
-          <span>Meeting Mode</span>
-        </nav>
-
-        <Link href="/blog" className={s.backLink}>
-          ← Back to all articles
-        </Link>
-
-        {/* Header */}
+        {/* Header: author above h1, matching reference design */}
         <header className={s.header}>
-          <span className={s.category}>Meeting Security</span>
-          <h1 className={s.h1}>{post.title}</h1>
           <address className={s.authorRow} aria-label="Author and publication info">
-            <div className={s.avatar} aria-hidden="true">S</div>
-            <div>
+            <div className={s.avatar}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="https://securelint.in/icons/icon-128.png" alt="SecureLint" className={s.avatarImg}/>
+            </div>
+            <div className={s.authorInfo}>
               <p className={s.authorName}>SecureLint Research Team</p>
+              <p className={s.authorRole}>VAPTLabs Security Research</p>
               <div className={s.authorMeta}>
-                <span><time dateTime={post.date}>{post.dateLabel}</time></span>
+                <time dateTime={post.date}>{post.dateLabel}</time>
                 <span>·</span>
                 <span>{post.readTime}</span>
               </div>
             </div>
           </address>
+          <h1 className={s.h1}>{post.title}</h1>
         </header>
 
         {/* Cover banner */}
