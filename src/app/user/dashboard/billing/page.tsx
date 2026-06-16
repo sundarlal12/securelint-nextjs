@@ -173,23 +173,35 @@ function loadRazorpay(): Promise<boolean> {
   });
 }
 
+const PP_SDK_SRC = (clientId: string) =>
+  `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&intent=capture`;
+
 function loadPayPal(clientId: string): Promise<boolean> {
   return new Promise(resolve => {
     const existingId = "paypal-js";
-    // Remove stale SDK tag if loaded with wrong currency/client-id
-    const existing = document.getElementById(existingId);
+    const existing = document.getElementById(existingId) as HTMLScriptElement | null;
+    // Re-use the tag if it was already loaded with the same client-id and USD.
+    // (currency=USD is the correct one — earlier a stale INR check caused full
+    //  SDK reload on every tab switch, killing the spinner/buttons.)
+    if (existing && existing.src.includes(clientId) && existing.src.includes("currency=USD")) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((window as any).paypal) { resolve(true); return; }
+      // Script tag exists but paypal global is gone — wait for it to execute.
+      existing.addEventListener("load", () => resolve(true), { once: true });
+      existing.addEventListener("error", () => resolve(false), { once: true });
+      return;
+    }
+    // Remove stale tag (wrong currency / different client-id) and reload.
     if (existing) {
-      const src = (existing as HTMLScriptElement).src;
-      if (src.includes(clientId) && src.includes("currency=INR")) { resolve(true); return; }
       existing.remove();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (window as any).paypal;
     }
     const s = document.createElement("script");
     s.id = existingId;
-    // PayPal REST v2 does not support INR. USD required for international checkout.
-    s.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&intent=capture`;
-    s.onload = () => resolve(true); s.onerror = () => resolve(false);
+    s.src = PP_SDK_SRC(clientId);
+    s.onload = () => resolve(true);
+    s.onerror = () => resolve(false);
     document.body.appendChild(s);
   });
 }
@@ -402,6 +414,10 @@ export default function BillingPage() {
     if (isIndia) return; // Panel shows its own notice — no error toast needed
     const loaded = await loadPayPal(PAYPAL_CID);
     if (!loaded || !window.paypal) { setError("Failed to load PayPal. Please try again."); return; }
+
+    // Clear any stale SDK-rendered content before re-rendering
+    container.innerHTML     = "";
+    cardContainer.innerHTML = "";
 
     // PayPal wallet (yellow) button
     const ppBtn = window.paypal.Buttons({
@@ -856,7 +872,11 @@ export default function BillingPage() {
                   <button
                     onClick={() => {
                       if (intlTab !== "paypal") {
-                        if (ppInstanceRef.current) { try { ppInstanceRef.current.close(); } catch { /* ignore */ } ppInstanceRef.current = null; }
+                        if (ppInstanceRef.current)     { try { ppInstanceRef.current.close();     } catch { /* ignore */ } ppInstanceRef.current = null; }
+                        if (ppCardInstanceRef.current) { try { ppCardInstanceRef.current.close(); } catch { /* ignore */ } ppCardInstanceRef.current = null; }
+                        // Clear SDK containers so re-render starts fresh
+                        if (ppContainerRef.current)     ppContainerRef.current.innerHTML     = "";
+                        if (ppCardContainerRef.current) ppCardContainerRef.current.innerHTML = "";
                         setPpRendered(false);
                         setIntlTab("paypal");
                       }
