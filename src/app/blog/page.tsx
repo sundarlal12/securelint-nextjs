@@ -79,11 +79,13 @@ export default function BlogPage() {
                   {/* Cover */}
                   <Link href={`/blog/${post.slug}`} className={s.coverWrap} tabIndex={-1} aria-hidden="true">
                     {"imageCover" in post && post.imageCover ? (
-                      /* Real image — simple block fill, no absolute positioning */
-                      <div className={s.coverImage}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={post.imageCover} alt={post.title}/>
-                      </div>
+                      /* background-image fills the slot perfectly regardless of SVG intrinsic size */
+                      <div
+                        className={s.coverImage}
+                        style={{ backgroundImage: `url(${post.imageCover})` }}
+                        role="img"
+                        aria-label={post.title}
+                      />
                     ) : (
                       /* Gradient + text cover for posts without an image */
                       <div className={s.cover} style={{ background: post.gradient }}>
