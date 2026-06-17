@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { POSTS } from "./posts-data";
+import { BlogCard } from "./BlogCard";
 import s from "./Blog.module.css";
 
 export const metadata: Metadata = {
@@ -74,49 +74,7 @@ export default function BlogPage() {
           <div className={s.gridInner}>
             <div className={s.grid}>
               {POSTS.map((post) => (
-                <article key={post.slug} className={s.card}>
-
-                  {/* Cover */}
-                  <Link href={`/blog/${post.slug}`} className={s.coverWrap} tabIndex={-1} aria-hidden="true">
-                    {"imageCover" in post && post.imageCover ? (
-                      /* <img> with height:auto shrink-wraps the coverWrap exactly — no extra space */
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={post.imageCover} alt={post.title} className={s.coverImg}/>
-                    ) : (
-                      /* Gradient + text cover for posts without an image */
-                      <div className={s.cover} style={{ background: post.gradient }}>
-                        <span className={s.deco1} style={{ background: post.accentColor }}/>
-                        <span className={s.deco2} style={{ background: post.accentColor }}/>
-                        <div className={s.coverTextWrap}>
-                          {post.shortTitle.split("\n").map((line, i) => (
-                            <span key={i} className={s.coverLine}
-                              style={i === 1 ? { color: post.accentColor } : undefined}>
-                              {line}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </Link>
-
-                  {/* Body */}
-                  <div className={s.cardBody}>
-                    <div className={s.meta}>
-                      <time dateTime={post.date}>{post.dateLabel}</time>
-                      <span aria-hidden="true">·</span>
-                      <span>{post.readTime}</span>
-                    </div>
-
-                    <h2 className={s.cardTitle}>
-                      <Link href={`/blog/${post.slug}`} className={s.cardLink}>
-                        {post.title}
-                      </Link>
-                    </h2>
-
-                    <p className={s.excerpt}>{post.excerpt}</p>
-                  </div>
-
-                </article>
+                <BlogCard key={post.slug} post={post} />
               ))}
             </div>
           </div>

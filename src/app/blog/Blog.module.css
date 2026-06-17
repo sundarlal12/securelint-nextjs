@@ -172,6 +172,49 @@
   transition: color .15s;
 }
 
+/* ── Spinners ── */
+
+/* Shared spinner keyframe */
+@keyframes spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Image-load spinner — centered inside the card, fades out when image loads */
+.imgSpinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(74, 222, 128, .25);
+  border-top-color: #4ade80;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: spin .75s linear infinite;
+  z-index: 2;
+}
+
+/* Navigation spinner — full cover overlay when user clicks a card */
+.navSpinner {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 46, 31, .55);
+  border-radius: inherit;
+}
+.navSpinner::after {
+  content: "";
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(74, 222, 128, .3);
+  border-top-color: #4ade80;
+  border-radius: 50%;
+  animation: spin .75s linear infinite;
+}
+
 .excerpt {
   font-size: 14px;
   line-height: 1.65;
