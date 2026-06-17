@@ -41,6 +41,7 @@ export const POSTS = [
       "Rogue Chrome extensions silently read passwords, inject ads, and exfiltrate session cookies. SecureLint audits installed extensions against known malicious signatures and flags permission overreach.",
     gradient: "linear-gradient(135deg,#5b21b6 0%,#7c3aed 60%,#4c1d95 100%)",
     accentColor: "#c4b5fd",
+    imageCover: "/securelint_card_extension_v3_distinct.svg",
   },
   {
     slug: "phishing-website-auto-block-before-you-click",
