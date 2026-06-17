@@ -109,8 +109,11 @@
 }
 .prose h3 { font-size: 18px; font-weight: 700; color: #111827; margin: 28px 0 10px; }
 .prose p  { margin: 0 0 18px; }
-.prose ul, .prose ol { margin: 0 0 18px; padding-left: 22px; }
-.prose li { margin-bottom: 8px; }
+.prose ul  { margin: 0 0 18px; padding-left: 26px; list-style-type: disc; }
+.prose ol  { margin: 0 0 18px; padding-left: 26px; list-style-type: decimal; }
+.prose ul ul  { list-style-type: circle; margin: 6px 0 6px; }
+.prose ul ul ul { list-style-type: square; }
+.prose li { margin-bottom: 8px; display: list-item; }
 .prose a  { color: #1d4ed8; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .prose a:hover { color: #1e40af; }
 .prose strong { font-weight: 700; color: #111827; }
@@ -139,7 +142,7 @@
   background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px;
   padding: 16px 20px; margin: 0 0 24px;
 }
-.checklist ul { padding-left: 0; list-style: none; margin: 0; }
+.checklist ul { padding-left: 0; list-style: none !important; margin: 0; }
 .checklist li { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; font-size: 15px; line-height: 1.6; }
 .checkIcon { flex-shrink: 0; margin-top: 1px; }
 
