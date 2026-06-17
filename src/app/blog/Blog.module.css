@@ -83,6 +83,7 @@
     aspect-ratio: 1210 / 640;    /* matches securelint_banner_light_full_fill.svg viewBox */
     border-radius: 16px;
     overflow: hidden;
+    background: #0a2e1f;         /* dark green fallback / backdrop */
     outline: 1px solid rgba(14,16,26,.08);
     text-decoration: none;
     transition: box-shadow .2s, outline-color .2s;
