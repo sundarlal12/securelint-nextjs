@@ -80,7 +80,7 @@
    .coverWrap {
     display: block;
     position: relative;          /* needed for absolutely-positioned img */
-    aspect-ratio: 1200 / 630;    /* matches your banner ratio exactly */
+    aspect-ratio: 1210 / 640;    /* matches securelint_banner_light_full_fill.svg viewBox */
     border-radius: 16px;
     overflow: hidden;
     outline: 1px solid rgba(14,16,26,.08);
@@ -110,7 +110,7 @@
 /* Gradient cover (posts without a real image) */
 .cover {
   position: relative;
-  aspect-ratio: 16/9;
+  aspect-ratio: 1210 / 640;
   overflow: hidden;
   display: flex;
   align-items: flex-end;
