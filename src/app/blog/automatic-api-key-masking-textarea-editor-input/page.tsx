@@ -96,8 +96,8 @@ export default function ApiKeyMaskingPage() {
           </div> */}
 
 <img
-              src="/securelint_banner_malicious_extension.svg"
-              alt="SecureLint — Malicious Browser Extension Detection"
+              src="/securelint_banner_apikey_animated.svg"
+              alt="How SecureLint Automatically Masks API Keys in Every Text Editor, Textarea & Input"
               className={s.articleBannerImg}
             />
 
