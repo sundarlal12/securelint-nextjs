@@ -89,11 +89,17 @@ export default function ApiKeyMaskingPage() {
             <h1 className={s.h1}>How SecureLint Automatically Masks API Keys in Every Text Editor, Textarea &amp; Input</h1>
           </header>
 
-          <div className={s.coverBanner} style={{ background: "linear-gradient(135deg,#1d4ed8 0%,#3b82f6 60%,#1e40af 100%)" }} aria-hidden="true">
+          {/* <div className={s.coverBanner} style={{ background: "linear-gradient(135deg,#1d4ed8 0%,#3b82f6 60%,#1e40af 100%)" }} aria-hidden="true">
             <span className={s.coverBannerDeco1} style={{ background: "#93c5fd" }} />
             <span className={s.coverBannerDeco2} style={{ background: "#93c5fd" }} />
             <span className={s.coverBannerText}>Auto-Mask API Keys<br /><span style={{ color: "#93c5fd" }}>Everywhere You Type</span></span>
-          </div>
+          </div> */}
+
+<img
+              src="/securelint_banner_malicious_extension.svg"
+              alt="SecureLint — Malicious Browser Extension Detection"
+              className={s.articleBannerImg}
+            />
 
           <div className={s.prose}>
             <p>You paste an AWS access key into a Notion doc to share with a teammate. You type a Stripe secret key into a Jira ticket description. You copy a database connection string into a Slack message. Each of these actions takes less than five seconds — and each one can cause a breach that takes months to contain.</p>
