@@ -14,7 +14,7 @@ const SIGNALS = [
 ];
 
 const HEADERS_ROWS = [
-  { sym: "•", label: "Subject",     value: "sundar",           valueClass: "" },
+  { sym: "•", label: "Subject",     value: "Rewards",           valueClass: "" },
   { sym: "↗", label: "SPF",         value: "SOFTFAIL",         valueClass: s.valAmber, sub: "IP 114.29.236.247" },
   { sym: "🛡", label: "DMARC",      value: "FAIL",             valueClass: s.valRed },
   { sym: "✉", label: "From domain", value: "gmail.com",        valueClass: "" },
