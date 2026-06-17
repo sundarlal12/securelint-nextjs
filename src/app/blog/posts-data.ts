@@ -21,6 +21,9 @@ export const POSTS = [
       "SecureLint detects AWS keys, GitHub tokens, Stripe secrets, OpenAI keys, and 100+ credential patterns in real time — across VS Code Web, CodeSandbox, Notion, Jira, and every input on the web.",
     gradient: "linear-gradient(135deg,#1d4ed8 0%,#3b82f6 60%,#1e40af 100%)",
     accentColor: "#93c5fd",
+
+    imageCover: "/securelint_card_apikey_animated.svg",
+    imageBanner: "/securelint_banner_diagonal.svg",
   },
   {
     slug: "realtime-phishing-email-detection-chrome-extension",
