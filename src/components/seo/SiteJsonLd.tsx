@@ -106,14 +106,8 @@ export function SiteJsonLd() {
     author: { "@id": "https://securelint.in/#organization" },
     creator: { "@id": "https://securelint.in/#organization" },
     publisher: { "@id": "https://securelint.in/#organization" },
-    /* Update ratingValue and reviewCount with real Chrome Web Store figures */
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.8",
-      reviewCount: "0",
-      bestRating: "5",
-      worstRating: "0",
-    },
+    // aggregateRating intentionally omitted until real Chrome Web Store
+    // review figures are available. Google requires reviewCount >= 1.
     offers: [
       
       {
