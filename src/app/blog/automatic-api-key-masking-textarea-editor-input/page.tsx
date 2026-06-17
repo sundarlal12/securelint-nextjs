@@ -89,20 +89,14 @@ export default function ApiKeyMaskingPage() {
             <h1 className={s.h1}>How SecureLint Automatically Masks API Keys in Every Text Editor, Textarea &amp; Input</h1>
           </header>
 
-          {/*           {/* Animated SVG banner — must use <object> so SMIL <animate> plays */}
+          {/* Animated SVG banner — uses <object> so SMIL <animate> plays */}
           <object
             data="/securelint_banner_apikey_animated.svg"
             type="image/svg+xml"
             aria-label="SecureLint — Automatic API Key Masking"
             className={s.articleBannerImg}
             style={{ pointerEvents: "none" }}
-          /> */}
-
-<img
-              src="/securelint_banner_apikey_animated.svg"
-              alt="How SecureLint Automatically Masks API Keys in Every Text Editor, Textarea & Input"
-              className={s.articleBannerImg}
-            />
+          />
 
           <div className={s.prose}>
             <p>You paste an AWS access key into a Notion doc to share with a teammate. You type a Stripe secret key into a Jira ticket description. You copy a database connection string into a Slack message. Each of these actions takes less than five seconds — and each one can cause a breach that takes months to contain.</p>
