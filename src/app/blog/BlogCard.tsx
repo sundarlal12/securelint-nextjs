@@ -9,6 +9,9 @@ export function BlogCard({ post }: { post: Post }) {
   const [navigating, setNavigating] = useState(false);
 
   const hasImage = "imageCover" in post && post.imageCover;
+  const imageCover = hasImage ? (post as Post & { imageCover: string }).imageCover : "";
+  // Animated SVGs must be embedded via <object> — <img> renders SMIL animations as static
+  const isAnimatedSvg = imageCover.endsWith(".svg");
 
   return (
     <article className={s.card}>
@@ -28,18 +31,28 @@ export function BlogCard({ post }: { post: Post }) {
 
         {hasImage ? (
           <>
-            {/* Image load spinner — hidden once image fires onLoad */}
-            {!imgLoaded && (
-              <span className={s.imgSpinner} aria-hidden="true" />
+            {!imgLoaded && <span className={s.imgSpinner} aria-hidden="true" />}
+            {isAnimatedSvg ? (
+              /* <object> is required for SMIL <animate>/<animateTransform> to play.
+                 pointer-events:none lets clicks pass through to the parent <Link>. */
+              <object
+                data={imageCover}
+                type="image/svg+xml"
+                aria-label={post.title}
+                className={s.coverImg}
+                style={{ opacity: imgLoaded ? 1 : 0, transition: "opacity .3s ease", pointerEvents: "none" }}
+                onLoad={() => setImgLoaded(true)}
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={imageCover}
+                alt={post.title}
+                className={s.coverImg}
+                style={{ opacity: imgLoaded ? 1 : 0, transition: "opacity .3s ease" }}
+                onLoad={() => setImgLoaded(true)}
+              />
             )}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={(post as Post & { imageCover: string }).imageCover}
-              alt={post.title}
-              className={s.coverImg}
-              style={{ opacity: imgLoaded ? 1 : 0, transition: "opacity .3s ease" }}
-              onLoad={() => setImgLoaded(true)}
-            />
           </>
         ) : (
           <div className={s.cover} style={{ background: post.gradient }}>

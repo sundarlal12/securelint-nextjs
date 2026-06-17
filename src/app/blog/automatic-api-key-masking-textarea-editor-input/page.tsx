@@ -89,11 +89,14 @@ export default function ApiKeyMaskingPage() {
             <h1 className={s.h1}>How SecureLint Automatically Masks API Keys in Every Text Editor, Textarea &amp; Input</h1>
           </header>
 
-          {/* <div className={s.coverBanner} style={{ background: "linear-gradient(135deg,#1d4ed8 0%,#3b82f6 60%,#1e40af 100%)" }} aria-hidden="true">
-            <span className={s.coverBannerDeco1} style={{ background: "#93c5fd" }} />
-            <span className={s.coverBannerDeco2} style={{ background: "#93c5fd" }} />
-            <span className={s.coverBannerText}>Auto-Mask API Keys<br /><span style={{ color: "#93c5fd" }}>Everywhere You Type</span></span>
-          </div> */}
+          {/*           {/* Animated SVG banner — must use <object> so SMIL <animate> plays */}
+          <object
+            data="/securelint_banner_apikey_animated.svg"
+            type="image/svg+xml"
+            aria-label="SecureLint — Automatic API Key Masking"
+            className={s.articleBannerImg}
+            style={{ pointerEvents: "none" }}
+          /> */}
 
 <img
               src="/securelint_banner_apikey_animated.svg"
