@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml"
+  xsi:schemaLocation="
+    http://www.sitemaps.org/schemas/sitemap/0.9
+    http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd
+    http://www.google.com/schemas/sitemap-image/1.1
+    http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd">
+
+  <!-- ── Homepage ── -->
+  <url>
+    <loc>https://securelint.in/</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://securelint.in/og-banner.png</image:loc>
+      <image:title>SecureLint – Real-Time API Key Masking &amp; Browser Security Extension</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://securelint.in/icons/icon-128.png</image:loc>
+      <image:title>SecureLint Logo</image:title>
+    </image:image>
+  </url>
+
+  <!-- ── Static pages ── -->
+  <url>
+    <loc>https://securelint.in/contact/sales</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://securelint.in/privacy</loc>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://securelint.in/terms</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://securelint.in/refund-policy</loc>
+    <lastmod>2026-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- ── Blog listing ── -->
+  <url>
+    <loc>https://securelint.in/blog</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://securelint.in/securelint_banner_light_full_fill.svg</image:loc>
+      <image:title>SecureLint Blog – Browser Security Guides</image:title>
+    </image:image>
+  </url>
+
+  <!-- ── Blog articles ── -->
+  <url>
+    <loc>https://securelint.in/blog/meeting-mode-blur-secrets-during-video-calls</loc>
+    <lastmod>2026-06-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://securelint.in/securelint_banner_light_full_fill.svg</image:loc>
+      <image:title>Meeting Mode: How SecureLint Blurs Secrets During Video Calls</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://securelint.in/blog/automatic-api-key-masking-textarea-editor-input</loc>
+    <lastmod>2026-06-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://securelint.in/og-banner.png</image:loc>
+      <image:title>How SecureLint Automatically Masks API Keys in Every Text Editor, Textarea &amp; Input</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://securelint.in/blog/realtime-phishing-email-detection-chrome-extension</loc>
+    <lastmod>2026-06-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://securelint.in/og-banner.png</image:loc>
+      <image:title>Real-Time Phishing Email Detection: How SecureLint Scans Every Message Before You Click</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://securelint.in/blog/how-securelint-detects-blocks-malicious-browser-extensions</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://securelint.in/securelint_banner_malicious_extension.svg</image:loc>
+      <image:title>Malicious Browser Extension Detection: What SecureLint Checks and Why It Matters</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://securelint.in/blog/phishing-website-auto-block-before-you-click</loc>
+    <lastmod>2026-06-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://securelint.in/og-banner.png</image:loc>
+      <image:title>How SecureLint Automatically Blocks Phishing Websites Before You Land on Them</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://securelint.in/blog/it-security-policy-malicious-sites-extensions-enterprise</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://securelint.in/og-banner.png</image:loc>
+      <image:title>IT Security Policies for Browser Threats: Blocking Malicious Sites &amp; Extensions Across Your Team</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://securelint.in/blog/malicious-download-scanning-automatic-chrome-extension</loc>
+    <lastmod>2026-06-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://securelint.in/og-banner.png</image:loc>
+      <image:title>Automatic Malicious Download Scanning: How SecureLint Checks Files Before You Open Them</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://securelint.in/blog/webcam-screen-recording-detection-privacy-alert</loc>
+    <lastmod>2026-06-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://securelint.in/og-banner.png</image:loc>
+      <image:title>Webcam &amp; Screen Recording Detection: How SecureLint Alerts You When a Site Activates Your Camera</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://securelint.in/blog/phishing-link-popup-warning-email-protection</loc>
+    <lastmod>2026-05-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://securelint.in/og-banner.png</image:loc>
+      <image:title>How SecureLint Stops Phishing Links in Emails with Real-Time Popup Warnings</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://securelint.in/blog/password-breach-detection-haveibeenpwned-browser</loc>
+    <lastmod>2026-05-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://securelint.in/og-banner.png</image:loc>
+      <image:title>Password Breach Monitoring: How SecureLint Detects and Notifies You When Your Credentials Leak</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://securelint.in/blog/api-key-leak-prevention-developers-guide-2026</loc>
+    <lastmod>2026-05-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://securelint.in/og-banner.png</image:loc>
+      <image:title>The Developer's Complete Guide to Preventing API Key Leaks in the Browser (2026)</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://securelint.in/blog/securelint-enterprise-browser-dlp-review-2026</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://securelint.in/og-banner.png</image:loc>
+      <image:title>SecureLint Enterprise Browser DLP: Secret Masking, Email DLP &amp; Threat Intelligence (2026)</image:title>
+    </image:image>
+  </url>
+
+</urlset>
