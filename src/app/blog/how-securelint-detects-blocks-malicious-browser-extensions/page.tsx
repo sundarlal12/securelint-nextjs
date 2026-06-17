@@ -144,15 +144,12 @@ export default function MaliciousExtensionBlogPage() {
             </header>
 
             {/* Cover banner */}
-            <div
-              className={s.coverBanner}
-              style={{ background: "linear-gradient(135deg,#5b21b6 0%,#7c3aed 60%,#4c1d95 100%)" }}
-              aria-hidden="true"
-            >
-              <span className={s.coverBannerDeco1} style={{ background: "#c4b5fd" }} />
-              <span className={s.coverBannerDeco2} style={{ background: "#c4b5fd" }} />
-              <span className={s.coverBannerText}>Block Malicious Extensions<br /><span style={{ color: "#c4b5fd" }}>Before They Execute</span></span>
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/securelint_banner_malicious_extension.svg"
+              alt="SecureLint — Malicious Browser Extension Detection"
+              className={s.articleBannerImg}
+            />
 
             {/* ── Article Body ── */}
             <div className={s.prose}>
