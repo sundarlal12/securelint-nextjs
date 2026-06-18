@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search, Bell, HelpCircle, ChevronDown, LayoutGrid, Menu } from "lucide-react";
+import { Search, Bell, ChevronDown, Menu } from "lucide-react";
 import { fetchProfile } from "@/lib/adminApi";
 
 interface TopBarProps {
@@ -29,20 +29,6 @@ const notifications = [
   { id: 5, title: "Weekly compliance report ready", desc: "SOC2 score improved to 94% — Yesterday", read: true, severity: "#2dd4bf" },
 ];
 
-const workspaces = [
-  { name: "Acme Corp", role: "Admin", active: true },
-  { name: "SecureLint Demo", role: "Viewer", active: false },
-  { name: "Personal Workspace", role: "Owner", active: false },
-];
-
-const helpItems = [
-  { icon: "📖", label: "Documentation", desc: "Browse guides and API docs" },
-  { icon: "💬", label: "Contact Support", desc: "Chat with our team" },
-  { icon: "🎓", label: "Getting Started", desc: "Quick start tutorial" },
-  { icon: "📋", label: "Changelog", desc: "What's new in SecureLint" },
-  { icon: "🐛", label: "Report a Bug", desc: "Submit an issue report" },
-  { icon: "⌨️", label: "Keyboard Shortcuts", desc: "View all shortcuts" },
-];
 
 function useClickOutside(ref: React.RefObject<HTMLDivElement | null>, handler: () => void) {
   useEffect(() => {
@@ -52,7 +38,7 @@ function useClickOutside(ref: React.RefObject<HTMLDivElement | null>, handler: (
   }, [ref, handler]);
 }
 
-type OpenDrop = null | "notif" | "workspace" | "help" | "profile";
+type OpenDrop = null | "notif" | "profile";
 
 interface Profile {
   email: string;
@@ -174,67 +160,6 @@ export default function TopBar({ title, onMenuClick }: TopBarProps) {
           style={{ alignItems: "center", gap: 6, background: "rgba(8,34,22,0.9)", border: "1px solid #134d2f", borderRadius: 999, padding: "6px 12px", fontSize: 11, fontWeight: 600, color: "#3ae374", whiteSpace: "nowrap" }}>
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: greenGlow, boxShadow: `0 0 6px ${greenGlow}`, display: "inline-block" }} />
           AI Active
-        </div>
-
-        {/* ── Workspace ── */}
-        <div style={{ position: "relative" }} className="hidden md:block">
-          <button type="button" onClick={() => toggle("workspace")}
-            style={{ display: "flex", alignItems: "center", gap: 8, background: open === "workspace" ? "#161b22" : inputBg, border: `1px solid ${open === "workspace" ? "#39d353" : borderClr}`, borderRadius: 8, padding: "8px 12px", fontSize: 12, color: textPrimary, cursor: "pointer", fontFamily: "inherit", fontWeight: 500, transition: "all .15s" }}>
-            <LayoutGrid size={14} strokeWidth={2} color={open === "workspace" ? "#39d353" : textMuted} />
-            <span>Workspace</span>
-            <ChevronDown size={12} strokeWidth={2} color={textMuted} style={{ transition: "transform .2s", transform: open === "workspace" ? "rotate(180deg)" : "rotate(0)" }} />
-          </button>
-          {open === "workspace" && (
-            <div style={{ ...dropStyle, minWidth: 240 }}>
-              <div style={{ padding: "14px 16px", borderBottom: `1px solid ${dropBorder}` }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: textPrimary }}>Workspaces</span>
-              </div>
-              {workspaces.map((ws, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderBottom: `1px solid ${dropBorder}`, cursor: "pointer", transition: "background .15s", background: ws.active ? "#161b22" : "transparent" }}
-                  onMouseEnter={e => e.currentTarget.style.background = "#161b22"}
-                  onMouseLeave={e => { if (!ws.active) e.currentTarget.style.background = "transparent"; }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: ws.active ? "#0f2318" : "#161b22", border: `1px solid ${ws.active ? "#39d35333" : dropBorder}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: ws.active ? "#39d353" : textMuted, flexShrink: 0 }}>{ws.name[0]}</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: ws.active ? textPrimary : textMuted }}>{ws.name}</div>
-                    <div style={{ fontSize: 10, color: textDim, marginTop: 1 }}>{ws.role}</div>
-                  </div>
-                  {ws.active && <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="#39d353" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                </div>
-              ))}
-              <div style={{ padding: "10px 16px", borderTop: `1px solid ${dropBorder}` }}>
-                <span style={{ fontSize: 11, color: "#2dd4bf", fontWeight: 600, cursor: "pointer" }}>+ Create workspace</span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* ── Help / FAQ ── */}
-        <div style={{ position: "relative" }} className="hidden sm:block">
-          <button type="button" onClick={() => toggle("help")} style={btnStyle(open === "help")}>
-            <HelpCircle size={16} strokeWidth={2} color={open === "help" ? "#39d353" : textMuted} />
-          </button>
-          {open === "help" && (
-            <div style={{ ...dropStyle, minWidth: 260 }}>
-              <div style={{ padding: "14px 16px", borderBottom: `1px solid ${dropBorder}` }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: textPrimary }}>Help & Support</span>
-              </div>
-              {helpItems.map((h, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", borderBottom: `1px solid ${dropBorder}`, cursor: "pointer", transition: "background .15s" }}
-                  onMouseEnter={e => e.currentTarget.style.background = "#161b22"}
-                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                  <span style={{ fontSize: 16, width: 24, textAlign: "center", flexShrink: 0 }}>{h.icon}</span>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: textPrimary }}>{h.label}</div>
-                    <div style={{ fontSize: 10, color: textDim, marginTop: 1 }}>{h.desc}</div>
-                  </div>
-                </div>
-              ))}
-              <div style={{ padding: "10px 16px", borderTop: `1px solid ${dropBorder}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 10, color: textDim }}>SecureLint v3.2.1</span>
-                <span style={{ fontSize: 10, color: "#2dd4bf", fontWeight: 600, cursor: "pointer" }}>Status page →</span>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* ── Profile ── */}
