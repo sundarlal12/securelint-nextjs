@@ -847,8 +847,8 @@ export default function BillingPage() {
             {!isIndia && (
               <>
                 {/* Tab switcher — always on top */}
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", background:"#f3f4f6", borderRadius:12, padding:4, gap:4, marginBottom:20 }}>
-                  {/* Google Pay tab */}
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", background:"#f3f4f6", borderRadius:12, padding:4, gap:4, marginBottom:20 }}>
+                  {/* Google Pay tab — hidden until GPay integration is ready */}
                   <button
                     onClick={() => {
                       if (intlTab !== "googlepay") {
@@ -857,11 +857,12 @@ export default function BillingPage() {
                       }
                     }}
                     style={{
+                      display: "none",
                       padding:"12px 8px", border:"none", cursor:"pointer", borderRadius:9,
                       background: intlTab==="googlepay" ? "#fff" : "transparent",
                       boxShadow: intlTab==="googlepay" ? `0 0 0 2px ${G}, 0 1px 4px rgba(0,0,0,.08)` : "none",
                       transition:"all .15s",
-                      display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+                      alignItems:"center", justifyContent:"center", gap:6,
                       opacity: intlTab==="googlepay" ? 1 : 0.5,
                     }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
