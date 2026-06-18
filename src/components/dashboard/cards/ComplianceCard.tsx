@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import { LazyCard } from "@/components/dashboard/CardLoader";
 
 // ── PCI DSS and NIST use inline SVG (no image available) ─────────────────────
@@ -94,11 +93,10 @@ export default function ComplianceCard() {
                 flexShrink: 0,
               }}>
                 {c.img ? (
-                  <Image
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
                     src={c.img}
                     alt={c.label}
-                    width={58}
-                    height={58}
                     style={{ objectFit: "cover", width: "100%", height: "100%" }}
                   />
                 ) : (
