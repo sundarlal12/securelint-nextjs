@@ -88,7 +88,7 @@ export default function LoginModal({ isOpen, onClose, defaultTab = "login" }: Pr
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [signupConfirm, setSignupConfirm] = useState("");
-  const [signupPlan, setSignupPlan] = useState("free");
+  const [signupPlan, setSignupPlan] = useState("pro");
   const [plans, setPlans] = useState<{ id: string; name: string; price_monthly: number }[]>([]);
   const [signupMsg, setSignupMsg] = useState({ text: "", error: false });
   const [signupLoading, setSignupLoading] = useState(false);
@@ -461,37 +461,8 @@ export default function LoginModal({ isOpen, onClose, defaultTab = "login" }: Pr
                   </div>
                 </div>
 
-                {/* Plan selection */}
-                {plans.length > 0 && (
-                  <div className="form-group">
-                    <label>Select a plan</label>
-                    <div style={{ display: "flex", flexDirection: "row", gap: 8, marginTop: 4 }}>
-                      {plans.filter(p => p.id !== "enterprise").map(p => (
-                        <label key={p.id}
-                          style={{
-                            flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
-                            justifyContent: "center", gap: 4, padding: "10px 8px",
-                            borderRadius: 8, cursor: "pointer", textAlign: "center",
-                            border: `2px solid ${signupPlan === p.id ? "#1a7f37" : "#d0d7de"}`,
-                            background: signupPlan === p.id ? "#f0fdf4" : "#fff",
-                            transition: "border-color .15s, background .15s", position: "relative",
-                          }}>
-                          <input type="radio" name="signupPlan" value={p.id}
-                            checked={signupPlan === p.id}
-                            onChange={() => setSignupPlan(p.id)}
-                            style={{ position: "absolute", opacity: 0, pointerEvents: "none" }} />
-                          <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a2e" }}>{p.name}</div>
-                          <div style={{ fontSize: 11, color: "#57606a" }}>
-                            {p.price_monthly === 0 ? "Free" : `₹${p.price_monthly.toLocaleString("en-IN")}/mo`}
-                          </div>
-                          {p.id === "pro" && (
-                            <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", background: "#1a7f37", padding: "1px 6px", borderRadius: 8 }}>Popular</span>
-                          )}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {/* Plan is fixed to "pro" — hidden from UI, submitted silently */}
+                <input type="hidden" name="signupPlan" value="pro" />
 
                 <button type="submit" className="btn-submit" disabled={signupLoading}>
                   {signupLoading && <span className="btn-spinner" />}
