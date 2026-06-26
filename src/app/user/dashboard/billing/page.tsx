@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useRef, useContext } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { BillingStepCtx } from "./billing-step-ctx";
 
 const API_BASE    = process.env.NEXT_PUBLIC_API_BASE         || "https://securelint-api.vercel.app";
@@ -219,6 +219,7 @@ function loadGooglePay(): Promise<boolean> {
 
 export default function BillingPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setStep: setLayoutStep } = useContext(BillingStepCtx);
   const [planId,       setPlanId]      = useState("pro");
   const [planName,     setPlanName]    = useState("Pro");
@@ -241,6 +242,14 @@ export default function BillingPage() {
   const [payuLoading,   setPayuLoading]   = useState(false);
   const [payuPhone,     setPayuPhone]      = useState("");
   const [intlTab,       setIntlTab]      = useState<"googlepay"|"paypal"|"payu">("paypal");
+
+  // ── Coupon / referral state ──────────────────────────────────────────────
+  const [couponInput,        setCouponInput]        = useState("");
+  const [couponCode,         setCouponCode]         = useState("");   // validated code
+  const [couponStatus,       setCouponStatus]       = useState<"idle"|"loading"|"applied"|"error">("idle");
+  const [couponMsg,          setCouponMsg]          = useState("");
+  const [couponDiscountInr,  setCouponDiscountInr]  = useState(0);
+  const [couponFinalInr,     setCouponFinalInr]     = useState(0);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ppInstanceRef    = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -302,7 +311,84 @@ export default function BillingPage() {
       .finally(() => setPriceLoad(false));
   }, []);
 
+  // ── Auto-detect ?coupon= or ?ref= from URL ────────────────────────────────
+  useEffect(() => {
+    const code = searchParams.get("coupon") || searchParams.get("ref") || searchParams.get("promo") || "";
+    if (code) {
+      setCouponInput(code.toUpperCase());
+      // Store for auto-apply once pricing is loaded
+      localStorage.setItem("pending_coupon", code.toUpperCase());
+    }
+  }, [searchParams]);
+
+  // Auto-apply pending coupon once pricing rows are loaded
+  useEffect(() => {
+    const pending = localStorage.getItem("pending_coupon");
+    if (pending && pricing.length > 0 && couponStatus === "idle") {
+      localStorage.removeItem("pending_coupon");
+      setCouponInput(pending);
+      applyStoredCoupon(pending, pricing[0]?.total_price ?? 0, pricing[0]?.billing_period ?? "monthly");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pricing]);
+
+  // Reset coupon discount when period changes (price changes)
+  useEffect(() => {
+    if (couponCode) {
+      const row = pricing.find(p => p.billing_period === period);
+      if (row) applyStoredCoupon(couponCode, row.total_price, period);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [period]);
+
+  const applyStoredCoupon = async (code: string, originalInr: number, billingPeriod: string) => {
+    if (!code) return;
+    setCouponStatus("loading");
+    try {
+      const token = localStorage.getItem("user_token") || "";
+      const res = await fetch(`${API_BASE}/api/coupons/validate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          code,
+          plan_id: localStorage.getItem("billing_plan_id") || "pro",
+          billing_period: billingPeriod,
+          original_amount_inr: originalInr,
+        }),
+      });
+      const data = await res.json();
+      if (data.error === 1 || !data.valid) {
+        setCouponStatus("error");
+        setCouponMsg(data.message || "Invalid coupon code.");
+        setCouponCode("");
+      } else {
+        setCouponStatus("applied");
+        setCouponMsg(data.description || `${data.discount_type === "percent" ? data.discount_value + "% off" : "₹" + data.discount_value + " off"} applied!`);
+        setCouponCode(code);
+        setCouponDiscountInr(data.discount_inr ?? 0);
+        setCouponFinalInr(data.final_inr ?? originalInr);
+      }
+    } catch {
+      setCouponStatus("error");
+      setCouponMsg("Could not validate coupon. Please try again.");
+    }
+  };
+
+  const validateCoupon = async () => {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+    const row = pricing.find(p => p.billing_period === period) || pricing[0];
+    await applyStoredCoupon(code, row?.total_price ?? 0, period);
+  };
+
+  const removeCoupon = () => {
+    setCouponCode(""); setCouponInput(""); setCouponStatus("idle");
+    setCouponMsg(""); setCouponDiscountInr(0); setCouponFinalInr(0);
+  };
+
   const sel = pricing.find(p => p.billing_period === period) || pricing[0];
+  // Effective total respecting coupon
+  const effectiveTotalInr = couponCode && couponFinalInr > 0 ? couponFinalInr : (sel?.total_price ?? 0);
 
   // ── Razorpay (India only) ─────────────────────────────────────────────────
   const handleRazorpay = useCallback(async () => {
@@ -317,7 +403,7 @@ export default function BillingPage() {
       const orderRes = await fetch(`${API_BASE}/api/payment/create-order`, {
         method:"POST",
         headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` },
-        body: JSON.stringify({ plan_id:planId, billing_period:period }),
+        body: JSON.stringify({ plan_id:planId, billing_period:period, coupon_code: couponCode || undefined }),
       });
       const order = await orderRes.json();
       if (order.error === 1) { setError(order.message || "Failed to create order."); return; }
@@ -334,6 +420,7 @@ export default function BillingPage() {
         key: order.key_id || RZP_KEY_ID, amount: order.amount, currency:"INR",
         name:"SecureLint", description:`${planName} — ${PERIOD_LABELS[period] || period}`,
         order_id: order.order_id, prefill:{ name:fullName },
+        notes: couponCode ? { coupon_code: couponCode } : undefined,
         theme:{ color: G },
         handler: async (response: { razorpay_order_id:string; razorpay_payment_id:string; razorpay_signature:string }) => {
           const verRes = await fetch(`${API_BASE}/api/payment/verify`, {
@@ -364,7 +451,7 @@ export default function BillingPage() {
       const res = await fetch(`${API_BASE}/api/payment/paypal-create-order`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ plan_id: planId, billing_period: period, country }),
+        body: JSON.stringify({ plan_id: planId, billing_period: period, country, coupon_code: couponCode || undefined }),
       }).catch(() => null);
       const data = res ? await res.json().catch(() => ({})) : {};
       if (data?.error === 1) throw new Error(data.message || "Could not create order.");
@@ -531,7 +618,7 @@ export default function BillingPage() {
       const res = await fetch(`${API_BASE}/api/payment/payu-create-order`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ plan_id: planId, billing_period: period, full_name: fullName, country, phone: phoneDigits }),
+        body: JSON.stringify({ plan_id: planId, billing_period: period, full_name: fullName, country, phone: phoneDigits, coupon_code: couponCode || undefined }),
       }).catch(() => null);
       const data = res ? await res.json().catch(() => ({})) : {};
       if (data?.error === 1) { setError(data.message || "Could not initiate PayU payment."); setPayuLoading(false); return; }
@@ -659,6 +746,19 @@ export default function BillingPage() {
           <p style={{ fontSize:15, color:MUTED, lineHeight:1.6 }}>
             Pick the billing period that works best for you.
           </p>
+          {couponStatus === "applied" && (
+            <div style={{ display:"inline-flex", alignItems:"center", gap:8, marginTop:14, padding:"8px 18px", borderRadius:24, background:"#f0fdf4", border:"1px solid #86efac", fontSize:13 }}>
+              <span style={{ fontSize:16 }}>🏷️</span>
+              <span style={{ fontWeight:700, color:"#15803d" }}>Coupon <strong>{couponCode}</strong> applied —</span>
+              <span style={{ color:"#16a34a" }}>{couponMsg}</span>
+              <button onClick={removeCoupon} style={{ background:"none", border:"none", cursor:"pointer", color:"#9ca3af", fontSize:14, padding:0, marginLeft:4 }} title="Remove">✕</button>
+            </div>
+          )}
+          {(couponInput && couponStatus === "idle") && (
+            <div style={{ display:"inline-flex", alignItems:"center", gap:8, marginTop:14, padding:"8px 18px", borderRadius:24, background:"#fefce8", border:"1px solid #fde68a", fontSize:13 }}>
+              <span>🏷️ Coupon <strong>{couponInput}</strong> will be applied at checkout</span>
+            </div>
+          )}
         </div>
       )}
 
@@ -748,15 +848,85 @@ export default function BillingPage() {
                 )}
               </div>
             </div>
-            <div style={{ marginTop:16, marginBottom:4, display:"flex", justifyContent:"space-between", fontSize:16 }}>
-              <span style={{ fontWeight:700, color:TEXT }}>Today&apos;s order</span>
-              <span style={{ fontWeight:800, color:TEXT }}>
-                {isIndia
-                  ? `₹${sel.total_price.toLocaleString("en-IN")}`
-                  : `$${(sel.total_price / 83).toFixed(2)} USD`}
-              </span>
+
+            {/* ── Coupon / Referral code input ───────────────────────── */}
+            <div style={{ marginTop:20, marginBottom:4 }}>
+              <div style={{ fontSize:12, fontWeight:700, color:TEXT, marginBottom:8, textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                🏷️ Coupon / Referral code
+              </div>
+              {couponStatus === "applied" ? (
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 12px", borderRadius:8, background:"#f0fdf4", border:"1px solid #86efac" }}>
+                  <div>
+                    <div style={{ fontSize:13, fontWeight:700, color:"#15803d" }}>✓ {couponCode}</div>
+                    <div style={{ fontSize:12, color:"#16a34a", marginTop:2 }}>{couponMsg}</div>
+                  </div>
+                  <button onClick={removeCoupon} style={{ background:"none", border:"none", cursor:"pointer", color:"#9ca3af", fontSize:16, padding:"0 4px", lineHeight:1 }} title="Remove coupon">✕</button>
+                </div>
+              ) : (
+                <div style={{ display:"flex", gap:6 }}>
+                  <input
+                    type="text"
+                    value={couponInput}
+                    onChange={e => { setCouponInput(e.target.value.toUpperCase()); if (couponStatus === "error") setCouponStatus("idle"); }}
+                    onKeyDown={e => { if (e.key === "Enter") validateCoupon(); }}
+                    placeholder="Enter code"
+                    style={{ ...INP, flex:1, fontSize:13, padding:"9px 12px", textTransform:"uppercase", letterSpacing:"0.04em" }}
+                  />
+                  <button
+                    onClick={validateCoupon}
+                    disabled={couponStatus === "loading" || !couponInput.trim()}
+                    style={{
+                      padding:"9px 14px", borderRadius:8, border:"none", fontSize:13, fontWeight:700,
+                      background: couponStatus === "loading" || !couponInput.trim() ? "#e5e7eb" : G,
+                      color: couponStatus === "loading" || !couponInput.trim() ? MUTED : "#fff",
+                      cursor: couponStatus === "loading" || !couponInput.trim() ? "not-allowed" : "pointer",
+                      whiteSpace:"nowrap", transition:"background .15s",
+                    }}>
+                    {couponStatus === "loading"
+                      ? <div style={{ width:14, height:14, border:"2px solid #fff4", borderTop:"2px solid #fff", borderRadius:"50%", animation:"spin .7s linear infinite" }} />
+                      : "Apply"}
+                  </button>
+                </div>
+              )}
+              {couponStatus === "error" && (
+                <div style={{ fontSize:12, color:"#dc2626", marginTop:5 }}>{couponMsg}</div>
+              )}
             </div>
-            <div style={{ fontSize:12, color:MUTED, marginBottom:28 }}>
+
+            {/* ── Price breakdown ─────────────────────────────────────── */}
+            <div style={{ marginTop:16, paddingTop:16, borderTop:`1px solid ${BORDER}` }}>
+              {couponCode && couponDiscountInr > 0 ? (
+                <>
+                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, color:MUTED, marginBottom:6 }}>
+                    <span>Subtotal</span>
+                    <span style={{ textDecoration:"line-through" }}>
+                      {isIndia ? `₹${sel.total_price.toLocaleString("en-IN")}` : `$${(sel.total_price/83).toFixed(2)}`}
+                    </span>
+                  </div>
+                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, color:"#16a34a", fontWeight:700, marginBottom:8 }}>
+                    <span>Discount ({couponCode})</span>
+                    <span>
+                      {isIndia ? `−₹${couponDiscountInr.toLocaleString("en-IN")}` : `−$${(couponDiscountInr/83).toFixed(2)}`}
+                    </span>
+                  </div>
+                  <div style={{ display:"flex", justifyContent:"space-between", fontSize:16, fontWeight:800, color:TEXT }}>
+                    <span>Today&apos;s order</span>
+                    <span style={{ color:G }}>
+                      {isIndia ? `₹${effectiveTotalInr.toLocaleString("en-IN")}` : `$${(effectiveTotalInr/83).toFixed(2)} USD`}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div style={{ display:"flex", justifyContent:"space-between", fontSize:16, fontWeight:800, color:TEXT }}>
+                  <span>Today&apos;s order</span>
+                  <span>
+                    {isIndia ? `₹${sel.total_price.toLocaleString("en-IN")}` : `$${(sel.total_price/83).toFixed(2)} USD`}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div style={{ fontSize:12, color:MUTED, marginTop:6, marginBottom:24 }}>
               Your plan renews on{" "}
               {new Date(Date.now() + (sel.billing_period==="annual"?365:sel.billing_period==="quarterly"?90:30)*86400000)
                 .toLocaleDateString("en-IN",{month:"long",day:"numeric",year:"numeric"})}.
@@ -835,7 +1005,9 @@ export default function BillingPage() {
                   onMouseLeave={e => { if (!loading&&!success) e.currentTarget.style.background=G; }}>
                   {loading
                     ? <><div style={{ width:18, height:18, border:"2px solid #ffffff50", borderTop:"2px solid #fff", borderRadius:"50%", animation:"spin .8s linear infinite" }} />Processing…</>
-                    : `Complete purchase — ₹${sel.total_price.toLocaleString("en-IN")}`}
+                    : couponCode && couponDiscountInr > 0
+                      ? <>Complete purchase — <span style={{ textDecoration:"line-through", opacity:0.7, marginRight:4 }}>₹{sel.total_price.toLocaleString("en-IN")}</span>₹{effectiveTotalInr.toLocaleString("en-IN")}</>
+                      : `Complete purchase — ₹${sel.total_price.toLocaleString("en-IN")}`}
                 </button>
                 <div style={{ fontSize:12, color:MUTED, textAlign:"center", marginTop:10 }}>
                   🔒 Secured by Razorpay · UPI, Cards &amp; Net Banking accepted
@@ -1040,7 +1212,9 @@ export default function BillingPage() {
                       onMouseLeave={e => { if (!payuLoading && !success) e.currentTarget.style.background="#FF6B00"; }}>
                       {payuLoading
                         ? <><div style={{ width:18, height:18, border:"2px solid #ffffff50", borderTop:"2px solid #fff", borderRadius:"50%", animation:"spin .8s linear infinite" }} />Redirecting to PayU…</>
-                        : <>Pay ₹{sel ? sel.total_price.toLocaleString("en-IN") : "—"} with PayU</>}
+                        : couponCode && couponDiscountInr > 0
+                          ? <>Pay <span style={{ textDecoration:"line-through", opacity:0.7, marginRight:4 }}>₹{sel.total_price.toLocaleString("en-IN")}</span>₹{effectiveTotalInr.toLocaleString("en-IN")} with PayU</>
+                          : <>Pay ₹{sel ? sel.total_price.toLocaleString("en-IN") : "—"} with PayU</>}
                     </button>
                     <div style={{ fontSize:12, color:MUTED, textAlign:"center", marginTop:8 }}>
                       🔒 Secured by PayU · Visa, Mastercard &amp; more accepted
