@@ -365,8 +365,8 @@ export default function BillingPage() {
         setCouponStatus("applied");
         setCouponMsg(data.description || `${data.discount_type === "percent" ? data.discount_value + "% off" : "₹" + data.discount_value + " off"} applied!`);
         setCouponCode(code);
-        setCouponDiscountInr(data.discount_inr ?? 0);
-        setCouponFinalInr(data.final_inr ?? originalInr);
+        setCouponDiscountInr(Math.round(data.discount_inr ?? 0));
+        setCouponFinalInr(Math.round(data.final_inr ?? originalInr));
       }
     } catch {
       setCouponStatus("error");
@@ -388,7 +388,7 @@ export default function BillingPage() {
 
   const sel = pricing.find(p => p.billing_period === period) || pricing[0];
   // Effective total respecting coupon
-  const effectiveTotalInr = couponCode && couponFinalInr > 0 ? couponFinalInr : (sel?.total_price ?? 0);
+  const effectiveTotalInr = Math.round(couponCode && couponFinalInr > 0 ? couponFinalInr : (sel?.total_price ?? 0));
 
   // ── Razorpay (India only) ─────────────────────────────────────────────────
   const handleRazorpay = useCallback(async () => {
@@ -900,19 +900,19 @@ export default function BillingPage() {
                   <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, color:MUTED, marginBottom:6 }}>
                     <span>Subtotal</span>
                     <span style={{ textDecoration:"line-through" }}>
-                      {isIndia ? `₹${sel.total_price.toLocaleString("en-IN")}` : `$${(sel.total_price/83).toFixed(2)}`}
+                      {isIndia ? `₹${sel.total_price.toLocaleString("en-IN")}` : `$${Math.round(sel.total_price/83)}`}
                     </span>
                   </div>
                   <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, color:"#16a34a", fontWeight:700, marginBottom:8 }}>
                     <span>Discount ({couponCode})</span>
                     <span>
-                      {isIndia ? `−₹${couponDiscountInr.toLocaleString("en-IN")}` : `−$${(couponDiscountInr/83).toFixed(2)}`}
+                      {isIndia ? `−₹${couponDiscountInr.toLocaleString("en-IN")}` : `−$${Math.round(couponDiscountInr/83)}`}
                     </span>
                   </div>
                   <div style={{ display:"flex", justifyContent:"space-between", fontSize:16, fontWeight:800, color:TEXT }}>
                     <span>Today&apos;s order</span>
                     <span style={{ color:G }}>
-                      {isIndia ? `₹${effectiveTotalInr.toLocaleString("en-IN")}` : `$${(effectiveTotalInr/83).toFixed(2)} USD`}
+                      {isIndia ? `₹${effectiveTotalInr.toLocaleString("en-IN")}` : `$${Math.round(effectiveTotalInr/83)} USD`}
                     </span>
                   </div>
                 </>
@@ -920,7 +920,7 @@ export default function BillingPage() {
                 <div style={{ display:"flex", justifyContent:"space-between", fontSize:16, fontWeight:800, color:TEXT }}>
                   <span>Today&apos;s order</span>
                   <span>
-                    {isIndia ? `₹${sel.total_price.toLocaleString("en-IN")}` : `$${(sel.total_price/83).toFixed(2)} USD`}
+                    {isIndia ? `₹${sel.total_price.toLocaleString("en-IN")}` : `$${Math.round(sel.total_price/83)} USD`}
                   </span>
                 </div>
               )}
