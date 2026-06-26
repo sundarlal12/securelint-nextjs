@@ -313,7 +313,7 @@ export default function BillingPage() {
 
   // ── Auto-detect ?coupon= or ?ref= from URL ────────────────────────────────
   useEffect(() => {
-    const code = searchParams.get("coupon") || searchParams.get("ref") || searchParams.get("promo") || "";
+    const code = searchParams.get("coupon") || searchParams.get("promo") || "";
     if (code) {
       setCouponInput(code.toUpperCase());
       // Store for auto-apply once pricing is loaded
