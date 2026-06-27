@@ -241,7 +241,8 @@ export default function BillingPage() {
   const [gpayAvailable, setGpayAvailable] = useState(true);
   const [payuLoading,   setPayuLoading]   = useState(false);
   const [payuPhone,     setPayuPhone]      = useState("");
-  const [intlTab,       setIntlTab]      = useState<"googlepay"|"paypal"|"payu">("paypal");
+  const [dodoLoading,   setDodoLoading]   = useState(false);
+  const [intlTab,       setIntlTab]      = useState<"dodo"|"googlepay"|"paypal"|"payu">("dodo");
 
   // ── Coupon / referral state ──────────────────────────────────────────────
   const [couponInput,        setCouponInput]        = useState("");
@@ -640,6 +641,27 @@ export default function BillingPage() {
     // Note: don't call setPayuLoading(false) on success — page is navigating away
   }, [sel, planId, period, fullName, country, payuPhone, payuLoading]);
 
+  // ── DodoPayments redirect handler ────────────────────────────────────────
+  const handleDodoPayments = useCallback(async () => {
+    if (!sel || !fullName.trim()) { setError("Please enter your full name."); return; }
+    if (dodoLoading) return;
+    setDodoLoading(true); setError("");
+    try {
+      const token = localStorage.getItem("user_token") || "";
+      const res = await fetch(`${API_BASE}/api/payment/dodo-create-order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ plan_id: planId, billing_period: period, full_name: fullName, country }),
+      }).catch(() => null);
+      const data = res ? await res.json().catch(() => ({})) : {};
+      if (data?.error === 1) { setError(data.message || "Could not initiate DodoPayments checkout."); setDodoLoading(false); return; }
+      if (!data?.checkout_url) { setError("DodoPayments did not return a checkout URL. Please try again."); setDodoLoading(false); return; }
+      // Redirect to DodoPayments hosted checkout page
+      window.location.href = data.checkout_url;
+    } catch { setError("Failed to start DodoPayments checkout. Please try again."); setDodoLoading(false); }
+    // Don't reset loading — page is navigating away
+  }, [sel, planId, period, fullName, country, dodoLoading]);
+
   // Auto-render active tab's button when entering pay step (non-India)
   useEffect(() => {
     if (step !== "pay" || isIndia || !sel) return;
@@ -1019,7 +1041,25 @@ export default function BillingPage() {
             {!isIndia && (
               <>
                 {/* Tab switcher — always on top */}
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", background:"#f3f4f6", borderRadius:12, padding:4, gap:4, marginBottom:20 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", background:"#f3f4f6", borderRadius:12, padding:4, gap:4, marginBottom:20 }}>
+                  {/* DodoPayments tab */}
+                  <button
+                    onClick={() => { if (intlTab !== "dodo") setIntlTab("dodo"); }}
+                    style={{
+                      padding:"10px 8px", border:"none", cursor:"pointer", borderRadius:9,
+                      background: intlTab==="dodo" ? "#fff" : "transparent",
+                      boxShadow: intlTab==="dodo" ? `0 0 0 2px ${G}, 0 1px 4px rgba(0,0,0,.08)` : "none",
+                      transition:"all .15s",
+                      display:"flex", alignItems:"center", justifyContent:"center", gap:5,
+                      opacity: intlTab==="dodo" ? 1 : 0.55,
+                    }}>
+                    <svg width="18" height="18" viewBox="0 0 36 36" fill="none">
+                      <rect width="36" height="36" rx="8" fill={intlTab==="dodo" ? "#ff6b35" : "#9ca3af"}/>
+                      <text x="5" y="25" fontSize="16" fontWeight="900" fill="#fff" fontFamily="Arial,sans-serif">D</text>
+                    </svg>
+                    <span style={{ fontSize:11, fontWeight:700, color: intlTab==="dodo" ? "#ff6b35" : "#9ca3af" }}>Dodo</span>
+                  </button>
+
                   {/* Google Pay tab — hidden until GPay integration is ready */}
                   <button
                     onClick={() => {
@@ -1105,6 +1145,36 @@ export default function BillingPage() {
                   Both button containers are ALWAYS in the DOM (just hidden via display:none).
                   This prevents PayPal's removeChild error when the container unmounts mid-render.
                 */}
+
+                {/* ── DodoPayments panel ── */}
+                {intlTab === "dodo" && (
+                  <div>
+                    <div style={{ padding:"12px 14px", borderRadius:10, background:"#fff8f5", border:"1px solid #fde4d4", fontSize:13, color:"#7c2d12", marginBottom:16, lineHeight:1.5 }}>
+                      🌍 <strong>International cards & local payment methods accepted.</strong><br />
+                      <span style={{ color:"#92400e" }}>Powered by DodoPayments — Visa, Mastercard, Amex and regional methods supported globally.</span>
+                    </div>
+                    <button
+                      onClick={handleDodoPayments}
+                      disabled={dodoLoading || !!success}
+                      style={{
+                        width:"100%", padding:"15px", borderRadius:10,
+                        background: dodoLoading || success ? "#ffc4ab" : "#ff6b35",
+                        color:"#fff", fontSize:16, fontWeight:800, border:"none",
+                        cursor: dodoLoading || success ? "not-allowed" : "pointer",
+                        display:"flex", alignItems:"center", justifyContent:"center", gap:10,
+                        letterSpacing:"-0.2px", transition:"background .15s",
+                      }}
+                      onMouseEnter={e => { if (!dodoLoading && !success) e.currentTarget.style.background="#e85a25"; }}
+                      onMouseLeave={e => { if (!dodoLoading && !success) e.currentTarget.style.background="#ff6b35"; }}>
+                      {dodoLoading
+                        ? <><div style={{ width:18, height:18, border:"2px solid #ffffff50", borderTop:"2px solid #fff", borderRadius:"50%", animation:"spin .8s linear infinite" }} />Redirecting to DodoPayments…</>
+                        : <>Pay ${sel ? ((sel.total_price / 83).toFixed(2)) : "—"} USD with DodoPayments</>}
+                    </button>
+                    <div style={{ fontSize:12, color:MUTED, textAlign:"center", marginTop:8 }}>
+                      🔒 Secured by DodoPayments · Cards & local methods worldwide
+                    </div>
+                  </div>
+                )}
 
                 {/* ── Google Pay panel ──
                     IMPORTANT: gpayContainerRef must have zero React children.
