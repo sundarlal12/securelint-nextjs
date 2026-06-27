@@ -169,6 +169,18 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           data-startup-id="e070d47e-d25a-4f42-be2d-13d0fc9ff98b"
           strategy="afterInteractive"
         />
+        {/*
+          Hide the StartupBar top-bar on the visitor's very first page load.
+          On return visits the bar shows normally (widget's own behaviour).
+          We inject a <style> early so it takes effect before the widget JS runs.
+        */}
+        <Script
+          id="startupbar-first-visit"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var k='_sb_seen';if(!localStorage.getItem(k)){var s=document.createElement('style');s.id='sb-fv-hide';s.textContent='body>div>div[style*="height: 36px"]{display:none!important}';document.head.appendChild(s);localStorage.setItem(k,'1');/* remove the hide rule once the page is idle so next visit works */window.addEventListener('load',function(){setTimeout(function(){var el=document.getElementById('sb-fv-hide');if(el)el.remove();},500);});}}catch(e){}}())`,
+          }}
+        />
       </head>
       <body className={`${inter.className} antialiased overflow-x-hidden`}>
         {/* Google Tag Manager (noscript) — fallback for browsers with JS disabled */}
