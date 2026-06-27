@@ -162,6 +162,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-54B3W9MQ');`,
           }}
         />
+        {/* StartupBar widget */}
+        <Script
+          id="startupbar-widget"
+          src="https://startupbar.co/widget/loader.js"
+          data-startup-id="e070d47e-d25a-4f42-be2d-13d0fc9ff98b"
+          strategy="afterInteractive"
+        />
       </head>
       <body className={`${inter.className} antialiased overflow-x-hidden`}>
         {/* Google Tag Manager (noscript) — fallback for browsers with JS disabled */}
