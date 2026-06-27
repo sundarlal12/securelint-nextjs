@@ -8,9 +8,9 @@ const COL_PRODUCT = [
 ];
 
 const COL_COMPANY = [
-  { label: "Blog",       href: "/blog" },
-  { label: "Changelog",  href: "/blog" },
-  { label: "Contact",    href: "mailto:contact@vaptlabs.com" },
+  { label: "Facebook",  href: "https://www.facebook.com/people/VAPTlabs-Cyber-Defense-RASP-solutions/61571086805016/", external: true },
+  { label: "LinkedIn",  href: "https://www.linkedin.com/company/vaptlabs/", external: true },
+  { label: "Instagram", href: "https://www.instagram.com/vaptlabs", external: true },
 ];
 
 const COL_SUPPORT = [
