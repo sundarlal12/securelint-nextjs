@@ -840,21 +840,3 @@ a { color: inherit; }
     @apply font-sans;
   }
 }
-/* ── Suppress StartupBar injected iframe & layout shifts ──────────────────
-   The loader.js injects:
-     • <iframe title="StartupBar"> fixed at top (36 px tall)
-     • html { scroll-padding-top: 36px }  (inline style)
-     • body { margin-top: +36px }         (inline style)
-   All three are neutralised below so the bar never appears on screen.
-   ─────────────────────────────────────────────────────────────────────── */
-iframe[title="StartupBar"] {
-  display: none !important;
-}
-
-html {
-  scroll-padding-top: 0 !important;
-}
-
-body {
-  margin-top: 0 !important;
-}
