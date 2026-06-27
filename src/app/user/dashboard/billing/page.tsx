@@ -922,19 +922,19 @@ export default function BillingPage() {
                   <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, color:MUTED, marginBottom:6 }}>
                     <span>Subtotal</span>
                     <span style={{ textDecoration:"line-through" }}>
-                      {isIndia ? `₹${sel.total_price.toLocaleString("en-IN")}` : `$${Math.round(sel.total_price/83)}`}
+                      {isIndia ? `₹${sel.total_price.toLocaleString("en-IN")}` : `$${(sel.total_price/83).toFixed(2)}`}
                     </span>
                   </div>
                   <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, color:"#16a34a", fontWeight:700, marginBottom:8 }}>
                     <span>Discount ({couponCode})</span>
                     <span>
-                      {isIndia ? `−₹${couponDiscountInr.toLocaleString("en-IN")}` : `−$${Math.round(couponDiscountInr/83)}`}
+                      {isIndia ? `−₹${couponDiscountInr.toLocaleString("en-IN")}` : `−$${(couponDiscountInr/83).toFixed(2)}`}
                     </span>
                   </div>
                   <div style={{ display:"flex", justifyContent:"space-between", fontSize:16, fontWeight:800, color:TEXT }}>
                     <span>Today&apos;s order</span>
                     <span style={{ color:G }}>
-                      {isIndia ? `₹${effectiveTotalInr.toLocaleString("en-IN")}` : `$${Math.round(effectiveTotalInr/83)} USD`}
+                      {isIndia ? `₹${effectiveTotalInr.toLocaleString("en-IN")}` : `$${(effectiveTotalInr/83).toFixed(2)} USD`}
                     </span>
                   </div>
                 </>
@@ -942,7 +942,7 @@ export default function BillingPage() {
                 <div style={{ display:"flex", justifyContent:"space-between", fontSize:16, fontWeight:800, color:TEXT }}>
                   <span>Today&apos;s order</span>
                   <span>
-                    {isIndia ? `₹${sel.total_price.toLocaleString("en-IN")}` : `$${Math.round(sel.total_price/83)} USD`}
+                    {isIndia ? `₹${sel.total_price.toLocaleString("en-IN")}` : `$${(sel.total_price/83).toFixed(2)} USD`}
                   </span>
                 </div>
               )}
