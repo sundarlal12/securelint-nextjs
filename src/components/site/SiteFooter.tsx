@@ -67,17 +67,6 @@ export function SiteFooter() {
             />
           </a>
 
-          {/* Verified MRR badge */}
-          <a
-            href="https://verifiedmrr.in/startup/securelint"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={s.mrrBadge}
-          >
-            <span className={s.mrrDot}>●</span>
-            Verified MRR on VerifiedMRR.in
-          </a>
-
           {/* Product Hunt badge */}
           <a
             href="https://www.producthunt.com/products/securelint-browser-security-extension?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-securelint-browser-security-extension"
