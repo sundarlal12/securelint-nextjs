@@ -61,7 +61,7 @@ export function SiteFooter() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/UV4C4ybeBTsZt43U4xis.png"
+              src="/icons/chrome-web-store.png"
               alt="Available in the Chrome Web Store"
               className={s.cwsImg}
             />
