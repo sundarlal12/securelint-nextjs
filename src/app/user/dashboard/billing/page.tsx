@@ -1053,11 +1053,8 @@ export default function BillingPage() {
                       display:"flex", alignItems:"center", justifyContent:"center", gap:5,
                       opacity: intlTab==="dodo" ? 1 : 0.55,
                     }}>
-                    <svg width="18" height="18" viewBox="0 0 36 36" fill="none">
-                      <rect width="36" height="36" rx="8" fill={intlTab==="dodo" ? "#ff6b35" : "#9ca3af"}/>
-                      <text x="5" y="25" fontSize="16" fontWeight="900" fill="#fff" fontFamily="Arial,sans-serif">D</text>
-                    </svg>
-                    <span style={{ fontSize:11, fontWeight:700, color: intlTab==="dodo" ? "#ff6b35" : "#9ca3af" }}>Dodo</span>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="https://ik.imagekit.io/securelint/dodo.png" alt="DodoPayments" style={{ height:22, width:22, objectFit:"contain", borderRadius:4, filter: intlTab==="dodo" ? "none" : "grayscale(1) opacity(0.5)" }} />
                   </button>
 
                   {/* Google Pay tab — hidden until GPay integration is ready */}
@@ -1117,10 +1114,10 @@ export default function BillingPage() {
                       display:"flex", alignItems:"center", justifyContent:"center",
                       opacity: intlTab==="payu" ? 1 : 0.5,
                     }}>
-                    {/* PayU wordmark */}
-                    <svg width="48" height="18" viewBox="0 0 120 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <text x="0" y="28" fontFamily="Arial,sans-serif" fontWeight="800" fontSize="30" fill={intlTab==="payu" ? "#FF6B00" : "#9ca3af"}>Pay</text>
-                      <text x="56" y="28" fontFamily="Arial,sans-serif" fontWeight="800" fontSize="30" fill={intlTab==="payu" ? "#1A1A2E" : "#9ca3af"}>U</text>
+                    {/* PayU official SVG logo */}
+                    <svg viewBox="0 0 514.56 280.44" height="20" style={{ opacity: intlTab==="payu" ? 1 : 0.45 }} xmlns="http://www.w3.org/2000/svg">
+                      <path fill={intlTab==="payu" ? "#414042" : "#9ca3af"} d="M0,97.77h25.72v12.86c2.93-4.46,7.37-8.1,13.3-10.92,5.93-2.82,12.3-4.23,19.11-4.23,8.1,0,15.56,2.06,22.37,6.17,6.81,4.11,12.27,9.98,16.38,17.62,4.11,7.64,6.16,16.56,6.16,26.78s-2.06,19.29-6.16,26.86c-4.11,7.58-9.6,13.36-16.47,17.35-6.87,3.99-14.3,5.99-22.28,5.99-6.93,0-13.36-1.38-19.29-4.14-5.93-2.76-10.31-6.37-13.12-10.83v99.18H0V97.77ZM69.67,165.94c4.76-5.17,7.13-11.8,7.13-19.9s-2.38-14.94-7.13-20.17c-4.76-5.22-10.89-7.84-18.41-7.84s-13.68,2.61-18.5,7.84c-4.82,5.23-7.22,11.95-7.22,20.17s2.41,14.74,7.22,19.9c4.81,5.17,10.98,7.75,18.5,7.75s13.65-2.58,18.41-7.75ZM134.67,190.25c-6.87-3.99-12.36-9.78-16.47-17.35-4.11-7.58-6.17-16.53-6.17-26.86s2.05-19.14,6.17-26.78c4.11-7.63,9.57-13.5,16.38-17.62,6.81-4.11,14.27-6.17,22.37-6.17,6.81,0,13.18,1.41,19.11,4.23,5.93,2.82,10.36,6.46,13.3,10.92v-12.33h25.72v95.13h-25.72v-12.15c-2.82,4.46-7.2,8.07-13.12,10.83-5.93,2.76-12.36,4.14-19.29,4.14-7.99,0-15.41-2-22.28-5.99ZM182.41,165.94c4.76-5.17,7.14-11.8,7.14-19.9s-2.38-14.94-7.14-20.17c-4.76-5.22-10.89-7.84-18.41-7.84s-13.68,2.61-18.5,7.84c-4.82,5.23-7.22,11.95-7.22,20.17s2.41,14.74,7.22,19.9c4.81,5.17,10.98,7.75,18.5,7.75s13.65-2.58,18.41-7.75ZM272.69,196.24c-14.56,0-25.31-3.7-32.24-11.1-6.93-7.4-10.39-17.73-10.39-31v-56.37h26.07v53.73c0,7.4,1.94,12.98,5.81,16.73,3.88,3.76,9.22,5.64,16.03,5.64,6.22,0,11.6-2.05,16.12-6.17,4.52-4.11,6.78-9.69,6.78-16.73v-53.2h25.72v182.68h-25.72v-96.71c-6.11,8.34-15.5,12.51-28.19,12.51ZM348.44,252.44l142.86-43.16V75.57l-164.71-41.93v40.87h-25.72V0l213.68,56.19v171.75l-166.12,51.62v-27.13Z"/>
+                      <path fill={intlTab==="payu" ? "#00ad7d" : "#9ca3af"} d="M362.18,97.77h26.07v53.73c0,15.03,7.1,22.55,21.32,22.55s21.32-7.51,21.32-22.55v-53.73h26.07v56.37c0,13.15-4.05,23.46-12.15,30.91-8.1,7.46-19.85,11.19-35.23,11.19s-27.13-3.76-35.23-11.27c-8.1-7.52-12.16-17.79-12.16-30.83v-56.37Z"/>
                     </svg>
                   </button>
                 </div>
@@ -1149,29 +1146,25 @@ export default function BillingPage() {
                 {/* ── DodoPayments panel ── */}
                 {intlTab === "dodo" && (
                   <div>
-                    <div style={{ padding:"12px 14px", borderRadius:10, background:"#fff8f5", border:"1px solid #fde4d4", fontSize:13, color:"#7c2d12", marginBottom:16, lineHeight:1.5 }}>
-                      🌍 <strong>International cards & local payment methods accepted.</strong><br />
-                      <span style={{ color:"#92400e" }}>Powered by DodoPayments — Visa, Mastercard, Amex and regional methods supported globally.</span>
-                    </div>
                     <button
                       onClick={handleDodoPayments}
                       disabled={dodoLoading || !!success}
                       style={{
                         width:"100%", padding:"15px", borderRadius:10,
-                        background: dodoLoading || success ? "#ffc4ab" : "#ff6b35",
-                        color:"#fff", fontSize:16, fontWeight:800, border:"none",
+                        background: dodoLoading || success ? "#d4f54a" : "#c6fe1e",
+                        color:"#111", fontSize:16, fontWeight:800, border:"none",
                         cursor: dodoLoading || success ? "not-allowed" : "pointer",
                         display:"flex", alignItems:"center", justifyContent:"center", gap:10,
                         letterSpacing:"-0.2px", transition:"background .15s",
                       }}
-                      onMouseEnter={e => { if (!dodoLoading && !success) e.currentTarget.style.background="#e85a25"; }}
-                      onMouseLeave={e => { if (!dodoLoading && !success) e.currentTarget.style.background="#ff6b35"; }}>
+                      onMouseEnter={e => { if (!dodoLoading && !success) e.currentTarget.style.background="#b8ef10"; }}
+                      onMouseLeave={e => { if (!dodoLoading && !success) e.currentTarget.style.background="#c6fe1e"; }}>
                       {dodoLoading
-                        ? <><div style={{ width:18, height:18, border:"2px solid #ffffff50", borderTop:"2px solid #fff", borderRadius:"50%", animation:"spin .8s linear infinite" }} />Redirecting to DodoPayments…</>
-                        : <>Pay ${sel ? ((sel.total_price / 83).toFixed(2)) : "—"} USD with DodoPayments</>}
+                        ? <><div style={{ width:18, height:18, border:"2px solid #00000030", borderTop:"2px solid #111", borderRadius:"50%", animation:"spin .8s linear infinite" }} />Redirecting to DodoPayments…</>
+                        : <>Pay DodoPayments</>}
                     </button>
                     <div style={{ fontSize:12, color:MUTED, textAlign:"center", marginTop:8 }}>
-                      🔒 Secured by DodoPayments · Cards & local methods worldwide
+                      🔒 Secured by DodoPayments · Cards &amp; local methods worldwide
                     </div>
                   </div>
                 )}
@@ -1272,14 +1265,14 @@ export default function BillingPage() {
                       disabled={payuLoading || !!success}
                       style={{
                         width:"100%", padding:"15px", borderRadius:10,
-                        background: payuLoading || success ? "#ffd4a0" : "#FF6B00",
+                        background: payuLoading || success ? "#7dd4bc" : "#00ad7d",
                         color:"#fff", fontSize:16, fontWeight:800, border:"none",
                         cursor: payuLoading || success ? "not-allowed" : "pointer",
                         display:"flex", alignItems:"center", justifyContent:"center", gap:10,
                         letterSpacing:"-0.2px", transition:"background .15s",
                       }}
-                      onMouseEnter={e => { if (!payuLoading && !success) e.currentTarget.style.background="#e05a00"; }}
-                      onMouseLeave={e => { if (!payuLoading && !success) e.currentTarget.style.background="#FF6B00"; }}>
+                      onMouseEnter={e => { if (!payuLoading && !success) e.currentTarget.style.background="#009468"; }}
+                      onMouseLeave={e => { if (!payuLoading && !success) e.currentTarget.style.background="#00ad7d"; }}>
                       {payuLoading
                         ? <><div style={{ width:18, height:18, border:"2px solid #ffffff50", borderTop:"2px solid #fff", borderRadius:"50%", animation:"spin .8s linear infinite" }} />Redirecting to PayU…</>
                         : couponCode && couponDiscountInr > 0
