@@ -1,0 +1,57 @@
+/* TEAM */
+
+Company: SecureLint
+
+Product:
+SecureLint Browser Security Platform
+
+Mission:
+Protect users and organizations from phishing attacks, browser threats, credential theft, and sensitive data exposure.
+
+Website:
+https://securelint.in
+
+Location:
+India
+
+Technology:
+Next.js
+React
+TypeScript
+Node.js
+Supabase
+Cloudflare
+Chrome Extensions API
+AI-powered Detection
+
+Services:
+Browser Security
+Browser DLP
+Sensitive Data Protection
+Secret Detection
+Enterprise Security
+Developer Security
+
+Contact:
+https://securelint.in/contact
+
+/* SITE */
+
+Language:
+English
+
+Standards:
+HTML5
+CSS3
+JavaScript
+TypeScript
+Open Graph
+Schema.org
+JSON-LD
+RSS
+robots.txt
+security.txt
+llms.txt
+
+Last Updated:
+2026-07-01

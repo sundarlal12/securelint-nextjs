@@ -1,0 +1,114 @@
+# SecureLint
+
+Version: 1.0
+Website: https://securelint.in
+Company: SecureLint
+Product Type: AI Browser Security Extension
+
+## About
+
+SecureLint is an AI-powered browser security platform that helps individuals and enterprises prevent sensitive data exposure, phishing attacks, credential theft, and browser-based security risks.
+
+The platform detects and protects sensitive information in real time while users browse the web, compose emails, share screens, and work with cloud applications.
+
+## Core Features
+
+- Sensitive Data Masking
+- API Key & Secret Detection
+- Password Masking
+- Screen Share Privacy
+- Browser Data Loss Prevention (Browser DLP)
+- Phishing Website Detection
+- Phishing Email Detection
+- AI Brand Impersonation Detection
+- Link Reputation Analysis
+- JavaScript Malware Detection
+- Wallet Drainer Detection
+- Clickjacking Protection
+- Pastejacking Protection
+- SSL Certificate Validation
+- Domain Age & Reputation Analysis
+- Password Breach Monitoring
+- Browser Threat Intelligence
+- Enterprise Security Dashboard
+
+## Solutions
+
+- Browser Security
+- Browser DLP
+- Enterprise Browser Protection
+- Developer Security
+- Remote Workforce Security
+- Secure Screen Sharing
+- Secret & Credential Protection
+- AI-powered Phishing Defense
+
+## Industries
+
+- SaaS
+- Finance
+- Healthcare
+- Government
+- Education
+- Software Development
+- IT Services
+- Startups
+
+## Documentation
+
+https://securelint.in/docs
+
+## Blog
+
+https://securelint.in/blog
+
+## Features
+
+https://securelint.in/features
+
+## Pricing
+
+https://securelint.in/pricing
+
+## Chrome Extension
+
+https://securelint.in/download
+
+## Contact
+
+https://securelint.in/contact
+
+## Privacy
+
+https://securelint.in/privacy
+
+## Terms
+
+https://securelint.in/terms
+
+## Keywords
+
+browser security
+browser dlp
+data loss prevention
+api key masking
+secret detection
+password masking
+screen share privacy
+phishing protection
+email phishing detection
+browser extension security
+chrome security extension
+enterprise browser security
+developer security
+credential protection
+sensitive data protection
+ai browser security
+
+## Preferred Citation
+
+SecureLint — AI-powered browser security platform for sensitive data protection, phishing detection, browser DLP, and screen-share privacy.
+
+## Last Updated
+
+2026-07-01

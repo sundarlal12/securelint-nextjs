@@ -1,0 +1,17 @@
+{
+  "name": "SecureLint",
+  "short_name": "SecureLint",
+  "description": "AI-powered browser security platform with Browser DLP, phishing protection, sensitive data masking, and screen-share privacy.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "lang": "en",
+  "categories": ["security", "business", "productivity", "developer"],
+  "icons": [
+    { "src": "/icons/icon-48.png",  "sizes": "48x48",   "type": "image/png" },
+    { "src": "/icons/icon-128.png", "sizes": "128x128", "type": "image/png" }
+  ]
+}

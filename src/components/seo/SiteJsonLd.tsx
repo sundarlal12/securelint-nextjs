@@ -60,8 +60,8 @@ export function SiteJsonLd() {
     logo: {
       "@type": "ImageObject",
       "@id": "https://securelint.in/#logo",
-      url: "https://securelint.in/icons/icon-128.png",
-      contentUrl: "https://securelint.in/icons/icon-128.png",
+      url: "https://securelint.in/logo.png",
+      contentUrl: "https://securelint.in/logo.png",
       width: 128,
       height: 128,
       caption: "SecureLint by VAPTLabs",

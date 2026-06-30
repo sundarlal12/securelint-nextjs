@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>SecureLint Blog</title>
+  <link>https://securelint.in/blog</link>
+  <atom:link href="https://securelint.in/rss.xml" rel="self" type="application/rss+xml" />
+  <description>Latest articles about browser security, Browser DLP, phishing protection, API key masking, sensitive data protection, and cybersecurity.</description>
+  <language>en-us</language>
+  <lastBuildDate>Tue, 01 Jul 2026 00:00:00 GMT</lastBuildDate>
+  <managingEditor>support@securelint.in</managingEditor>
+  <webMaster>support@securelint.in</webMaster>
+  <ttl>60</ttl>
+  <image>
+    <title>SecureLint</title>
+    <link>https://securelint.in</link>
+    <url>https://securelint.in/logo.png</url>
+  </image>
+
+  <item>
+    <title>Meeting Mode: Blur Secrets During Video Calls</title>
+    <link>https://securelint.in/blog/meeting-mode-blur-secrets-during-video-calls</link>
+    <guid>https://securelint.in/blog/meeting-mode-blur-secrets-during-video-calls</guid>
+    <pubDate>Mon, 16 Jun 2026 00:00:00 GMT</pubDate>
+    <description>Learn how SecureLint automatically protects API keys, passwords, and sensitive information during screen sharing.</description>
+  </item>
+
+  <item>
+    <title>How SecureLint Automatically Masks API Keys in Every Text Editor, Textarea &amp; Input</title>
+    <link>https://securelint.in/blog/automatic-api-key-masking-textarea-editor-input</link>
+    <guid>https://securelint.in/blog/automatic-api-key-masking-textarea-editor-input</guid>
+    <pubDate>Sat, 14 Jun 2026 00:00:00 GMT</pubDate>
+    <description>SecureLint detects AWS keys, GitHub tokens, Stripe secrets, OpenAI keys, and 100+ credential patterns in real time across VS Code Web, CodeSandbox, Notion, Jira, and every input on the web.</description>
+  </item>
+
+  <item>
+    <title>Real-Time Phishing Email Detection: How SecureLint Scans Every Message Before You Click</title>
+    <link>https://securelint.in/blog/realtime-phishing-email-detection-chrome-extension</link>
+    <guid>https://securelint.in/blog/realtime-phishing-email-detection-chrome-extension</guid>
+    <pubDate>Thu, 12 Jun 2026 00:00:00 GMT</pubDate>
+    <description>SecureLint checks SPF, DKIM, and DMARC headers, scores every link against 14 threat signals, and surfaces a clear 0–100 trust score before you open a suspicious email.</description>
+  </item>
+
+  <item>
+    <title>Malicious Browser Extension Detection: What SecureLint Checks and Why It Matters</title>
+    <link>https://securelint.in/blog/how-securelint-detects-blocks-malicious-browser-extensions</link>
+    <guid>https://securelint.in/blog/how-securelint-detects-blocks-malicious-browser-extensions</guid>
+    <pubDate>Tue, 10 Jun 2026 00:00:00 GMT</pubDate>
+    <description>Rogue Chrome extensions silently read passwords, inject ads, and exfiltrate session cookies. SecureLint audits installed extensions against known malicious signatures.</description>
+  </item>
+
+  <item>
+    <title>How SecureLint Automatically Blocks Phishing Websites Before You Land on Them</title>
+    <link>https://securelint.in/blog/phishing-website-auto-block-before-you-click</link>
+    <guid>https://securelint.in/blog/phishing-website-auto-block-before-you-click</guid>
+    <pubDate>Sun, 08 Jun 2026 00:00:00 GMT</pubDate>
+    <description>SecureLint evaluates domain age, SSL status, brand impersonation score, and URL patterns in real time. When you click a suspicious link, a popup warning appears before the page loads.</description>
+  </item>
+
+  <item>
+    <title>IT Security Policies for Browser Threats: Blocking Malicious Sites &amp; Extensions Across Your Team</title>
+    <link>https://securelint.in/blog/it-security-policy-malicious-sites-extensions-enterprise</link>
+    <guid>https://securelint.in/blog/it-security-policy-malicious-sites-extensions-enterprise</guid>
+    <pubDate>Fri, 06 Jun 2026 00:00:00 GMT</pubDate>
+    <description>Enterprise SecureLint lets IT admins push policies that block known-malicious domains, restrict extension installs, and trigger real-time incident alerts — without endpoint agents.</description>
+  </item>
+
+  <item>
+    <title>Automatic Malicious Download Scanning: How SecureLint Checks Files Before You Open Them</title>
+    <link>https://securelint.in/blog/malicious-download-scanning-automatic-chrome-extension</link>
+    <guid>https://securelint.in/blog/malicious-download-scanning-automatic-chrome-extension</guid>
+    <pubDate>Wed, 04 Jun 2026 00:00:00 GMT</pubDate>
+    <description>Before a downloaded file lands in your folder, SecureLint checks its hash against known malware signatures and inspects the source domain reputation.</description>
+  </item>
+
+  <item>
+    <title>Webcam &amp; Screen Recording Detection: How SecureLint Alerts You When a Site Activates Your Camera</title>
+    <link>https://securelint.in/blog/webcam-screen-recording-detection-privacy-alert</link>
+    <guid>https://securelint.in/blog/webcam-screen-recording-detection-privacy-alert</guid>
+    <pubDate>Mon, 02 Jun 2026 00:00:00 GMT</pubDate>
+    <description>Websites can silently request webcam and microphone access. SecureLint surfaces a real-time alert the moment any page activates these permissions.</description>
+  </item>
+
+  <item>
+    <title>How SecureLint Stops Phishing Links in Emails with Real-Time Popup Warnings</title>
+    <link>https://securelint.in/blog/phishing-link-popup-warning-email-protection</link>
+    <guid>https://securelint.in/blog/phishing-link-popup-warning-email-protection</guid>
+    <pubDate>Sat, 31 May 2026 00:00:00 GMT</pubDate>
+    <description>When you click a link inside Gmail or Outlook, SecureLint silently scores it and intercepts your click with an Unsafe Link Detected popup if it's suspicious.</description>
+  </item>
+
+  <item>
+    <title>Password Breach Monitoring: How SecureLint Detects and Notifies You When Your Credentials Leak</title>
+    <link>https://securelint.in/blog/password-breach-detection-haveibeenpwned-browser</link>
+    <guid>https://securelint.in/blog/password-breach-detection-haveibeenpwned-browser</guid>
+    <pubDate>Thu, 29 May 2026 00:00:00 GMT</pubDate>
+    <description>SecureLint cross-references your saved passwords against live breach databases including HaveIBeenPwned and notifies you the moment a credential leak is detected.</description>
+  </item>
+
+  <item>
+    <title>The Developer's Complete Guide to Preventing API Key Leaks in the Browser (2026)</title>
+    <link>https://securelint.in/blog/api-key-leak-prevention-developers-guide-2026</link>
+    <guid>https://securelint.in/blog/api-key-leak-prevention-developers-guide-2026</guid>
+    <pubDate>Mon, 26 May 2026 00:00:00 GMT</pubDate>
+    <description>API keys accidentally pasted into Slack, live demos, or public repos cause massive breaches. This guide covers every vector and how SecureLint closes them all automatically.</description>
+  </item>
+
+  <item>
+    <title>SecureLint Enterprise Browser DLP: Secret Masking, Email DLP &amp; Threat Intelligence (2026)</title>
+    <link>https://securelint.in/blog/securelint-enterprise-browser-dlp-review-2026</link>
+    <guid>https://securelint.in/blog/securelint-enterprise-browser-dlp-review-2026</guid>
+    <pubDate>Thu, 22 May 2026 00:00:00 GMT</pubDate>
+    <description>A deep-dive into SecureLint's enterprise layer — team-wide DLP rules, email send blocking, admin dashboards, extension allowlists, and SIEM integrations.</description>
+  </item>
+
+</channel>
+</rss>
