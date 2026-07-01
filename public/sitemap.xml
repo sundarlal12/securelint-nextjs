@@ -26,6 +26,84 @@
     </image:image>
   </url>
 
+  <!-- ── Topical authority pages ── -->
+  <url>
+    <loc>https://securelint.in/browser-dlp</loc>
+    <lastmod>2026-07-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://securelint.in/og-banner.png</image:loc>
+      <image:title>Browser DLP – SecureLint | Data Loss Prevention for Chrome</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://securelint.in/api-key-masking</loc>
+    <lastmod>2026-07-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://securelint.in/og-banner.png</image:loc>
+      <image:title>API Key Masking – SecureLint | Detect &amp; Hide API Keys in Chrome</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://securelint.in/screen-share-privacy</loc>
+    <lastmod>2026-07-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.90</priority>
+    <image:image>
+      <image:loc>https://securelint.in/og-banner.png</image:loc>
+      <image:title>Screen Share Privacy – SecureLint | Mask Secrets During Screen Sharing</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://securelint.in/phishing-protection</loc>
+    <lastmod>2026-07-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://securelint.in/og-banner.png</image:loc>
+      <image:title>Phishing Protection – SecureLint | Real-Time Anti-Phishing Chrome Extension</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://securelint.in/browser-security</loc>
+    <lastmod>2026-07-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.95</priority>
+    <image:image>
+      <image:loc>https://securelint.in/og-banner.png</image:loc>
+      <image:title>Browser Security – SecureLint | Complete Browser Security for Chrome</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://securelint.in/secret-detection</loc>
+    <lastmod>2026-07-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.90</priority>
+    <image:image>
+      <image:loc>https://securelint.in/og-banner.png</image:loc>
+      <image:title>Secret Detection – SecureLint | Real-Time Browser Secret Scanner</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://securelint.in/ai</loc>
+    <lastmod>2026-07-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.88</priority>
+    <image:image>
+      <image:loc>https://securelint.in/og-banner.png</image:loc>
+      <image:title>About SecureLint – What It Is, How It Works, and Who It's For</image:title>
+    </image:image>
+  </url>
+
   <!-- ── Static pages ── -->
   <url>
     <loc>https://securelint.in/contact/sales</loc>
