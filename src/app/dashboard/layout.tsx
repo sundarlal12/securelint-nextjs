@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "@/components/dashboard/Sidebar";
 import TopBar from "@/components/dashboard/TopBar";
 import { usePathname } from "next/navigation";
+import { HideStartupBar } from "@/components/ui/HideStartupBar";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -44,6 +45,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen bg-[#080b0f] overflow-hidden antialiased">
+      <HideStartupBar />
       <Sidebar mobileOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden bg-[#080b0f]">
         <TopBar title={title} onMenuClick={() => setSidebarOpen(true)} />

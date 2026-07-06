@@ -6,6 +6,7 @@ import { BillingStepCtx } from "./billing/billing-step-ctx";
 import FeedbackModal from "@/components/dashboard/FeedbackModal";
 import ToastContainer from "@/components/dashboard/Toast";
 import { clearUserCache, getCachedProfile, revalidateProfile } from "@/lib/userCache";
+import { HideStartupBar } from "@/components/ui/HideStartupBar";
 
 /* ── Brand tokens ── */
 const TEAL        = "#0BA37F";
@@ -178,6 +179,7 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
 
   if (!checked) return (
     <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100vh", background:"#f9fafb" }}>
+      <HideStartupBar />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       <div style={{ width:28, height:28, border:`3px solid ${BORDER}`, borderTop:`3px solid ${TEAL}`, borderRadius:"50%", animation:"spin .8s linear infinite" }} />
     </div>
@@ -191,6 +193,7 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
     return (
       <BillingStepCtx.Provider value={{ step: billingStep, setStep: setBillingStep }}>
         <div style={{ minHeight:"100vh", background:"radial-gradient(circle at 8% 15%, rgba(45,212,191,.12) 0%, rgba(11,163,127,.06) 40%, #fff 80%)", fontFamily:"system-ui,-apple-system,sans-serif" }}>
+          <HideStartupBar />
           <style>{`
             @keyframes spin{to{transform:rotate(360deg)}}
             .billing-header-email { display: flex; }
@@ -245,6 +248,7 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
   /* ── Normal dashboard layout ── */
   return (
     <div style={{ display:"flex", minHeight:"100vh", background:"#fff", fontFamily:"'Inter',system-ui,-apple-system,sans-serif" }}>
+      <HideStartupBar />
       <style>{`
         @keyframes spin { to { transform:rotate(360deg) } }
         .ud-nav-item { transition: background .15s; }
