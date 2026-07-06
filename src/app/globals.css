@@ -11,6 +11,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* StartupBar offset — set to 36px when the bar is injected, else 0 */
+:root {
+  --sb-height: 0px;
+}
+html[data-startupbar-injected="1"] {
+  --sb-height: 36px;
+}
+
 :root {
   --green: #40826d;
   --green-dark: #2e6655;

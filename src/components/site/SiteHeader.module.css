@@ -1,7 +1,7 @@
 /* Mirrors index.html nav — modular, responsive */
 .nav {
   position: sticky;
-  top: 0;
+  top: var(--sb-height, 0px);
   z-index: 200;
   background: var(--white);
   border-bottom: 1px solid var(--border);
