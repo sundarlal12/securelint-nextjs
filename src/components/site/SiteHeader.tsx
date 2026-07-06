@@ -48,6 +48,27 @@ export function SiteHeader() {
     }
   }, []);
 
+  // Keep sticky nav in sync with StartupBar height.
+  // The bar sends startupbar:resize whenever its height changes (including 0 on dismiss).
+  useEffect(() => {
+    const root = document.documentElement;
+
+    const onStartupBarMessage = (e: MessageEvent) => {
+      if (!e.data || e.data.type !== "startupbar:resize") return;
+      const h = Math.max(0, Math.round(Number(e.data.height) || 0));
+      // Override the CSS-rule value with an inline style so dismiss is reflected immediately.
+      root.style.setProperty("--sb-height", `${h}px`);
+      // Also undo the body padding the bar injected so the page doesn't leave a blank strip.
+      if (h === 0 && document.body) {
+        const current = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
+        document.body.style.paddingTop = current > 36 ? `${current - 36}px` : "";
+      }
+    };
+
+    window.addEventListener("message", onStartupBarMessage);
+    return () => window.removeEventListener("message", onStartupBarMessage);
+  }, []);
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", onScroll, { passive: true });
