@@ -152,6 +152,7 @@ export function CardCarousel({ items, accentColor = "#28ccb5", cardBg = "rgba(25
         <div
           style={{
             display: "flex",
+            alignItems: "stretch",
             gap: GAP,
             transform: `translateX(${-(current * (cardWidth + GAP))}px)`,
             transition: isDragging ? "none" : "transform 0.4s cubic-bezier(0.4,0,0.2,1)",
@@ -164,6 +165,7 @@ export function CardCarousel({ items, accentColor = "#28ccb5", cardBg = "rgba(25
               style={{
                 flex: `0 0 ${cardWidth}px`,
                 width: cardWidth,
+                minHeight: 220,
                 background: cardBg,
                 border: "1px solid rgba(255,255,255,0.08)",
                 borderRadius: 16,
