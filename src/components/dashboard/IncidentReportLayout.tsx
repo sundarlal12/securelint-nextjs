@@ -583,9 +583,14 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
           const SHOW_LIMIT = 5;
           const hasMany = inc.count > 1;
           const pageUrl   = inc.details.find(d => d.label === "Page URL")?.value ?? "";
+          const pageTitle = inc.details.find(d => d.label === "Page Title")?.value ?? "";
           const bi        = inc.browserInfo;
           const browserId = inc.details.find(d => d.label === "Browser ID")?.value ?? "";
           const extVer    = inc.details.find(d => d.label === "Extension Ver")?.value ?? "";
+          const dateLabel = (() => {
+            try { return new Date(inc.detectedAt).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }); }
+            catch { return inc.detectedAt; }
+          })();
 
           /* Incident ID formatted as INC-YYYY-MMDD-#### */
           const incId = (() => {
@@ -630,44 +635,47 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
               <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
 
                 {/* ── Incident ID / Risk Level / Status 3-col bar ── */}
-                <div style={{ ...card, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 0, padding: 0, overflow: "hidden" }}>
+                <div style={{ background: "#111827", border: "1px solid #2d3748", borderRadius: 12, overflow: "hidden", display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
                   {/* Col 1: Incident ID */}
-                  <div style={{ padding: "14px 14px", borderRight: "1px solid #1a2540" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                      <div style={{ width: 28, height: 28, borderRadius: 7, background: "#111827", border: "1px solid #1a2540", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="#4a5568"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                  <div style={{ padding: "16px 14px", borderRight: "1px solid #2d3748" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+                      <div style={{ width: 30, height: 30, borderRadius: 8, background: "#1e293b", border: "1px solid #334155", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#60a5fa"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
                       </div>
-                      <span style={{ fontSize: 9, color: "#4a5568", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Incident ID</span>
+                      <span style={{ fontSize: 9, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em" }}>Incident ID</span>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 5 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "#c9d1d9", fontFamily: "monospace" }}>{incId}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 6, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0", fontFamily: "monospace", wordBreak: "break-all" }}>{incId}</span>
                       <button title="Copy" onClick={() => navigator.clipboard.writeText(incId)}
-                        style={{ background: "none", border: "none", cursor: "pointer", padding: 2, color: "#4a5568", display: "flex", alignItems: "center", flexShrink: 0 }}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="#6b7280" strokeWidth="1.8"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="#6b7280" strokeWidth="1.8"/></svg>
+                        style={{ background: "none", border: "none", cursor: "pointer", padding: 2, color: "#64748b", display: "flex", alignItems: "center", flexShrink: 0 }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="#94a3b8" strokeWidth="1.8"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="#94a3b8" strokeWidth="1.8"/></svg>
                       </button>
                     </div>
-                    <div style={{ fontSize: 9, color: "#4a5568" }}>Detected on: {inc.detectedAt}{inc.detectedTime ? ` · ${inc.detectedTime.split("·").pop()?.trim() ?? ""}` : ""}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="#64748b" strokeWidth="1.6"/><path d="M16 2v4M8 2v4M3 10h18" stroke="#64748b" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                      <span style={{ fontSize: 9, color: "#64748b" }}>Detected on: {inc.detectedAt}{inc.detectedTime ? ` at ${inc.detectedTime.split("·").pop()?.trim() ?? ""}` : ""}</span>
+                    </div>
                   </div>
                   {/* Col 2: Risk Level */}
-                  <div style={{ padding: "14px 14px", borderRight: "1px solid #1a2540" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill={sevColor}><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
-                      <span style={{ fontSize: 9, color: "#4a5568", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Risk Level</span>
+                  <div style={{ padding: "16px 14px", borderRight: "1px solid #2d3748" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill={sv.color}><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                      <span style={{ fontSize: 9, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em" }}>Risk Level</span>
                     </div>
-                    <div style={{ fontSize: 20, fontWeight: 800, color: sevColor, lineHeight: 1.1, marginBottom: 5 }}>{sevLabel}</div>
-                    <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 20, color: sv.color, background: sv.bg, border: `1px solid ${sv.border}` }}>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: sv.color, lineHeight: 1, marginBottom: 8 }}>{inc.severity}</div>
+                    <span style={{ display: "inline-block", fontSize: 9, fontWeight: 700, padding: "3px 9px", borderRadius: 20, color: sv.color, background: sv.bg, border: `1px solid ${sv.border}` }}>
                       {inc.severity === "Critical" ? "Critical Threat" : inc.severity === "High" ? "Immediate Attention" : inc.severity === "Medium" ? "Review Required" : "Monitor"}
                     </span>
                   </div>
                   {/* Col 3: Status */}
-                  <div style={{ padding: "14px 14px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 20h18L12 2z" stroke={ac.dot} strokeWidth="2" strokeLinejoin="round"/><path d="M12 9v4M12 17h.01" stroke={ac.dot} strokeWidth="2" strokeLinecap="round"/></svg>
-                      <span style={{ fontSize: 9, color: "#4a5568", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Status</span>
+                  <div style={{ padding: "16px 14px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1h.01c1.71 0 3.1 1.39 3.1 3.1v2z" fill={ac.dot}/></svg>
+                      <span style={{ fontSize: 9, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em" }}>Status</span>
                     </div>
-                    <div style={{ fontSize: 20, fontWeight: 800, color: ac.color, lineHeight: 1.1, marginBottom: 5 }}>{ac.label}</div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#22c55e" strokeWidth="2"/><path d="M8 12l3 3 5-5" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: ac.color, lineHeight: 1, marginBottom: 8 }}>{ac.label}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#22c55e" strokeWidth="1.8"/><path d="M8 12l3 3 5-5" stroke="#22c55e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       <span style={{ fontSize: 9, color: "#22c55e" }}>Secrets are protected</span>
                     </div>
                   </div>
@@ -841,6 +849,101 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                     )}
                   </div>
                 )}
+
+                {/* ── Timeline ── */}
+                <div style={{ ...card }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0", marginBottom: 2 }}>Timeline</div>
+                  <div style={{ fontSize: 10, color: "#64748b", marginBottom: 14 }}>{dateLabel}</div>
+
+                  {/* Step 1: Browser session */}
+                  <div style={{ display: "flex", gap: 12 }}>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: 6, background: "#1e3a5f", border: "2px solid #3b82f6", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#3b82f6" strokeWidth="1.8"/><path d="M8 21h8M12 17v4" stroke="#3b82f6" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                      </div>
+                      <div style={{ flex: 1, width: 2, background: "#2d3748", minHeight: 20, marginTop: 3 }} />
+                    </div>
+                    <div style={{ paddingBottom: 20, flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedAt}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>Browser session active</div>
+                      <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>SecureLint monitoring: {inc.email}</div>
+                      {(pageUrl || pageTitle) && (
+                        <div style={{ marginTop: 8, padding: "7px 10px", borderRadius: 7, background: "#080e1a", border: "1px solid #2d3748", display: "flex", flexDirection: "column", gap: 4 }}>
+                          {pageUrl && (
+                            <div style={{ display: "flex", alignItems: "flex-start", gap: 6 }}>
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10" stroke="#3b82f6" strokeWidth="1.6"/><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20" stroke="#3b82f6" strokeWidth="1.6"/></svg>
+                              <a href={pageUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, color: "#60a5fa", wordBreak: "break-all", lineHeight: 1.45, textDecoration: "none" }}>{pageUrl}</a>
+                            </div>
+                          )}
+                          {pageTitle && (
+                            <div style={{ display: "flex", alignItems: "flex-start", gap: 6 }}>
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="#94a3b8" strokeWidth="1.6"/><path d="M14 2v6h6M9 13h6M9 17h4" stroke="#94a3b8" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                              <span style={{ fontSize: 10, color: "#94a3b8", lineHeight: 1.45 }}>{pageTitle}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {bi && (bi.browserName || bi.os) && (
+                        <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 4 }}>
+                          {bi.browserName && <span style={{ fontSize: 9, color: "#94a3b8", background: "#080e1a", border: "1px solid #2d3748", borderRadius: 20, padding: "2px 8px" }}>{bi.browserName}</span>}
+                          {bi.os && <span style={{ fontSize: 9, color: "#94a3b8", background: "#080e1a", border: "1px solid #2d3748", borderRadius: 20, padding: "2px 8px" }}>{bi.os}</span>}
+                          {bi.viewportWidth && bi.viewportHeight && <span style={{ fontSize: 9, color: "#94a3b8", background: "#080e1a", border: "1px solid #2d3748", borderRadius: 20, padding: "2px 8px" }}>{bi.viewportWidth}×{bi.viewportHeight}</span>}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Step 2: Secret detected + occurrences */}
+                  <div style={{ display: "flex", gap: 12 }}>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: 6, background: "#2d1a0a", border: "2px solid #f97316", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="8" y="2" width="8" height="4" rx="1" stroke="#f97316" strokeWidth="1.6"/><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" stroke="#f97316" strokeWidth="1.6"/><path d="M9 12h6M9 16h4" stroke="#f97316" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                      </div>
+                      <div style={{ flex: 1, width: 2, background: "#2d3748", minHeight: 20, marginTop: 3 }} />
+                    </div>
+                    <div style={{ paddingBottom: 20, flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>
+                        {inc.secretTypes.length > 1 ? `${inc.count} secrets detected — ${inc.secretTypes.length} types` : `${inc.secretType} detected${hasMany ? ` — ${inc.count} occurrences` : ""}`}
+                      </div>
+                      {hasMany && (
+                        <div style={{ marginTop: 8 }}>
+                          <div style={{ maxHeight: showAllOccs ? 260 : 130, overflowY: "auto", display: "flex", flexDirection: "column", gap: 3 }}>
+                            {(showAllOccs ? inc.occurrences : inc.occurrences.slice(0, SHOW_LIMIT)).map((occ, oi) => (
+                              <div key={oi} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 8px", borderRadius: 6, background: "#080e1a", border: "1px solid #2d3748", flexShrink: 0 }}>
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1h.01c1.71 0 3.1 1.39 3.1 3.1v2z" fill="#f97316"/></svg>
+                                <span style={{ fontSize: 10, color: "#94a3b8", flexShrink: 0, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{occ.secretType}</span>
+                                <span style={{ fontFamily: "monospace", fontSize: 10, color: "#e2e8f0", flex: 1, textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{occ.preview}</span>
+                                <span style={{ fontSize: 9, color: "#64748b", flexShrink: 0, whiteSpace: "nowrap" }}>{occ.detectedTime?.split("·").pop()?.trim() ?? occ.detectedAt}</span>
+                              </div>
+                            ))}
+                          </div>
+                          {inc.count > SHOW_LIMIT && (
+                            <button onClick={() => setShowAllOccs(v => !v)}
+                              style={{ marginTop: 5, display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 12, border: "1px solid #2dd4bf44", background: "#0a1e1a", color: "#2dd4bf", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>
+                              {showAllOccs ? "↑ Collapse" : `+${inc.count - SHOW_LIMIT} more occurrences`}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                      {!hasMany && <div style={{ fontFamily: "monospace", fontSize: 11, color: "#94a3b8", marginTop: 3, wordBreak: "break-all" }}>{inc.preview}</div>}
+                    </div>
+                  </div>
+
+                  {/* Step 3: Action taken */}
+                  <div style={{ display: "flex", gap: 12 }}>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: 6, background: `${ac.dot}22`, border: `2px solid ${ac.dot}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke={ac.dot} strokeWidth="1.8"/><path d="M9 12l2 2 4-4" stroke={ac.dot} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </div>
+                    </div>
+                    <div style={{ paddingBottom: 4 }}>
+                      <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>Action: <span style={{ color: ac.color }}>{ac.label}</span></div>
+                      <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>SecureLint Security Policy</div>
+                    </div>
+                  </div>
+                </div>
 
                 {/* bottom breathing room */}
                 <div style={{ height: 8 }} />
