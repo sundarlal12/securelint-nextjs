@@ -639,198 +639,44 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
 
 
               {(() => {
-  const severityStyles: Record<string, { bg: string; color: string; border: string }> = {
-    Critical: {
-      bg: "#3b0d0d",
-      color: "#ff6b6b",
-      border: "#7f1d1d",
-    },
-    High: {
-      bg: "#3a1d08",
-      color: "#fb923c",
-      border: "#7c2d12",
-    },
-    Medium: {
-      bg: "#3b2d08",
-      color: "#fbbf24",
-      border: "#854d0e",
-    },
-    Low: {
-      bg: "#0f2e1b",
-      color: "#4ade80",
-      border: "#166534",
-    },
-  };
+                const brightSev: Record<string, string> = { Critical: "#ef4444", High: "#f87171", Medium: "#fbbf24", Low: "#86efac" };
+                const bsColor = brightSev[inc.severity] ?? "#f87171";
+                return (
+                  <div style={{ flexShrink: 0, padding: "12px 16px", borderBottom: "1px solid #1a2540" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", background: "#0d1525", border: "1px solid #1e2d45", borderRadius: 12, overflow: "hidden" }}>
 
-  const sev = severityStyles[inc.severity] || severityStyles.High;
+                      {/* Col 1 — INC ID + date */}
+                      <div style={{ padding: "16px 14px", borderRight: "1px solid #1e2d45", display: "flex", flexDirection: "column", justifyContent: "center", gap: 6 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0", fontFamily: "monospace" }}>{incId}</span>
+                          <button title="Copy" onClick={() => navigator.clipboard.writeText(incId)}
+                            style={{ background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex", alignItems: "center", flexShrink: 0 }}>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="#64748b" strokeWidth="1.8"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="#64748b" strokeWidth="1.8"/></svg>
+                          </button>
+                        </div>
+                        <span style={{ fontSize: 10, color: "#4a6080" }}>Detected: {inc.detectedAt}</span>
+                      </div>
 
-  return (
-    <div
-      style={{
-        flexShrink: 0,
-        padding: "16px",
-        borderBottom: "1px solid #1f2b43",
-      }}
-    >
-      <div
-        style={{
-          background: "#101827",
-          border: "1px solid #253247",
-          borderRadius: 14,
-          display: "grid",
-          gridTemplateColumns: "1fr auto 1fr auto 1fr",
-          alignItems: "center",
-          padding: "18px 22px",
-        }}
-      >
-        {/* Incident */}
-        <div>
-          <div
-            style={{
-              fontSize: 12,
-              color: "#94A3B8",
-              marginBottom: 6,
-              fontWeight: 500,
-            }}
-          >
-            Incident ID
-          </div>
+                      {/* Col 2 — severity chip */}
+                      <div style={{ padding: "16px 14px", borderRight: "1px solid #1e2d45", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, padding: "5px 14px", borderRadius: 20, color: bsColor, background: `${bsColor}18`, border: `1px solid ${bsColor}55` }}>
+                          {inc.severity}
+                        </span>
+                      </div>
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <span
-              style={{
-                color: "#F8FAFC",
-                fontWeight: 700,
-                fontSize: 22,
-                fontFamily: "monospace",
-              }}
-            >
-              {incId || "INC-2026-0707-2496"}
-            </span>
+                      {/* Col 3 — status + protected */}
+                      <div style={{ padding: "16px 14px", display: "flex", flexDirection: "column", justifyContent: "center", gap: 6 }}>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: ac.color }}>{ac.label}</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#22c55e" strokeWidth="1.8"/><path d="M8 12l3 3 5-5" stroke="#22c55e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          <span style={{ fontSize: 10, color: "#22c55e" }}>Secrets are protected</span>
+                        </div>
+                      </div>
 
-            <button
-              onClick={() => navigator.clipboard.writeText(incId)}
-              style={{
-                border: "none",
-                background: "transparent",
-                cursor: "pointer",
-                color: "#60A5FA",
-                fontSize: 16,
-              }}
-            >
-              📋
-            </button>
-          </div>
-
-          <div
-            style={{
-              marginTop: 10,
-              fontSize: 12,
-              color: "#94A3B8",
-            }}
-          >
-            🕒 Detected: {inc.detectedAt || "2026-07-07"}
-          </div>
-        </div>
-
-        <div
-          style={{
-            width: 1,
-            height: 70,
-            background: "#243247",
-            margin: "0 26px",
-          }}
-        />
-
-        {/* Risk */}
-        <div>
-          <div
-            style={{
-              color: "#94A3B8",
-              fontSize: 12,
-              marginBottom: 10,
-            }}
-          >
-            Risk Level
-          </div>
-
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              background: sev.bg,
-              border: `1px solid ${sev.border}`,
-              color: sev.color,
-              padding: "8px 16px",
-              borderRadius: 999,
-              fontWeight: 700,
-              fontSize: 18,
-            }}
-          >
-            🛡 {inc.severity}
-          </div>
-        </div>
-
-        <div
-          style={{
-            width: 1,
-            height: 70,
-            background: "#243247",
-            margin: "0 26px",
-          }}
-        />
-
-        {/* Status */}
-        <div>
-          <div
-            style={{
-              color: "#94A3B8",
-              fontSize: 12,
-              marginBottom: 10,
-            }}
-          >
-            Status
-          </div>
-
-          <div
-            style={{
-              fontSize: 22,
-              fontWeight: 700,
-              color: "#A78BFA",
-              marginBottom: 10,
-            }}
-          >
-            {ac.label}
-          </div>
-
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              background: "#0F2E1B",
-              border: "1px solid #166534",
-              color: "#4ADE80",
-              borderRadius: 999,
-              padding: "7px 14px",
-              fontSize: 13,
-              fontWeight: 600,
-            }}
-          >
-            ✓ Secrets are protected
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-})()}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* ══ Scrollable body ══ */}
               <div ref={drawerBodyRef} style={{ flex: 1, overflowY: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
