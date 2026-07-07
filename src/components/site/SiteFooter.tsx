@@ -5,6 +5,7 @@ const COL_PRODUCT = [
   { label: "Features",           href: "/#features" },
   { label: "Blog",               href: "/blog" },
   { label: "Download Extension", href: "https://chromewebstore.google.com/detail/securelint/nfakpphnajjbmejbmpnlnamncdplkbna", external: true },
+  { label: "📄 Brochure (PDF)",  href: "/SecureLint_Brocher.pdf", external: true },
 ];
 
 const COL_COMPANY = [
