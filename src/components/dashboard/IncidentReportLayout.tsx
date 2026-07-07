@@ -622,25 +622,19 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                   <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 9px", borderRadius: 20, color: sv.color, background: sv.bg, border: `1px solid ${sv.border}` }}>{inc.severity}</span>
                   <span style={{ fontSize: 13, fontWeight: 700, color: "#e6edf3" }}>
-                    {inc.secretTypes.length > 1
-                      ? `${inc.secretTypes.length} secret types`
-                      : inc.secretType}
-                    {hasMany ? ` ×${inc.count}` : ""}
+                    {/* MISTRAL_API_KEY +2 ×46  or  SLACK_TOKEN ×7 */}
+                    {inc.secretTypes[0]}
+                    {inc.secretTypes.length > 1 && (
+                      <span style={{ fontSize: 11, color: "#fbbf24", fontWeight: 600 }}> +{inc.secretTypes.length - 1}</span>
+                    )}
+                    {hasMany && <span style={{ fontSize: 11, color: "#6b7280", fontWeight: 400 }}> ×{inc.count}</span>}
                   </span>
-                  {inc.secretTypes.length > 1 && (
-                    <span style={{ fontSize: 9, color: "#fbbf24", background: "#1c1508", border: "1px solid #78350f44", padding: "1px 7px", borderRadius: 10, fontWeight: 700 }}>
-                      {inc.secretTypes.join(", ")}
-                    </span>
-                  )}
                 </div>
-                <div style={{ fontSize: 11, color: "#c9d1d9", lineHeight: 1.5, marginBottom: 8 }}>{inc.alertTitle}</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, marginBottom: browserId || extVer ? 10 : 0 }}>
+                {/* One-line summary: action · engine · date */}
+                <div style={{ fontSize: 11, color: "#8b949e", marginBottom: browserId || extVer ? 8 : 0 }}>
+                  <span style={{ color: ac.color, fontWeight: 600 }}>{ac.label}</span>
+                  {" · SecureLint AI · "}
                   <span style={{ color: "#4a5568" }}>First seen: {inc.detectedAt}</span>
-                  <span style={{ color: "#21262d" }}>|</span>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: ac.color, fontWeight: 600 }}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 20h18L12 2z" stroke={ac.dot} strokeWidth="2.2" strokeLinejoin="round"/><path d="M12 9v4M12 17h.01" stroke={ac.dot} strokeWidth="2.2" strokeLinecap="round"/></svg>
-                    {ac.label}
-                  </span>
                 </div>
                 {/* Browser ID + Ext Ver inside the status band */}
                 {(browserId || extVer) && (
@@ -795,33 +789,6 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                     <div style={{ fontSize: 11, color: "#8b949e", marginTop: 2 }}>{inc.details.find(d => d.label === "Policy")?.value ?? "SecureLint Security Policy"}</div>
                   </div>
                 </div>
-              </div>
-
-              {/* ── Detection card ── */}
-              <div style={{ margin: "4px 20px 4px", padding: "12px 14px", borderRadius: 10, border: `1px solid ${ac.border}`, background: ac.bg, flexShrink: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke={ac.dot} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: ac.color }}>
-                    {inc.secretTypes.length > 1
-                      ? `${inc.secretTypes.length} secret types detected${hasMany ? ` ×${inc.count}` : ""}`
-                      : `${inc.secretType} detected${hasMany ? ` ×${inc.count}` : ""}`}
-                  </span>
-                  <span style={{ marginLeft: "auto", fontSize: 9, color: `${ac.color}88`, display: "inline-flex", alignItems: "center", gap: 3 }}>
-                    <span style={{ width: 5, height: 5, borderRadius: "50%", background: ac.dot, flexShrink: 0 }} />{ac.label}
-                  </span>
-                </div>
-                {[
-                  { icon: "M12 11c0-3.87-3.13-7-7-7S-2 7.13-2 11M15 5l-3 3-3-3M21 21H3", label: "Secret type", value: inc.secretType },
-                  { icon: "M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z", label: "Employee", value: `${inc.name} <${inc.email}>` },
-                  { icon: "M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z", label: "Detection engine", value: inc.details.find(d => d.label === "Detection Engine")?.value ?? "SecureLint AI" },
-                  { icon: "M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2z", label: "Timestamp", value: `${inc.detectedAt}${inc.detectedTime ? " · " + inc.detectedTime : ""}` },
-                ].map((row, ri) => (
-                  <div key={ri} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: ri < 3 ? 7 : 0 }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill={`${ac.color}77`} style={{ flexShrink: 0, marginTop: 1 }}><path d={row.icon} /></svg>
-                    <span style={{ fontSize: 11, color: `${ac.color}99`, minWidth: 110, flexShrink: 0 }}>{row.label}</span>
-                    <span style={{ fontSize: 11, color: ac.color, wordBreak: "break-all", lineHeight: 1.4 }}>{row.value}</span>
-                  </div>
-                ))}
               </div>
 
               {/* bottom padding */}
