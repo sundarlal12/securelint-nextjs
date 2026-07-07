@@ -571,7 +571,7 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
         zIndex: 950,
         display: "flex",
         flexDirection: "column",
-        overflowY: "auto",
+        overflow: "hidden",           /* outer panel must NOT scroll — only body below does */
         transform: drawerOpen ? "translateX(0)" : "translateX(100%)",
         transition: "transform 0.32s cubic-bezier(0.4,0,0.2,1)",
         boxShadow: drawerOpen ? "-12px 0 60px rgba(0,0,0,0.7)" : "none",
@@ -611,8 +611,8 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
 
           return (
             <>
-              {/* ══ Header ══ */}
-              <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "18px 20px 16px", borderBottom: "1px solid #1a2540", flexShrink: 0, background: "#080e1a" }}>
+              {/* ══ Header — sticky, never scrolls ══ */}
+              <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "18px 20px 16px", borderBottom: "1px solid #1a2540", flexShrink: 0, background: "#080e1a", position: "sticky", top: 0, zIndex: 10 }}>
                 <div style={{ width: 42, height: 42, borderRadius: 10, background: "linear-gradient(135deg,#3b5bdb,#7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4z" fill="white" fillOpacity=".9"/></svg>
                 </div>
