@@ -693,13 +693,6 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                       <span style={{ fontSize: 12, color: "#8b949e" }}>{inc.email}</span>
                     </div>
                   </div>
-                  {pageUrl && (
-                    <a href={pageUrl} target="_blank" rel="noopener noreferrer"
-                      style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, border: "1px solid #1a2540", background: "#111827", color: "#60a5fa", fontSize: 11, fontWeight: 600, textDecoration: "none", flexShrink: 0 }}>
-                      View session
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round"/><path d="M15 3h6v6M10 14L21 3" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    </a>
-                  )}
                 </div>
 
                 {/* ── Detection Overview + Secret Types (2 col) ── */}
@@ -747,7 +740,7 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                       <div style={{ width: 26, height: 26, borderRadius: 7, background: "#0f2518", border: "1px solid #16422a", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4z" stroke="#22c55e" strokeWidth="1.8" strokeLinejoin="round"/><path d="M9 12l2 2 4-4" stroke="#22c55e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </div>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: "#c9d1d9" }}>Secret Types</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: "#c9d1d9" }}>Secret Types Detected</span>
                     </div>
                     {/* Type list — scrollable if many */}
                     <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 5, maxHeight: 180 }}>
@@ -779,14 +772,6 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                         )}
                       </div>
                     )}
-                    {/* Good news footer */}
-                    <div style={{ marginTop: 8, padding: "7px 9px", borderRadius: 8, background: "#0f2518", border: "1px solid #16422a", display: "flex", alignItems: "flex-start", gap: 7 }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="9" stroke="#22c55e" strokeWidth="1.8"/><path d="M8 12l3 3 5-5" stroke="#22c55e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      <div>
-                        <div style={{ fontSize: 10, fontWeight: 700, color: "#22c55e", marginBottom: 1 }}>Good news!</div>
-                        <div style={{ fontSize: 9, color: "#4a7c59" }}>All detected secrets are safely {ac.label.toLowerCase()}.</div>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
