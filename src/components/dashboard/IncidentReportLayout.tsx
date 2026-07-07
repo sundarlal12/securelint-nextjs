@@ -801,6 +801,22 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                           <div style={{ fontSize: 12, fontWeight: 600, color: "#c9d1d9", wordBreak: "break-word", lineHeight: 1.3 }}>{row.value}</div>
                         </div>
                       ))}
+                      {/* Browser ID — full width */}
+                      {browserId && (
+                        <div style={{ gridColumn: "1 / -1", padding: "8px 10px", background: "#080e1a", borderRadius: 8, border: "1px solid #1a2540" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 4 }}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="8" rx="5" ry="7" stroke="#4a5568" strokeWidth="1.6"/><path d="M7 8c0 3 2.24 5 5 5s5-2 5-5" stroke="#4a5568" strokeWidth="1.4"/><circle cx="12" cy="8" r="1.5" fill="#4a5568"/></svg>
+                            <span style={{ fontSize: 9, color: "#4a5568", fontWeight: 600 }}>Browser ID</span>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <span style={{ fontFamily: "monospace", fontSize: 11, color: "#9ca3af", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{browserId}</span>
+                            <button title="Copy Browser ID" onClick={() => navigator.clipboard.writeText(browserId)}
+                              style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex", alignItems: "center" }}>
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="#6b7280" strokeWidth="1.8"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="#6b7280" strokeWidth="1.8"/></svg>
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
