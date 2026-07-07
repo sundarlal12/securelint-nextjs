@@ -591,8 +591,12 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
           const pageUrl   = inc.details.find(d => d.label === "Page URL")?.value ?? "";
           const pageTitle = inc.details.find(d => d.label === "Page Title")?.value ?? "";
           const bi        = inc.browserInfo;
-          const browserId = inc.details.find(d => d.label === "Browser ID")?.value ?? "";
-          const extVer    = inc.details.find(d => d.label === "Extension Ver")?.value ?? "";
+          const browserId = inc.details.find(d => d.label === "Browser ID")?.value
+                        ?? inc.occurrences.find(o => o.details.find(d => d.label === "Browser ID")?.value)?.details.find(d => d.label === "Browser ID")?.value
+                        ?? "";
+          const extVer    = inc.details.find(d => d.label === "Extension Ver")?.value
+                        ?? inc.occurrences.find(o => o.details.find(d => d.label === "Extension Ver")?.value)?.details.find(d => d.label === "Extension Ver")?.value
+                        ?? "";
           const dateLabel = (() => {
             try { return new Date(inc.detectedAt).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }); }
             catch { return inc.detectedAt; }
