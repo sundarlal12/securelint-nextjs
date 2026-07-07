@@ -3,6 +3,15 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { BarChart, Bar, XAxis, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, Tooltip } from "recharts";
 import { LazyCard } from "@/components/dashboard/CardLoader";
 
+export interface BrowserInfo {
+  os?: string;
+  deviceType?: string;
+  browserName?: string;
+  browserVersion?: string;
+  viewportWidth?: number;
+  viewportHeight?: number;
+}
+
 export interface Incident {
   id: string;
   initials: string;
@@ -20,6 +29,7 @@ export interface Incident {
   alertDesc: string;
   details: { icon: string; label: string; value: string }[];
   maskedContent: string;
+  browserInfo?: BrowserInfo;
 }
 
 export interface FetchParams {
@@ -565,6 +575,7 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
           const pageTitle = inc.details.find(d => d.label === "Page Title")?.value ?? "";
           const browserId = inc.details.find(d => d.label === "Browser ID")?.value ?? "";
           const extVer    = inc.details.find(d => d.label === "Extension Ver")?.value ?? "";
+          const bi        = inc.browserInfo;
 
           return (
             <>
@@ -572,21 +583,8 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
               <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 16px", borderBottom: "1px solid #21262d", flexShrink: 0 }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#8b949e" strokeWidth="1.6"/><path d="M12 8v4l2.5 2.5" stroke="#8b949e" strokeWidth="1.6" strokeLinecap="round"/></svg>
                 <span style={{ fontSize: 13, fontWeight: 700, color: "#e6edf3" }}>Detection details</span>
-                {/* Browser ID + Extension version on the right */}
-                <div style={{ marginLeft: "auto", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2, marginRight: 10 }}>
-                  {browserId && (
-                    <span style={{ fontSize: 9, color: "#4a5568", fontFamily: "monospace" }}>
-                      Browser ID: <span style={{ color: "#6b7280" }}>{browserId.slice(0, 18)}…</span>
-                    </span>
-                  )}
-                  {extVer && (
-                    <span style={{ fontSize: 9, color: "#4a5568" }}>
-                      Ext ver: <span style={{ color: "#6b7280" }}>{extVer}</span>
-                    </span>
-                  )}
-                </div>
                 <button onClick={closeDrawer} aria-label="Close"
-                  style={{ width: 26, height: 26, borderRadius: 5, border: "1px solid #21262d", background: "none", color: "#8b949e", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>
+                  style={{ marginLeft: "auto", width: 26, height: 26, borderRadius: 5, border: "1px solid #21262d", background: "none", color: "#8b949e", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>
                   ✕
                 </button>
               </div>
@@ -598,7 +596,7 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                   <span style={{ fontSize: 13, fontWeight: 700, color: "#e6edf3" }}>{inc.secretType}{hasMany ? ` ×${inc.count}` : ""}</span>
                 </div>
                 <div style={{ fontSize: 11, color: "#c9d1d9", lineHeight: 1.5, marginBottom: 8 }}>{inc.alertTitle}</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, marginBottom: browserId || extVer ? 10 : 0 }}>
                   <span style={{ color: "#4a5568" }}>First seen: {inc.detectedAt}</span>
                   <span style={{ color: "#21262d" }}>|</span>
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: ac.color, fontWeight: 600 }}>
@@ -606,6 +604,30 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                     {ac.label}
                   </span>
                 </div>
+                {/* Browser ID + Ext Ver inside the status band */}
+                {(browserId || extVer) && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "7px 10px", borderRadius: 7, background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                    {browserId && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 5, flex: 1, minWidth: 0 }}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="#6b7280"><path d="M20 18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/></svg>
+                        <span style={{ fontSize: 9, color: "#6b7280", flexShrink: 0 }}>Browser ID:</span>
+                        <span style={{ fontFamily: "monospace", fontSize: 9, color: "#9ca3af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{browserId}</span>
+                        <button
+                          title="Copy Browser ID"
+                          onClick={() => navigator.clipboard.writeText(browserId)}
+                          style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", padding: 2, color: "#4a5568", display: "flex", alignItems: "center" }}>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="#6b7280" strokeWidth="1.8"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="#6b7280" strokeWidth="1.8"/></svg>
+                        </button>
+                      </div>
+                    )}
+                    {extVer && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="#6b7280"><path d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-2 .9-2 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7s2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5S21.88 11 20.5 11z"/></svg>
+                        <span style={{ fontSize: 9, color: "#6b7280" }}>v{extVer}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* ── Timeline ── */}
@@ -613,16 +635,22 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                 <div style={{ fontSize: 11, fontWeight: 700, color: "#e6edf3", marginBottom: 2 }}>Timeline</div>
                 <div style={{ fontSize: 10, color: "#4a5568", marginBottom: 14 }}>{dateLabel}</div>
 
-                {/* Step 1: Browser session opened */}
-                <div style={{ display: "flex", gap: 12, position: "relative" }}>
-                  <div style={{ position: "absolute", left: 14, top: 28, height: 30, width: 2, background: "#21262d" }} />
-                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "#1e3a5f", border: "2px solid #3b82f6", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, zIndex: 1 }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#3b82f6" strokeWidth="1.8"/><path d="M8 21h8M12 17v4" stroke="#3b82f6" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                {/* Step 1: Browser session active */}
+                <div style={{ display: "flex", gap: 12 }}>
+                  {/* icon + connector column */}
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 6, background: "#1e3a5f", border: "2px solid #3b82f6", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#3b82f6" strokeWidth="1.8"/><path d="M8 21h8M12 17v4" stroke="#3b82f6" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                    </div>
+                    <div style={{ flex: 1, width: 2, background: "#21262d", minHeight: 20, marginTop: 3 }} />
                   </div>
-                  <div style={{ paddingBottom: 24 }}>
+                  {/* content */}
+                  <div style={{ paddingBottom: 20, flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 9, color: "#4a5568", fontVariantNumeric: "tabular-nums", marginBottom: 2 }}>{inc.detectedAt}</div>
                     <div style={{ fontSize: 12, fontWeight: 600, color: "#e6edf3" }}>Browser session active</div>
                     <div style={{ fontSize: 11, color: "#8b949e", marginTop: 2 }}>SecureLint monitoring: {inc.email}</div>
+
+                    {/* Page URL + Page Title */}
                     {(pageUrl || pageTitle) && (
                       <div style={{ marginTop: 8, padding: "7px 10px", borderRadius: 7, background: "#161b22", border: "1px solid #21262d", display: "flex", flexDirection: "column", gap: 4 }}>
                         {pageUrl && (
@@ -639,46 +667,71 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                         )}
                       </div>
                     )}
+
+                    {/* Browser info chips */}
+                    {bi && (bi.browserName || bi.os || bi.deviceType) && (
+                      <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 5 }}>
+                        {bi.browserName && (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 9, color: "#9ca3af", background: "#161b22", border: "1px solid #21262d", borderRadius: 20, padding: "2px 8px" }}>
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#6b7280" strokeWidth="1.8"/><circle cx="12" cy="12" r="4" stroke="#6b7280" strokeWidth="1.8"/><path d="M12 2a10 10 0 010 20M2 12h20" stroke="#6b7280" strokeWidth="1.4"/></svg>
+                            {bi.browserName}
+                          </span>
+                        )}
+                        {bi.os && (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 9, color: "#9ca3af", background: "#161b22", border: "1px solid #21262d", borderRadius: 20, padding: "2px 8px" }}>
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#6b7280" strokeWidth="1.8"/><path d="M8 21h8M12 17v4" stroke="#6b7280" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                            {bi.os}
+                          </span>
+                        )}
+                        {bi.deviceType && bi.deviceType !== bi.os && (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 9, color: "#9ca3af", background: "#161b22", border: "1px solid #21262d", borderRadius: 20, padding: "2px 8px" }}>
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><rect x="5" y="2" width="14" height="20" rx="2" stroke="#6b7280" strokeWidth="1.8"/><circle cx="12" cy="18" r="1" fill="#6b7280"/></svg>
+                            {bi.deviceType}
+                          </span>
+                        )}
+                        {bi.viewportWidth && bi.viewportHeight && (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 9, color: "#9ca3af", background: "#161b22", border: "1px solid #21262d", borderRadius: 20, padding: "2px 8px" }}>
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M3 3h18v18H3z" stroke="#6b7280" strokeWidth="1.8" strokeLinejoin="round"/><path d="M3 9h18" stroke="#6b7280" strokeWidth="1.4"/></svg>
+                            {bi.viewportWidth}×{bi.viewportHeight}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Step 2: Secret pasted / typed */}
-                <div style={{ display: "flex", gap: 12, position: "relative" }}>
-                  <div style={{ position: "absolute", left: 14, top: 28, height: hasMany ? 46 + Math.min(inc.count, SHOW_LIMIT + 1) * 22 : 30, width: 2, background: "#21262d" }} />
-                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "#2d1a0a", border: "2px solid #f97316", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, zIndex: 1 }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="8" y="2" width="8" height="4" rx="1" stroke="#f97316" strokeWidth="1.6"/><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" stroke="#f97316" strokeWidth="1.6"/><path d="M9 12h6M9 16h4" stroke="#f97316" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                {/* Step 2: Secret detected */}
+                <div style={{ display: "flex", gap: 12 }}>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 6, background: "#2d1a0a", border: "2px solid #f97316", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="8" y="2" width="8" height="4" rx="1" stroke="#f97316" strokeWidth="1.6"/><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" stroke="#f97316" strokeWidth="1.6"/><path d="M9 12h6M9 16h4" stroke="#f97316" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                    </div>
+                    <div style={{ flex: 1, width: 2, background: "#21262d", minHeight: 20, marginTop: 3 }} />
                   </div>
-                  <div style={{ paddingBottom: 24, flex: 1 }}>
+                  <div style={{ paddingBottom: 20, flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 9, color: "#4a5568", fontVariantNumeric: "tabular-nums", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
                     <div style={{ fontSize: 12, fontWeight: 600, color: "#e6edf3" }}>
                       {inc.secretType} detected{hasMany ? ` — ${inc.count} occurrences` : ""}
                     </div>
-                    {/* occurrence list */}
-                    {hasMany && (
-                      <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 3 }}>
-                        {/* visible rows (always show first SHOW_LIMIT or all if expanded) */}
-                        {(showAllOccs ? inc.occurrences : inc.occurrences.slice(0, SHOW_LIMIT)).map((occ, oi) => (
-                          <div key={oi} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 8px", borderRadius: 6, background: "#161b22", border: "1px solid #21262d" }}>
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1h.01c1.71 0 3.1 1.39 3.1 3.1v2z" fill="#f97316"/></svg>
-                            <span style={{ fontSize: 10, color: "#8b949e", flexShrink: 0, maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{occ.secretType}</span>
-                            <span style={{ fontFamily: "monospace", fontSize: 10, color: "#c9d1d9", flex: 1, textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{occ.preview}</span>
-                            <span style={{ fontSize: 9, color: "#4a5568", flexShrink: 0 }}>{occ.detectedTime || occ.detectedAt}</span>
-                          </div>
-                        ))}
 
-                        {/* expanded scrollable container after clicking "+N more" */}
-                        {!showAllOccs && inc.count > SHOW_LIMIT && (
+                    {/* Occurrence rows — fixed-height scrollable */}
+                    {hasMany && (
+                      <div style={{ marginTop: 8 }}>
+                        <div style={{ maxHeight: showAllOccs ? 280 : 140, overflowY: "auto", display: "flex", flexDirection: "column", gap: 3, paddingRight: 2 }}>
+                          {(showAllOccs ? inc.occurrences : inc.occurrences.slice(0, SHOW_LIMIT)).map((occ, oi) => (
+                            <div key={oi} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 8px", borderRadius: 6, background: "#161b22", border: "1px solid #21262d", flexShrink: 0 }}>
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1h.01c1.71 0 3.1 1.39 3.1 3.1v2z" fill="#f97316"/></svg>
+                              <span style={{ fontSize: 10, color: "#8b949e", flexShrink: 0, maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{occ.secretType}</span>
+                              <span style={{ fontFamily: "monospace", fontSize: 10, color: "#c9d1d9", flex: 1, textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{occ.preview}</span>
+                              <span style={{ fontSize: 9, color: "#4a5568", flexShrink: 0, whiteSpace: "nowrap" }}>{occ.detectedTime || occ.detectedAt}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {inc.count > SHOW_LIMIT && (
                           <button
-                            onClick={() => setShowAllOccs(true)}
-                            style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 12, border: "1px solid #2dd4bf44", background: "#0a1e1a", color: "#2dd4bf", fontSize: 10, fontWeight: 700, cursor: "pointer", alignSelf: "flex-start", marginTop: 2 }}>
-                            +{inc.count - SHOW_LIMIT} more occurrences
-                          </button>
-                        )}
-                        {showAllOccs && (
-                          <button
-                            onClick={() => setShowAllOccs(false)}
-                            style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 12, border: "1px solid #21262d", background: "transparent", color: "#8b949e", fontSize: 10, cursor: "pointer", alignSelf: "flex-start", marginTop: 2 }}>
-                            ↑ Collapse
+                            onClick={() => setShowAllOccs(v => !v)}
+                            style={{ marginTop: 5, display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 12, border: "1px solid #2dd4bf44", background: "#0a1e1a", color: "#2dd4bf", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>
+                            {showAllOccs ? "↑ Collapse" : `+${inc.count - SHOW_LIMIT} more occurrences`}
                           </button>
                         )}
                       </div>
@@ -690,9 +743,11 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                 </div>
 
                 {/* Step 3: Action taken */}
-                <div style={{ display: "flex", gap: 12, position: "relative" }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 6, background: `${ac.dot}22`, border: `2px solid ${ac.dot}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, zIndex: 1 }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 100 18A9 9 0 0012 3z|M9 12l2 2 4-4" stroke={ac.dot} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <div style={{ display: "flex", gap: 12 }}>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 6, background: `${ac.dot}22`, border: `2px solid ${ac.dot}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke={ac.dot} strokeWidth="1.8"/><path d="M9 12l2 2 4-4" stroke={ac.dot} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </div>
                   </div>
                   <div style={{ paddingBottom: 16 }}>
                     <div style={{ fontSize: 9, color: "#4a5568", fontVariantNumeric: "tabular-nums", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
@@ -727,11 +782,8 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                 ))}
               </div>
 
-              {/* ── Action buttons ── */}
-              <div style={{ padding: "4px 20px 20px", display: "flex", gap: 10, flexShrink: 0 }}>
-                <button style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: "none", background: "#238636", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Export Report</button>
-                <button style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: "1px solid #21262d", background: "transparent", color: "#e6edf3", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Investigate</button>
-              </div>
+              {/* bottom padding */}
+              <div style={{ height: 20, flexShrink: 0 }} />
             </>
           );
         })()}

@@ -1,4 +1,17 @@
-import type { Incident } from "@/components/dashboard/IncidentReportLayout";
+import type { Incident, BrowserInfo } from "@/components/dashboard/IncidentReportLayout";
+
+function mapBrowserInfo(raw: unknown): BrowserInfo | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const b = raw as Record<string, unknown>;
+  return {
+    os:              b.os           ? String(b.os)           : undefined,
+    deviceType:      b.deviceType   ? String(b.deviceType)   : undefined,
+    browserName:     b.browserName  ? String(b.browserName)  : undefined,
+    browserVersion:  b.browserVersion ? String(b.browserVersion) : undefined,
+    viewportWidth:   typeof b.viewportWidth  === "number" ? b.viewportWidth  : undefined,
+    viewportHeight:  typeof b.viewportHeight === "number" ? b.viewportHeight : undefined,
+  };
+}
 
 // ── Colour palette for user avatars ──────────────────────────────────────────
 const AVATAR_COLORS = [
@@ -145,6 +158,7 @@ export function mapSecretIncident(
       { icon: "#️⃣", label: "Incident ID",   value: `INC-${incId}` },
     ].filter(d => d.value && d.value !== "undefined"),
     maskedContent: maskedContent || "(no preview available)",
+    browserInfo: mapBrowserInfo(inc.browser_info),
   };
 }
 
@@ -245,6 +259,7 @@ export function mapPhishingIncident(
       d !== null && Boolean(d.value) && d.value !== "undefined"
     ),
     maskedContent: tabUrl || domain,
+    browserInfo: mapBrowserInfo(inc.browser_info),
   };
 }
 
@@ -312,6 +327,7 @@ export function mapDlpIncident(
       { icon: "#️⃣", label: "Incident ID",   value: `DLP-${incId}` },
     ].filter(d => d.value && d.value !== "undefined"),
     maskedContent: maskedContent || recipientArr.join(", ") || tabUrl || "(no preview available)",
+    browserInfo: mapBrowserInfo(inc.browser_info),
   };
 }
 
