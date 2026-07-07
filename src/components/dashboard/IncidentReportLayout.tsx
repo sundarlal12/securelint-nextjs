@@ -564,235 +564,287 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
         top: 0,
         right: 0,
         height: "100dvh",
-        width: 520,
-        maxWidth: "95vw",
-        background: "#0d1117",
-        borderLeft: "1px solid #21262d",
+        width: 540,
+        maxWidth: "98vw",
+        background: "#080e1a",
+        borderLeft: "1px solid #1a2540",
         zIndex: 950,
         display: "flex",
         flexDirection: "column",
         overflowY: "auto",
         transform: drawerOpen ? "translateX(0)" : "translateX(100%)",
         transition: "transform 0.32s cubic-bezier(0.4,0,0.2,1)",
-        boxShadow: drawerOpen ? "-8px 0 40px rgba(0,0,0,0.5)" : "none",
+        boxShadow: drawerOpen ? "-12px 0 60px rgba(0,0,0,0.7)" : "none",
       }}>
         {drawerInc && (() => {
           const inc = drawerInc;
           const ac = alertStatusConfig[inc.alertStatus] ?? alertStatusConfig.Blocked;
           const sv = sevStyles[inc.severity] ?? sevStyles.Medium;
-          const dateLabel = (() => {
-            try { return new Date(inc.detectedAt).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }); }
-            catch { return inc.detectedAt; }
-          })();
           const SHOW_LIMIT = 5;
           const hasMany = inc.count > 1;
           const pageUrl   = inc.details.find(d => d.label === "Page URL")?.value ?? "";
-          const pageTitle = inc.details.find(d => d.label === "Page Title")?.value ?? "";
+          const bi        = inc.browserInfo;
           const browserId = inc.details.find(d => d.label === "Browser ID")?.value ?? "";
           const extVer    = inc.details.find(d => d.label === "Extension Ver")?.value ?? "";
-          const bi        = inc.browserInfo;
+
+          /* Incident ID formatted as INC-YYYY-MMDD-#### */
+          const incId = (() => {
+            const d = inc.detectedAt.replace(/-/g, "");
+            const num = String(inc.id).replace(/\D/g, "").slice(0, 4).padStart(4, "0");
+            return `INC-${d.slice(0, 4)}-${d.slice(4, 8)}-${num}`;
+          })();
+
+          /* Per-type occurrence counts */
+          const typeCountMap = new Map<string, number>();
+          inc.occurrences.forEach(occ => {
+            typeCountMap.set(occ.secretType, (typeCountMap.get(occ.secretType) ?? 0) + 1);
+          });
+          const typeCounts = Array.from(typeCountMap.entries()).sort((a, b) => b[1] - a[1]);
+          if (typeCounts.length === 0) typeCounts.push([inc.secretType, inc.count]);
+
+          /* Severity → label + colours */
+          const sevLabel = inc.severity;
+          const sevColor = sv.color;
+
+          /* Card style shared */
+          const card: React.CSSProperties = { background: "#0d1525", border: "1px solid #1a2540", borderRadius: 12, padding: "14px 16px" };
 
           return (
             <>
-              {/* ── Header ── */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 16px", borderBottom: "1px solid #21262d", flexShrink: 0 }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#8b949e" strokeWidth="1.6"/><path d="M12 8v4l2.5 2.5" stroke="#8b949e" strokeWidth="1.6" strokeLinecap="round"/></svg>
-                <span style={{ fontSize: 13, fontWeight: 700, color: "#e6edf3" }}>Detection details</span>
+              {/* ══ Header ══ */}
+              <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "18px 20px 16px", borderBottom: "1px solid #1a2540", flexShrink: 0, background: "#080e1a" }}>
+                <div style={{ width: 42, height: 42, borderRadius: 10, background: "linear-gradient(135deg,#3b5bdb,#7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4z" fill="white" fillOpacity=".9"/></svg>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: "#e6edf3", lineHeight: 1.2 }}>Detection Details</div>
+                  <div style={{ fontSize: 11, color: "#4a5568", marginTop: 2 }}>Review and respond to the detected secret exposure</div>
+                </div>
                 <button onClick={closeDrawer} aria-label="Close"
-                  style={{ marginLeft: "auto", width: 26, height: 26, borderRadius: 5, border: "1px solid #21262d", background: "none", color: "#8b949e", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>
+                  style={{ width: 32, height: 32, borderRadius: 8, border: "1px solid #1a2540", background: "#111827", color: "#8b949e", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>
                   ✕
                 </button>
               </div>
 
-              {/* ── Status band ── */}
-              <div style={{ padding: "14px 20px 12px", borderBottom: "1px solid #21262d", background: ac.bg, flexShrink: 0 }}>
-                {/* Employee row */}
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <div style={{ width: 20, height: 20, borderRadius: "50%", background: inc.initialsColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
-                      {inc.initials}
+              {/* ══ Scrollable body ══ */}
+              <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
+
+                {/* ── Incident ID / Risk Level / Status 3-col bar ── */}
+                <div style={{ ...card, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 0, padding: 0, overflow: "hidden" }}>
+                  {/* Col 1: Incident ID */}
+                  <div style={{ padding: "14px 14px", borderRight: "1px solid #1a2540" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: 7, background: "#111827", border: "1px solid #1a2540", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="#4a5568"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                      </div>
+                      <span style={{ fontSize: 9, color: "#4a5568", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Incident ID</span>
                     </div>
-                    <span style={{ fontSize: 11, color: "#c9d1d9", fontWeight: 600 }}>{inc.name}</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="#4a5568"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-                    <span style={{ fontSize: 11, color: "#8b949e" }}>{inc.email}</span>
-                  </div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 9px", borderRadius: 20, color: sv.color, background: sv.bg, border: `1px solid ${sv.border}` }}>{inc.severity}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#e6edf3" }}>
-                    {/* MISTRAL_API_KEY +2 ×46  or  SLACK_TOKEN ×7 */}
-                    {inc.secretTypes[0]}
-                    {inc.secretTypes.length > 1 && (
-                      <span style={{ fontSize: 11, color: "#fbbf24", fontWeight: 600 }}> +{inc.secretTypes.length - 1}</span>
-                    )}
-                    {hasMany && <span style={{ fontSize: 11, color: "#6b7280", fontWeight: 400 }}> ×{inc.count}</span>}
-                  </span>
-                </div>
-                {/* One-line summary: action · engine · date */}
-                <div style={{ fontSize: 11, color: "#8b949e", marginBottom: browserId || extVer ? 8 : 0 }}>
-                  <span style={{ color: ac.color, fontWeight: 600 }}>{ac.label}</span>
-                  {" · SecureLint AI · "}
-                  <span style={{ color: "#4a5568" }}>First seen: {inc.detectedAt}</span>
-                </div>
-                {/* Browser ID + Ext Ver inside the status band */}
-                {(browserId || extVer) && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "7px 10px", borderRadius: 7, background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                    {browserId && (
-                      <div style={{ display: "flex", alignItems: "center", gap: 5, flex: 1, minWidth: 0 }}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="#6b7280"><path d="M20 18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"/></svg>
-                        <span style={{ fontSize: 9, color: "#6b7280", flexShrink: 0 }}>Browser ID:</span>
-                        <span style={{ fontFamily: "monospace", fontSize: 9, color: "#9ca3af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{browserId}</span>
-                        <button
-                          title="Copy Browser ID"
-                          onClick={() => navigator.clipboard.writeText(browserId)}
-                          style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", padding: 2, color: "#4a5568", display: "flex", alignItems: "center" }}>
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="#6b7280" strokeWidth="1.8"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="#6b7280" strokeWidth="1.8"/></svg>
-                        </button>
-                      </div>
-                    )}
-                    {extVer && (
-                      <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="#6b7280"><path d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-2 .9-2 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7s2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5S21.88 11 20.5 11z"/></svg>
-                        <span style={{ fontSize: 9, color: "#6b7280" }}>v{extVer}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* ── Timeline ── */}
-              <div style={{ padding: "14px 20px 0", flexShrink: 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#e6edf3", marginBottom: 2 }}>Timeline</div>
-                <div style={{ fontSize: 10, color: "#4a5568", marginBottom: 14 }}>{dateLabel}</div>
-
-                {/* Step 1: Browser session active */}
-                <div style={{ display: "flex", gap: 12 }}>
-                  {/* icon + connector column */}
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: 6, background: "#1e3a5f", border: "2px solid #3b82f6", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#3b82f6" strokeWidth="1.8"/><path d="M8 21h8M12 17v4" stroke="#3b82f6" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                    <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 5 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#c9d1d9", fontFamily: "monospace" }}>{incId}</span>
+                      <button title="Copy" onClick={() => navigator.clipboard.writeText(incId)}
+                        style={{ background: "none", border: "none", cursor: "pointer", padding: 2, color: "#4a5568", display: "flex", alignItems: "center", flexShrink: 0 }}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="#6b7280" strokeWidth="1.8"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="#6b7280" strokeWidth="1.8"/></svg>
+                      </button>
                     </div>
-                    <div style={{ flex: 1, width: 2, background: "#21262d", minHeight: 20, marginTop: 3 }} />
+                    <div style={{ fontSize: 9, color: "#4a5568" }}>Detected on: {inc.detectedAt}{inc.detectedTime ? ` · ${inc.detectedTime.split("·").pop()?.trim() ?? ""}` : ""}</div>
                   </div>
-                  {/* content */}
-                  <div style={{ paddingBottom: 20, flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 9, color: "#4a5568", fontVariantNumeric: "tabular-nums", marginBottom: 2 }}>{inc.detectedAt}</div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: "#e6edf3" }}>Browser session active</div>
-                    <div style={{ fontSize: 11, color: "#8b949e", marginTop: 2 }}>SecureLint monitoring: {inc.email}</div>
-
-                    {/* Page URL + Page Title */}
-                    {(pageUrl || pageTitle) && (
-                      <div style={{ marginTop: 8, padding: "7px 10px", borderRadius: 7, background: "#161b22", border: "1px solid #21262d", display: "flex", flexDirection: "column", gap: 4 }}>
-                        {pageUrl && (
-                          <div style={{ display: "flex", alignItems: "flex-start", gap: 6 }}>
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="10" stroke="#3b82f6" strokeWidth="1.6"/><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20" stroke="#3b82f6" strokeWidth="1.6"/></svg>
-                            <a href={pageUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, color: "#3b82f6", wordBreak: "break-all", lineHeight: 1.45, textDecoration: "none" }}>{pageUrl}</a>
-                          </div>
-                        )}
-                        {pageTitle && (
-                          <div style={{ display: "flex", alignItems: "flex-start", gap: 6 }}>
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="#8b949e" strokeWidth="1.6"/><path d="M14 2v6h6M9 13h6M9 17h4" stroke="#8b949e" strokeWidth="1.4" strokeLinecap="round"/></svg>
-                            <span style={{ fontSize: 10, color: "#8b949e", lineHeight: 1.45 }}>{pageTitle}</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Browser info chips */}
-                    {bi && (bi.browserName || bi.os || bi.deviceType) && (
-                      <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 5 }}>
-                        {bi.browserName && (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 9, color: "#9ca3af", background: "#161b22", border: "1px solid #21262d", borderRadius: 20, padding: "2px 8px" }}>
-                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#6b7280" strokeWidth="1.8"/><circle cx="12" cy="12" r="4" stroke="#6b7280" strokeWidth="1.8"/><path d="M12 2a10 10 0 010 20M2 12h20" stroke="#6b7280" strokeWidth="1.4"/></svg>
-                            {bi.browserName}
-                          </span>
-                        )}
-                        {bi.os && (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 9, color: "#9ca3af", background: "#161b22", border: "1px solid #21262d", borderRadius: 20, padding: "2px 8px" }}>
-                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#6b7280" strokeWidth="1.8"/><path d="M8 21h8M12 17v4" stroke="#6b7280" strokeWidth="1.6" strokeLinecap="round"/></svg>
-                            {bi.os}
-                          </span>
-                        )}
-                        {bi.deviceType && bi.deviceType !== bi.os && (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 9, color: "#9ca3af", background: "#161b22", border: "1px solid #21262d", borderRadius: 20, padding: "2px 8px" }}>
-                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><rect x="5" y="2" width="14" height="20" rx="2" stroke="#6b7280" strokeWidth="1.8"/><circle cx="12" cy="18" r="1" fill="#6b7280"/></svg>
-                            {bi.deviceType}
-                          </span>
-                        )}
-                        {bi.viewportWidth && bi.viewportHeight && (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 9, color: "#9ca3af", background: "#161b22", border: "1px solid #21262d", borderRadius: 20, padding: "2px 8px" }}>
-                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M3 3h18v18H3z" stroke="#6b7280" strokeWidth="1.8" strokeLinejoin="round"/><path d="M3 9h18" stroke="#6b7280" strokeWidth="1.4"/></svg>
-                            {bi.viewportWidth}×{bi.viewportHeight}
-                          </span>
-                        )}
-                      </div>
-                    )}
+                  {/* Col 2: Risk Level */}
+                  <div style={{ padding: "14px 14px", borderRight: "1px solid #1a2540" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill={sevColor}><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                      <span style={{ fontSize: 9, color: "#4a5568", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Risk Level</span>
+                    </div>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: sevColor, lineHeight: 1.1, marginBottom: 5 }}>{sevLabel}</div>
+                    <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 20, color: sv.color, background: sv.bg, border: `1px solid ${sv.border}` }}>
+                      {inc.severity === "Critical" ? "Critical Threat" : inc.severity === "High" ? "Immediate Attention" : inc.severity === "Medium" ? "Review Required" : "Monitor"}
+                    </span>
+                  </div>
+                  {/* Col 3: Status */}
+                  <div style={{ padding: "14px 14px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 20h18L12 2z" stroke={ac.dot} strokeWidth="2" strokeLinejoin="round"/><path d="M12 9v4M12 17h.01" stroke={ac.dot} strokeWidth="2" strokeLinecap="round"/></svg>
+                      <span style={{ fontSize: 9, color: "#4a5568", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Status</span>
+                    </div>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: ac.color, lineHeight: 1.1, marginBottom: 5 }}>{ac.label}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#22c55e" strokeWidth="2"/><path d="M8 12l3 3 5-5" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <span style={{ fontSize: 9, color: "#22c55e" }}>Secrets are protected</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Step 2: Secret detected */}
-                <div style={{ display: "flex", gap: 12 }}>
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: 6, background: "#2d1a0a", border: "2px solid #f97316", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="8" y="2" width="8" height="4" rx="1" stroke="#f97316" strokeWidth="1.6"/><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" stroke="#f97316" strokeWidth="1.6"/><path d="M9 12h6M9 16h4" stroke="#f97316" strokeWidth="1.6" strokeLinecap="round"/></svg>
-                    </div>
-                    <div style={{ flex: 1, width: 2, background: "#21262d", minHeight: 20, marginTop: 3 }} />
+                {/* ── Employee card ── */}
+                <div style={{ ...card, display: "flex", alignItems: "center", gap: 14 }}>
+                  <div style={{ width: 48, height: 48, borderRadius: "50%", background: inc.initialsColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: "#fff", flexShrink: 0, letterSpacing: 1 }}>
+                    {inc.initials}
                   </div>
-                  <div style={{ paddingBottom: 20, flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 9, color: "#4a5568", fontVariantNumeric: "tabular-nums", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: "#e6edf3" }}>
-                      {inc.secretTypes.length > 1
-                        ? `${inc.count} secrets detected — ${inc.secretTypes.length} types`
-                        : `${inc.secretType} detected${hasMany ? ` — ${inc.count} occurrences` : ""}`}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "#e6edf3", lineHeight: 1.2 }}>{inc.name}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 4 }}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="#4a5568"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                      <span style={{ fontSize: 12, color: "#8b949e" }}>{inc.email}</span>
                     </div>
+                  </div>
+                  {pageUrl && (
+                    <a href={pageUrl} target="_blank" rel="noopener noreferrer"
+                      style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, border: "1px solid #1a2540", background: "#111827", color: "#60a5fa", fontSize: 11, fontWeight: 600, textDecoration: "none", flexShrink: 0 }}>
+                      View session
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round"/><path d="M15 3h6v6M10 14L21 3" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </a>
+                  )}
+                </div>
 
-                    {/* Occurrence rows — fixed-height scrollable */}
-                    {hasMany && (
+                {/* ── Detection Overview + Secret Types (2 col) ── */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  {/* Left: Detection Overview */}
+                  <div style={{ ...card, display: "flex", flexDirection: "column", gap: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12 }}>
+                      <div style={{ width: 26, height: 26, borderRadius: 7, background: "#111827", border: "1px solid #1a2540", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="12" width="4" height="9" rx="1" fill="#60a5fa"/><rect x="10" y="7" width="4" height="14" rx="1" fill="#3b82f6"/><rect x="17" y="3" width="4" height="18" rx="1" fill="#2563eb"/></svg>
+                      </div>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: "#c9d1d9" }}>Detection Overview</span>
+                    </div>
+                    {/* Big numbers */}
+                    <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+                      <div style={{ flex: 1, textAlign: "center", padding: "10px 6px", background: "#080e1a", borderRadius: 8, border: "1px solid #1a2540" }}>
+                        <div style={{ fontSize: 26, fontWeight: 800, color: "#3b82f6", lineHeight: 1 }}>{inc.secretTypes.length}</div>
+                        <div style={{ fontSize: 9, color: "#4a5568", marginTop: 4, lineHeight: 1.3 }}>Secret Types<br/>Detected</div>
+                      </div>
+                      <div style={{ flex: 1, textAlign: "center", padding: "10px 6px", background: "#080e1a", borderRadius: 8, border: "1px solid #1a2540" }}>
+                        <div style={{ fontSize: 26, fontWeight: 800, color: "#3b82f6", lineHeight: 1 }}>{inc.count}</div>
+                        <div style={{ fontSize: 9, color: "#4a5568", marginTop: 4, lineHeight: 1.3 }}>Total<br/>Detections</div>
+                      </div>
+                    </div>
+                    {/* First Seen | Status row */}
+                    <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                      <div style={{ flex: 1, padding: "7px 8px", background: "#080e1a", borderRadius: 7, border: "1px solid #1a2540" }}>
+                        <div style={{ fontSize: 9, color: "#4a5568", marginBottom: 2 }}>First Seen</div>
+                        <div style={{ fontSize: 11, fontWeight: 600, color: "#c9d1d9" }}>{inc.detectedAt}</div>
+                      </div>
+                      <div style={{ flex: 1, padding: "7px 8px", background: "#080e1a", borderRadius: 7, border: "1px solid #1a2540" }}>
+                        <div style={{ fontSize: 9, color: "#4a5568", marginBottom: 2 }}>Status</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: ac.color }}>{ac.label}</div>
+                      </div>
+                    </div>
+                    {/* Masked note */}
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 7, padding: "8px 10px", background: "#080e1a", borderRadius: 8, border: "1px solid #1a2540" }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4z" stroke={ac.dot} strokeWidth="1.8" strokeLinejoin="round"/><path d="M9 12l2 2 4-4" stroke={ac.dot} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <span style={{ fontSize: 10, color: "#8b949e", lineHeight: 1.5 }}>All detected secrets have been automatically {ac.label.toLowerCase()} to prevent exposure.</span>
+                    </div>
+                  </div>
+
+                  {/* Right: Secret Types Detected */}
+                  <div style={{ ...card, display: "flex", flexDirection: "column" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12 }}>
+                      <div style={{ width: 26, height: 26, borderRadius: 7, background: "#0f2518", border: "1px solid #16422a", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4z" stroke="#22c55e" strokeWidth="1.8" strokeLinejoin="round"/><path d="M9 12l2 2 4-4" stroke="#22c55e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </div>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: "#c9d1d9" }}>Secret Types</span>
+                    </div>
+                    {/* Type list — scrollable if many */}
+                    <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 5, maxHeight: 180 }}>
+                      {typeCounts.map(([type, cnt], ti) => (
+                        <div key={ti} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 8px", borderRadius: 7, background: "#080e1a", border: "1px solid #1a2540" }}>
+                          <span style={{ fontSize: 10, color: "#2dd4bf", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{type}</span>
+                          <span style={{ fontSize: 9, fontWeight: 800, padding: "1px 7px", borderRadius: 10, background: "#0a1e1a", border: "1px solid #2dd4bf33", color: "#2dd4bf", flexShrink: 0, marginLeft: 6 }}>×{cnt}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Occurrences (single type) — scrollable list */}
+                    {inc.secretTypes.length === 1 && hasMany && (
                       <div style={{ marginTop: 8 }}>
-                        <div style={{ maxHeight: showAllOccs ? 280 : 140, overflowY: "auto", display: "flex", flexDirection: "column", gap: 3, paddingRight: 2 }}>
+                        <div style={{ fontSize: 9, color: "#4a5568", marginBottom: 5, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Occurrences</div>
+                        <div style={{ maxHeight: showAllOccs ? 220 : 100, overflowY: "auto", display: "flex", flexDirection: "column", gap: 3 }}>
                           {(showAllOccs ? inc.occurrences : inc.occurrences.slice(0, SHOW_LIMIT)).map((occ, oi) => (
-                            <div key={oi} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 8px", borderRadius: 6, background: "#161b22", border: "1px solid #21262d", flexShrink: 0 }}>
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1h.01c1.71 0 3.1 1.39 3.1 3.1v2z" fill="#f97316"/></svg>
-                              <span style={{ fontSize: 10, color: "#8b949e", flexShrink: 0, maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{occ.secretType}</span>
-                              <span style={{ fontFamily: "monospace", fontSize: 10, color: "#c9d1d9", flex: 1, textAlign: "right", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{occ.preview}</span>
-                              <span style={{ fontSize: 9, color: "#4a5568", flexShrink: 0, whiteSpace: "nowrap" }}>{occ.detectedTime || occ.detectedAt}</span>
+                            <div key={oi} style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 7px", borderRadius: 6, background: "#080e1a", border: "1px solid #1a2540", flexShrink: 0 }}>
+                              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1h.01c1.71 0 3.1 1.39 3.1 3.1v2z" fill="#f97316"/></svg>
+                              <span style={{ fontFamily: "monospace", fontSize: 9, color: "#c9d1d9", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{occ.preview}</span>
+                              <span style={{ fontSize: 8, color: "#4a5568", flexShrink: 0, whiteSpace: "nowrap" }}>{occ.detectedTime?.split("·").pop()?.trim() ?? ""}</span>
                             </div>
                           ))}
                         </div>
                         {inc.count > SHOW_LIMIT && (
-                          <button
-                            onClick={() => setShowAllOccs(v => !v)}
-                            style={{ marginTop: 5, display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 12, border: "1px solid #2dd4bf44", background: "#0a1e1a", color: "#2dd4bf", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>
-                            {showAllOccs ? "↑ Collapse" : `+${inc.count - SHOW_LIMIT} more occurrences`}
+                          <button onClick={() => setShowAllOccs(v => !v)}
+                            style={{ marginTop: 5, fontSize: 9, color: "#2dd4bf", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: 0 }}>
+                            {showAllOccs ? "↑ Collapse" : `+${inc.count - SHOW_LIMIT} more`}
                           </button>
                         )}
                       </div>
                     )}
-                    {!hasMany && (
-                      <div style={{ fontFamily: "monospace", fontSize: 11, color: "#8b949e", marginTop: 3, wordBreak: "break-all" }}>{inc.preview}</div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Step 3: Action taken */}
-                <div style={{ display: "flex", gap: 12 }}>
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: 6, background: `${ac.dot}22`, border: `2px solid ${ac.dot}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke={ac.dot} strokeWidth="1.8"/><path d="M9 12l2 2 4-4" stroke={ac.dot} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    {/* Good news footer */}
+                    <div style={{ marginTop: 8, padding: "7px 9px", borderRadius: 8, background: "#0f2518", border: "1px solid #16422a", display: "flex", alignItems: "flex-start", gap: 7 }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><circle cx="12" cy="12" r="9" stroke="#22c55e" strokeWidth="1.8"/><path d="M8 12l3 3 5-5" stroke="#22c55e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <div>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: "#22c55e", marginBottom: 1 }}>Good news!</div>
+                        <div style={{ fontSize: 9, color: "#4a7c59" }}>All detected secrets are safely {ac.label.toLowerCase()}.</div>
+                      </div>
                     </div>
                   </div>
-                  <div style={{ paddingBottom: 16 }}>
-                    <div style={{ fontSize: 9, color: "#4a5568", fontVariantNumeric: "tabular-nums", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: "#e6edf3" }}>Action: <span style={{ color: ac.color }}>{inc.alertStatus}</span></div>
-                    <div style={{ fontSize: 11, color: "#8b949e", marginTop: 2 }}>{inc.details.find(d => d.label === "Policy")?.value ?? "SecureLint Security Policy"}</div>
-                  </div>
                 </div>
-              </div>
 
-              {/* bottom padding */}
-              <div style={{ height: 20, flexShrink: 0 }} />
+                {/* ── Browser & Device Info ── */}
+                {bi && (
+                  <div style={card}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: 7, background: "#111827", border: "1px solid #1a2540", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#60a5fa" strokeWidth="1.8"/><path d="M8 21h8M12 17v4" stroke="#60a5fa" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                      </div>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: "#c9d1d9" }}>Browser & Device Information</span>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+                      {[
+                        { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" fill="#4a5568"/></svg>, label: "OS", value: bi.os },
+                        { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="5" y="2" width="14" height="20" rx="2" stroke="#4a5568" strokeWidth="1.8"/><circle cx="12" cy="18" r="1" fill="#4a5568"/></svg>, label: "Device Type", value: bi.deviceType },
+                        { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#4a5568" strokeWidth="1.8"/><circle cx="12" cy="12" r="4" stroke="#4a5568" strokeWidth="1.8"/><path d="M12 2a10 10 0 010 20M2 12h20" stroke="#4a5568" strokeWidth="1.4"/></svg>, label: "Browser", value: bi.browserName },
+                        { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" fill="#4a5568"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14" stroke="#4a5568" strokeWidth="1.8" strokeLinecap="round"/></svg>, label: "Browser Version", value: bi.browserVersion?.replace("Version ", "").replace(" (Official Build) (arm)", " (arm)") },
+                        { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" stroke="#4a5568" strokeWidth="1.8"/><path d="M8 3v18M3 8h18" stroke="#4a5568" strokeWidth="1.4"/></svg>, label: "Viewport Width", value: bi.viewportWidth ? `${bi.viewportWidth}` : undefined },
+                        { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M3 12h18" stroke="#4a5568" strokeWidth="1.8" strokeLinecap="round"/><rect x="3" y="3" width="18" height="18" rx="2" stroke="#4a5568" strokeWidth="1.4"/></svg>, label: "Viewport Height", value: bi.viewportHeight ? `${bi.viewportHeight}` : undefined },
+                      ].filter(r => r.value).map((row, ri) => (
+                        <div key={ri} style={{ padding: "8px 10px", background: "#080e1a", borderRadius: 8, border: "1px solid #1a2540" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 4 }}>
+                            {row.icon}
+                            <span style={{ fontSize: 9, color: "#4a5568", fontWeight: 600 }}>{row.label}</span>
+                          </div>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: "#c9d1d9", wordBreak: "break-word", lineHeight: 1.3 }}>{row.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Browser ID + Scanner Version ── */}
+                {(browserId || extVer) && (
+                  <div style={{ ...card, display: "flex", alignItems: "center", gap: 0, padding: 0, overflow: "hidden" }}>
+                    {browserId && (
+                      <div style={{ flex: 1, padding: "12px 14px", borderRight: extVer ? "1px solid #1a2540" : "none", display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><ellipse cx="12" cy="8" rx="5" ry="7" stroke="#4a5568" strokeWidth="1.6"/><path d="M7 8c0 3 2.24 5 5 5s5-2 5-5" stroke="#4a5568" strokeWidth="1.4"/><circle cx="12" cy="8" r="1.5" fill="#4a5568"/></svg>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 9, color: "#4a5568", marginBottom: 3, fontWeight: 600 }}>Browser ID</div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                            <span style={{ fontFamily: "monospace", fontSize: 10, color: "#9ca3af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{browserId}</span>
+                            <button title="Copy" onClick={() => navigator.clipboard.writeText(browserId)}
+                              style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", padding: 2, color: "#4a5568", display: "flex", alignItems: "center" }}>
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="#6b7280" strokeWidth="1.8"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="#6b7280" strokeWidth="1.8"/></svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {extVer && (
+                      <div style={{ padding: "12px 14px", display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="#6b7280" strokeWidth="1.8"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="#6b7280" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                        <div>
+                          <div style={{ fontSize: 9, color: "#4a5568", marginBottom: 3, fontWeight: 600 }}>Scanner Version</div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: "#818cf8" }}>v{extVer}</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* bottom breathing room */}
+                <div style={{ height: 8 }} />
+              </div>
             </>
           );
         })()}
