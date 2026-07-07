@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { BarChart, Bar, XAxis, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, Tooltip } from "recharts";
 import { LazyCard } from "@/components/dashboard/CardLoader";
 
@@ -131,7 +131,6 @@ function Sk({ w = "100%", h = 16, r = 6 }: { w?: string | number; h?: number; r?
 }
 
 export default function IncidentReportLayout({ title, subtitle, incidents, stats, onFetch, isFetching = false, isLoading = false }: Props) {
-  const [selected, setSelected] = useState(0);
   const [page, setPage] = useState(0);
   const [sevFilter, setSevFilter] = useState<string>("All");
   const [dateFrom, setDateFrom] = useState(() => {
@@ -140,11 +139,23 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
     return d.toISOString().split("T")[0];
   });
   const [dateTo, setDateTo] = useState(() => new Date().toISOString().split("T")[0]);
-  const [sevOpen, setSevOpen]       = useState(false);
-  const [calOpen, setCalOpen]       = useState(false);
-  const [summaryOpen, setSummaryOpen] = useState(false);
+  const [sevOpen, setSevOpen]     = useState(false);
+  const [calOpen, setCalOpen]     = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const perPage = 12;
+
+  /* ── Drawer state ── */
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerInc, setDrawerInc]   = useState<Incident | null>(null);
+
+  const openDrawer  = useCallback((inc: Incident) => { setDrawerInc(inc); setDrawerOpen(true); }, []);
+  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeDrawer(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [closeDrawer]);
 
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -169,8 +180,6 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const pageInc = filtered.slice(page * perPage, (page + 1) * perPage);
-  const detail = filtered[selected] ?? filtered[0];
-  const alertCfg = alertStatusConfig[detail?.alertStatus ?? "Blocked"] ?? alertStatusConfig.Blocked;
 
   // Compute daily counts from actual incidents as a fallback for trend chart
   const derivedTrend = useMemo(() => {
@@ -343,18 +352,18 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
           {calOpen && (
             <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 6, padding: "14px 16px", background: "#161b22", border: "1px solid #21262d", borderRadius: 10, zIndex: 30, display: "flex", flexDirection: "column", gap: 10, minWidth: 220 }}>
               <label style={{ fontSize: 10, color: "#8b949e", fontWeight: 600 }}>From
-                <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(0); setSelected(0); }}
+                <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(0); }}
                   style={{ display: "block", width: "100%", marginTop: 4, padding: "6px 8px", borderRadius: 6, border: "1px solid #21262d", background: "#0d1117", fontSize: 12, color: "#e6edf3", outline: "none" }} />
               </label>
               <label style={{ fontSize: 10, color: "#8b949e", fontWeight: 600 }}>To
-                <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(0); setSelected(0); }}
+                <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(0); }}
                   style={{ display: "block", width: "100%", marginTop: 4, padding: "6px 8px", borderRadius: 6, border: "1px solid #21262d", background: "#0d1117", fontSize: 12, color: "#e6edf3", outline: "none" }} />
               </label>
               <button
                 onClick={() => {
                   setCalOpen(false);
                   setPage(0);
-                  setSelected(0);
+                  
                   if (onFetch) {
                     const end = new Date(dateTo);
                     end.setHours(23, 59, 59, 999);
@@ -382,11 +391,11 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
             type="text"
             placeholder="Search employee, type, preview…"
             value={searchQuery}
-            onChange={e => { setSearchQuery(e.target.value); setPage(0); setSelected(0); }}
+            onChange={e => { setSearchQuery(e.target.value); setPage(0); }}
             style={{ paddingLeft: 30, paddingRight: searchQuery ? 28 : 12, paddingTop: 8, paddingBottom: 8, borderRadius: 8, border: "1px solid #21262d", background: "#0d1117", fontSize: 12, color: "#e6edf3", outline: "none", width: 220 }}
           />
           {searchQuery && (
-            <button onClick={() => { setSearchQuery(""); setPage(0); setSelected(0); }}
+            <button onClick={() => { setSearchQuery(""); setPage(0); }}
               style={{ position: "absolute", right: 8, background: "none", border: "none", cursor: "pointer", color: "#4a5568", fontSize: 14, lineHeight: 1, padding: 0 }}>✕</button>
           )}
         </div>
@@ -401,7 +410,7 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
           {sevOpen && (
             <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 6, background: "#161b22", border: "1px solid #21262d", borderRadius: 10, zIndex: 30, minWidth: 150, overflow: "hidden" }}>
               {["All", "Critical", "High", "Medium", "Low"].map(s => (
-                <button key={s} onClick={() => { setSevFilter(s); setSevOpen(false); setPage(0); setSelected(0); }}
+                <button key={s} onClick={() => { setSevFilter(s); setSevOpen(false); setPage(0); }}
                   style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left", padding: "9px 14px", background: sevFilter === s ? "#21262d" : "transparent", color: sevFilter === s ? "#e6edf3" : "#8b949e", border: "none", fontSize: 12, cursor: "pointer" }}>
                   {s !== "All" && <span style={{ width: 8, height: 8, borderRadius: 2, background: sevStyles[s]?.bg ?? "#333" }} />}
                   {s === "All" ? "All Severity" : s}
@@ -419,9 +428,8 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
         </div>
       </div>
 
-      {/* Table + Detail */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-        <div className="lg:col-span-3" style={{ ...cs, padding: 0, overflow: "hidden" }}>
+      {/* Table — full width */}
+      <div style={{ ...cs, padding: 0, overflow: "hidden" }}>
           <LazyCard delay={300}>
             {isFetching ? (
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "40px 20px", color: "#8b949e", fontSize: 13 }}>
@@ -443,14 +451,13 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                     </tr></thead>
                     <tbody>
                       {pageInc.map((inc, i) => {
-                        const gi = page * perPage + i, isSel = gi === selected;
                         const sv = sevStyles[inc.severity] ?? sevStyles.Medium;
                         const asc = alertStatusConfig[inc.alertStatus] ?? alertStatusConfig.Blocked;
                         return (
-                          <tr key={inc.id} onClick={() => setSelected(gi)}
-                            style={{ borderBottom: "1px solid #21262d", cursor: "pointer", background: isSel ? "#161b22" : "transparent", transition: "background .15s" }}
-                            onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = "#0f1319"; }}
-                            onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = "transparent"; }}>
+                          <tr key={inc.id} onClick={() => openDrawer(inc)}
+                            style={{ borderBottom: "1px solid #21262d", cursor: "pointer", background: "transparent", transition: "background .15s" }}
+                            onMouseEnter={e => { e.currentTarget.style.background = "#0f1319"; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}>
                             <td style={{ padding: "12px 10px" }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                 <div style={{ width: 32, height: 32, borderRadius: "50%", background: inc.initialsColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#fff", flexShrink: 0 }}>{inc.initials}</div>
@@ -472,15 +479,15 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                     </tbody>
                   </table>
                 </div>
-                {/* Pagination: < 1 2 3 4 5 > only */}
+                {/* Pagination */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "12px 16px", borderTop: "1px solid #21262d", gap: 4 }}>
-                  <button onClick={() => { setPage(Math.max(0, page - 1)); setSelected(Math.max(0, page - 1) * perPage); }} disabled={page === 0}
+                  <button onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0}
                     style={{ width: 30, height: 30, borderRadius: 6, border: "1px solid #21262d", background: "transparent", color: page === 0 ? "#4a5568" : "#e6edf3", cursor: page === 0 ? "default" : "pointer", fontSize: 13 }}>‹</button>
                   {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => (
-                    <button key={i} onClick={() => { setPage(i); setSelected(i * perPage); }}
+                    <button key={i} onClick={() => setPage(i)}
                       style={{ width: 30, height: 30, borderRadius: 6, border: i === page ? "1.5px solid #2dd4bf" : "1px solid #21262d", background: "transparent", color: i === page ? "#2dd4bf" : "#8b949e", cursor: "pointer", fontSize: 12, fontWeight: i === page ? 700 : 400 }}>{i + 1}</button>
                   ))}
-                  <button onClick={() => { setPage(Math.min(totalPages - 1, page + 1)); setSelected(Math.min(totalPages - 1, page + 1) * perPage); }} disabled={page >= totalPages - 1}
+                  <button onClick={() => setPage(Math.min(totalPages - 1, page + 1))} disabled={page >= totalPages - 1}
                     style={{ width: 30, height: 30, borderRadius: 6, border: "1px solid #21262d", background: "transparent", color: page >= totalPages - 1 ? "#4a5568" : "#e6edf3", cursor: page >= totalPages - 1 ? "default" : "pointer", fontSize: 13 }}>›</button>
                 </div>
               </>
@@ -488,110 +495,172 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
           </LazyCard>
         </div>
 
-        {/* Detail Panel */}
-        <div className="lg:col-span-2" style={{ ...cs, padding: "0", overflow: "hidden" }}>
-          <LazyCard delay={500}>
-            {detail ? (
-              <div style={{ display: "flex", flexDirection: "column" }}>
+      {/* ── Slide-over Drawer ── */}
+      <style>{`@keyframes drawerIn{from{opacity:0}to{opacity:1}}`}</style>
 
-                {/* Status header + collapsible Analysis Summary */}
-                <div style={{ background: alertCfg.bg, borderBottom: `1px solid ${alertCfg.border}` }}>
-                  <div style={{ padding: "14px 18px 12px" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                        <span style={{ width: 7, height: 7, borderRadius: "50%", background: alertCfg.dot, boxShadow: `0 0 5px ${alertCfg.dot}`, flexShrink: 0 }} />
-                        <span style={{ fontSize: 10, fontWeight: 700, color: alertCfg.color, letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                          Security Incident · {alertCfg.label}
-                        </span>
-                      </div>
-                      <span style={{ fontSize: 10, color: `${alertCfg.color}88`, fontVariantNumeric: "tabular-nums" }}>{detail.detectedTime || detail.detectedAt}</span>
-                    </div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#e6edf3", lineHeight: 1.4, marginBottom: 10 }}>{detail.alertTitle}</div>
+      {/* Backdrop */}
+      {drawerOpen && (
+        <div
+          onClick={closeDrawer}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 900, animation: "drawerIn 0.2s ease" }}
+        />
+      )}
 
-                    {/* Analysis Summary toggle — right under title */}
-                    <button
-                      onClick={() => setSummaryOpen(o => !o)}
-                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 10px", borderRadius: 6, border: `1px solid ${alertCfg.border}`, background: `${alertCfg.dot}18`, cursor: "pointer", color: alertCfg.color }}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                        <path d="M9 12h6M9 16h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                      </svg>
-                      <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em" }}>Analysis Summary</span>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ transform: summaryOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.22s ease" }}>
-                        <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </button>
-                  </div>
+      {/* Drawer panel */}
+      <div style={{
+        position: "fixed",
+        top: 0,
+        right: 0,
+        height: "100dvh",
+        width: 520,
+        maxWidth: "95vw",
+        background: "#0d1117",
+        borderLeft: "1px solid #21262d",
+        zIndex: 950,
+        display: "flex",
+        flexDirection: "column",
+        overflowY: "auto",
+        transform: drawerOpen ? "translateX(0)" : "translateX(100%)",
+        transition: "transform 0.32s cubic-bezier(0.4,0,0.2,1)",
+        boxShadow: drawerOpen ? "-8px 0 40px rgba(0,0,0,0.5)" : "none",
+      }}>
+        {drawerInc && (() => {
+          const inc = drawerInc;
+          const ac = alertStatusConfig[inc.alertStatus] ?? alertStatusConfig.Blocked;
+          const sv = sevStyles[inc.severity]  ?? sevStyles.Medium;
 
-                  {/* Animated bullet list */}
-                  {summaryOpen && (
-                    <div style={{ padding: "2px 18px 14px", animation: "summaryIn 0.2s ease" }}>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                        {detail.alertDesc.split("\n").filter(Boolean).map((line, i) => (
-                          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 11, color: `${alertCfg.color}cc`, lineHeight: 1.55, animationDelay: `${i * 40}ms` }}>
-                            <svg width="13" height="13" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
-                              <circle cx="6" cy="6" r="5" stroke={alertCfg.border} strokeWidth="1.3"/>
-                              <path d="M3.5 6l1.8 1.8L8.5 4.5" stroke={alertCfg.dot} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                            <span>{line.replace(/^[-•]\s*/, "")}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+          /* synthetic timeline — 3 steps */
+          const tSteps = [
+            { time: inc.detectedAt,   color: "#3b82f6", icon: "M", label: "Detection scan initiated",        sub: `SecureLint policy engine activated on ${inc.email}` },
+            { time: inc.detectedTime, color: "#f97316", icon: "!",  label: `${inc.secretType} matched`,      sub: inc.preview },
+            { time: inc.detectedTime, color: ac.dot,    icon: ac.label[0], label: `Action taken: ${inc.alertStatus}`, sub: inc.details.find(d => d.label === "Policy")?.value ?? "SecureLint Security Policy" },
+          ];
+
+          return (
+            <>
+              {/* Header */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid #21262d", flexShrink: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 100 18A9 9 0 0012 3z" stroke="#8b949e" strokeWidth="1.5"/><path d="M12 8v4l3 3" stroke="#8b949e" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#e6edf3" }}>Detection details</span>
                 </div>
-
-                {/* Compact detail rows — icon | label | value */}
-                <div style={{ padding: "6px 0" }}>
-                  {detail.details.map((d, i) => {
-                    const isAction   = d.label === "Action";
-                    const isSeverity = d.label === "Severity";
-                    return (
-                      <div key={i} style={{ display: "flex", alignItems: "center", padding: "7px 18px", borderBottom: i < detail.details.length - 1 ? "1px solid #161b22" : "none" }}>
-                        <div style={{ width: 28, height: 28, borderRadius: 7, background: "#161b22", border: "1px solid #21262d", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 12 }}>
-                          <DetailIcon label={d.label} />
-                        </div>
-                        <span style={{ fontSize: 12, color: "#6b7280", fontWeight: 500, minWidth: 100, flexShrink: 0 }}>{d.label}</span>
-                        <span style={{ flex: 1, fontSize: 12, color: "#c9d1d9", fontWeight: 500, wordBreak: "break-all", lineHeight: 1.4, textAlign: "right" }}>
-                          {isSeverity ? (
-                            <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 10px", borderRadius: 20, color: sevStyles[d.value]?.color ?? "#fff", background: sevStyles[d.value]?.bg ?? "#333", border: `1px solid ${sevStyles[d.value]?.border ?? "#555"}` }}>{d.value}</span>
-                          ) : isAction ? (
-                            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: alertStatusConfig[d.value]?.color ?? "#39d353" }}>
-                              <span style={{ width: 6, height: 6, borderRadius: "50%", background: alertStatusConfig[d.value]?.dot ?? "#39d353", flexShrink: 0 }} />
-                              {d.value}
-                            </span>
-                          ) : d.label === "Recipients" && d.value.includes("|") ? (
-                            <span style={{ display: "flex", flexWrap: "wrap", gap: 4, justifyContent: "flex-end" }}>
-                              {d.value.split("|").filter(Boolean).map((domain, di) => (
-                                <span key={di} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 20, background: "#0d1626", border: "1px solid #1e3a8a", color: "#60a5fa" }}>
-                                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20" stroke="currentColor" strokeWidth="2"/></svg>
-                                  {domain}
-                                </span>
-                              ))}
-                            </span>
-                          ) : d.value}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Matched content */}
-                <div style={{ margin: "0 18px 10px", padding: "10px 12px", borderRadius: 8, border: "1px solid #21262d", background: "#0a0d11" }}>
-                  <div style={{ fontSize: 9, color: "#4a5568", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>Matched Content</div>
-                  <div style={{ fontFamily: "monospace", fontSize: 11, color: "#8b949e", wordBreak: "break-all", lineHeight: 1.6 }}>{detail.maskedContent}</div>
-                </div>
-
-                {/* Action buttons */}
-                <div style={{ padding: "4px 18px 16px", display: "flex", gap: 10 }}>
-                  <button style={{ flex: 1, padding: "9px 14px", borderRadius: 8, border: "none", background: "#238636", color: "#ffffff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Export Report</button>
-                  <button style={{ flex: 1, padding: "9px 14px", borderRadius: 8, border: "1px solid #21262d", background: "transparent", color: "#e6edf3", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Investigate</button>
-                </div>
-
+                <button onClick={closeDrawer} aria-label="Close"
+                  style={{ width: 28, height: 28, borderRadius: 6, border: "1px solid #21262d", background: "none", color: "#8b949e", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>
+                  ✕
+                </button>
               </div>
-            ) : <div style={{ padding: "24px 22px" }}><EmptyState text="Select an incident to view details" /></div>}
-          </LazyCard>
-        </div>
+
+              {/* Status band */}
+              <div style={{ padding: "16px 20px 14px", borderBottom: "1px solid #21262d", background: ac.bg, flexShrink: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 10px", borderRadius: 20, color: sv.color, background: sv.bg, border: `1px solid ${sv.border}` }}>{inc.severity}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#e6edf3" }}>{inc.secretType}</span>
+                </div>
+                <div style={{ fontSize: 12, color: "#e6edf3", fontWeight: 600, lineHeight: 1.45, marginBottom: 8 }}>{inc.alertTitle}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: `${ac.color}bb` }}>
+                  <span>First seen: {inc.detectedAt}</span>
+                  <span>·</span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: ac.color, fontWeight: 600 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: ac.dot }} />
+                    {ac.label}
+                  </span>
+                </div>
+              </div>
+
+              {/* Timeline */}
+              <div style={{ padding: "16px 20px", borderBottom: "1px solid #21262d", flexShrink: 0 }}>
+                <div style={{ fontSize: 10, color: "#8b949e", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 14 }}>Timeline</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                  {tSteps.map((step, si) => (
+                    <div key={si} style={{ display: "flex", gap: 12, position: "relative" }}>
+                      {/* vertical connector */}
+                      {si < tSteps.length - 1 && (
+                        <div style={{ position: "absolute", left: 14, top: 28, bottom: -6, width: 2, background: "#21262d", zIndex: 0 }} />
+                      )}
+                      {/* dot */}
+                      <div style={{ width: 28, height: 28, borderRadius: "50%", background: `${step.color}22`, border: `2px solid ${step.color}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, zIndex: 1, fontSize: 10, fontWeight: 800, color: step.color }}>
+                        {step.icon}
+                      </div>
+                      {/* content */}
+                      <div style={{ paddingBottom: si < tSteps.length - 1 ? 18 : 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span style={{ fontSize: 10, color: "#4a5568", fontVariantNumeric: "tabular-nums" }}>{step.time}</span>
+                        </div>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: "#e6edf3", marginTop: 2 }}>{step.label}</div>
+                        <div style={{ fontSize: 11, color: "#8b949e", marginTop: 2, fontFamily: step.sub.includes("█") ? "monospace" : "inherit", wordBreak: "break-all", lineHeight: 1.5 }}>{step.sub}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Detection Details card (like the bottom card in screenshot) */}
+              <div style={{ margin: "14px 20px", padding: "14px 16px", borderRadius: 10, border: `1px solid ${ac.border}`, background: ac.bg, flexShrink: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 20h18L12 2z" stroke={ac.dot} strokeWidth="2" strokeLinejoin="round"/><path d="M12 9v4M12 17h.01" stroke={ac.dot} strokeWidth="2" strokeLinecap="round"/></svg>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: ac.color }}>{inc.secretType} detected</span>
+                  <span style={{ marginLeft: "auto", fontSize: 10, color: `${ac.color}99`, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <span style={{ width: 5, height: 5, borderRadius: "50%", background: ac.dot }} />{ac.label}
+                  </span>
+                </div>
+                {inc.details.filter(d => ["Page URL","Full URL","Domain","Detection Engine","Policy","Incident ID"].includes(d.label)).map((d, di) => (
+                  <div key={di} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 7 }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill={`${ac.color}88`} style={{ flexShrink: 0, marginTop: 1 }}>
+                      <path d={DETAIL_ICONS[d.label] ?? DETAIL_ICONS["Incident ID"]} />
+                    </svg>
+                    <span style={{ fontSize: 11, color: `${ac.color}aa`, minWidth: 100, flexShrink: 0 }}>{d.label}</span>
+                    <span style={{ fontSize: 11, color: ac.color, wordBreak: "break-all", lineHeight: 1.5 }}>{d.value}</span>
+                  </div>
+                ))}
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill={`${ac.color}88`} style={{ flexShrink: 0, marginTop: 1 }}>
+                    <path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2z" />
+                  </svg>
+                  <span style={{ fontSize: 11, color: `${ac.color}aa`, minWidth: 100, flexShrink: 0 }}>Timestamp</span>
+                  <span style={{ fontSize: 11, color: ac.color }}>{inc.detectedAt} {inc.detectedTime}</span>
+                </div>
+              </div>
+
+              {/* Full details list */}
+              <div style={{ padding: "0 20px 4px", flexShrink: 0 }}>
+                <div style={{ fontSize: 10, color: "#8b949e", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>Incident Info</div>
+                {inc.details.map((d, i) => {
+                  const isAction = d.label === "Action";
+                  const isSev = d.label === "Severity";
+                  return (
+                    <div key={i} style={{ display: "flex", alignItems: "center", padding: "7px 0", borderBottom: i < inc.details.length - 1 ? "1px solid #161b22" : "none" }}>
+                      <div style={{ width: 26, height: 26, borderRadius: 6, background: "#161b22", border: "1px solid #21262d", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 10 }}>
+                        <DetailIcon label={d.label} />
+                      </div>
+                      <span style={{ fontSize: 11, color: "#6b7280", fontWeight: 500, minWidth: 95, flexShrink: 0 }}>{d.label}</span>
+                      <span style={{ flex: 1, fontSize: 11, color: "#c9d1d9", fontWeight: 500, wordBreak: "break-all", lineHeight: 1.4, textAlign: "right" }}>
+                        {isSev ? (
+                          <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 20, color: sv.color, background: sv.bg, border: `1px solid ${sv.border}` }}>{d.value}</span>
+                        ) : isAction ? (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: alertStatusConfig[d.value]?.color ?? "#39d353" }}>
+                            <span style={{ width: 5, height: 5, borderRadius: "50%", background: alertStatusConfig[d.value]?.dot ?? "#39d353" }} />{d.value}
+                          </span>
+                        ) : d.value}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Matched content */}
+              <div style={{ margin: "12px 20px", padding: "10px 12px", borderRadius: 8, border: "1px solid #21262d", background: "#0a0d11", flexShrink: 0 }}>
+                <div style={{ fontSize: 9, color: "#4a5568", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>Matched Content</div>
+                <div style={{ fontFamily: "monospace", fontSize: 11, color: "#8b949e", wordBreak: "break-all", lineHeight: 1.6 }}>{inc.maskedContent}</div>
+              </div>
+
+              {/* Action buttons */}
+              <div style={{ padding: "4px 20px 20px", display: "flex", gap: 10, flexShrink: 0 }}>
+                <button style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: "none", background: "#238636", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Export Report</button>
+                <button style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: "1px solid #21262d", background: "transparent", color: "#e6edf3", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Investigate</button>
+              </div>
+            </>
+          );
+        })()}
       </div>
 
       {/* Bottom analytics row */}
