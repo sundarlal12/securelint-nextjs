@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { BarChart, Bar, XAxis, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, Tooltip } from "recharts";
 import { LazyCard } from "@/components/dashboard/CardLoader";
 
@@ -160,6 +160,12 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
   const [drawerOpen, setDrawerOpen]   = useState(false);
   const [drawerInc, setDrawerInc]     = useState<GroupedIncident | null>(null);
   const [showAllOccs, setShowAllOccs] = useState(false);
+  const drawerBodyRef = useRef<HTMLDivElement>(null);
+
+  /* Reset scroll to top every time a new incident opens */
+  useEffect(() => {
+    if (drawerBodyRef.current) drawerBodyRef.current.scrollTop = 0;
+  }, [drawerInc]);
 
   const openDrawer  = useCallback((inc: GroupedIncident) => { setDrawerInc(inc); setDrawerOpen(true); setShowAllOccs(false); }, []);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
@@ -631,55 +637,63 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                 </button>
               </div>
 
-              {/* ══ Scrollable body ══ */}
-              <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
-
-                {/* ── Incident ID / Risk Level / Status 3-col bar ── */}
-                <div style={{ background: "#111827", border: "1px solid #2d3748", borderRadius: 12, overflow: "hidden", display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
-                  {/* Col 1: Incident ID */}
-                  <div style={{ padding: "16px 14px", borderRight: "1px solid #2d3748" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
-                      <div style={{ width: 30, height: 30, borderRadius: 8, background: "#1e293b", border: "1px solid #334155", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#60a5fa"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+              {/* ══ Incident ID / Risk Level / Status — fixed below header, never scrolls ══ */}
+              {(() => {
+                const brightSev: Record<string, string> = { Critical: "#ef4444", High: "#f97316", Medium: "#eab308", Low: "#84cc16" };
+                const bsColor = brightSev[inc.severity] ?? "#f97316";
+                const bsBadgeLabel = inc.severity === "Critical" ? "Critical Threat" : inc.severity === "High" ? "Immediate Attention" : inc.severity === "Medium" ? "Review Required" : "Monitor";
+                return (
+                  <div style={{    flexShrink: 0,padding: "20px 16px 16px", marginTop: 8,borderBottom: "1px solid #1a2540",}}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", background: "#0c1628", border: "1px solid #1e3a5f", borderRadius: 12, overflow: "hidden" }}>
+                      {/* Col 1 — Incident ID */}
+                      <div style={{ padding: "13px 12px", borderRight: "1px solid #1e3a5f", borderTop: "3px solid #3b82f6" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 7 }}>
+                          <div style={{ width: 22, height: 22, borderRadius: 6, background: "#1e3a8a33", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="#60a5fa"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                          </div>
+                          <span style={{ fontSize: 9, color: "#60a5fa", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>Incident ID</span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4, flexWrap: "wrap" }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: "#e2e8f0", fontFamily: "monospace", wordBreak: "break-all", lineHeight: 1.3 }}>{incId}</span>
+                          <button title="Copy" onClick={() => navigator.clipboard.writeText(incId)}
+                            style={{ background: "none", border: "none", cursor: "pointer", padding: 2, color: "#60a5fa", display: "flex", alignItems: "center", flexShrink: 0 }}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="#60a5fa" strokeWidth="1.8"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="#60a5fa" strokeWidth="1.8"/></svg>
+                          </button>
+                        </div>
+                        <span style={{ fontSize: 9, color: "#4a6080" }}>Detected: {inc.detectedAt}</span>
                       </div>
-                      <span style={{ fontSize: 9, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em" }}>Incident ID</span>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 6, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0", fontFamily: "monospace", wordBreak: "break-all" }}>{incId}</span>
-                      <button title="Copy" onClick={() => navigator.clipboard.writeText(incId)}
-                        style={{ background: "none", border: "none", cursor: "pointer", padding: 2, color: "#64748b", display: "flex", alignItems: "center", flexShrink: 0 }}>
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="#94a3b8" strokeWidth="1.8"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="#94a3b8" strokeWidth="1.8"/></svg>
-                      </button>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="#64748b" strokeWidth="1.6"/><path d="M16 2v4M8 2v4M3 10h18" stroke="#64748b" strokeWidth="1.6" strokeLinecap="round"/></svg>
-                      <span style={{ fontSize: 9, color: "#64748b" }}>Detected on: {inc.detectedAt}{inc.detectedTime ? ` at ${inc.detectedTime.split("·").pop()?.trim() ?? ""}` : ""}</span>
-                    </div>
-                  </div>
-                  {/* Col 2: Risk Level */}
-                  <div style={{ padding: "16px 14px", borderRight: "1px solid #2d3748" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill={sv.color}><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
-                      <span style={{ fontSize: 9, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em" }}>Risk Level</span>
-                    </div>
-                    <div style={{ fontSize: 22, fontWeight: 800, color: sv.color, lineHeight: 1, marginBottom: 8 }}>{inc.severity}</div>
-                    <span style={{ display: "inline-block", fontSize: 9, fontWeight: 700, padding: "3px 9px", borderRadius: 20, color: sv.color, background: sv.bg, border: `1px solid ${sv.border}` }}>
-                      {inc.severity === "Critical" ? "Critical Threat" : inc.severity === "High" ? "Immediate Attention" : inc.severity === "Medium" ? "Review Required" : "Monitor"}
-                    </span>
-                  </div>
-                  {/* Col 3: Status */}
-                  <div style={{ padding: "16px 14px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1h.01c1.71 0 3.1 1.39 3.1 3.1v2z" fill={ac.dot}/></svg>
-                      <span style={{ fontSize: 9, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em" }}>Status</span>
-                    </div>
-                    <div style={{ fontSize: 22, fontWeight: 800, color: ac.color, lineHeight: 1, marginBottom: 8 }}>{ac.label}</div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#22c55e" strokeWidth="1.8"/><path d="M8 12l3 3 5-5" stroke="#22c55e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      <span style={{ fontSize: 9, color: "#22c55e" }}>Secrets are protected</span>
+
+                      {/* Col 2 — Risk Level */}
+                      <div style={{ padding: "13px 12px", borderRight: "1px solid #1e3a5f", borderTop: `3px solid ${bsColor}` }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 7 }}>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill={bsColor}><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                          <span style={{ fontSize: 9, color: bsColor, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>Risk Level</span>
+                        </div>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: bsColor, lineHeight: 1, marginBottom: 6 }}>{inc.severity}</div>
+                        <span style={{ display: "inline-block", fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 20, color: bsColor, background: `${bsColor}18`, border: `1px solid ${bsColor}50` }}>
+                          {bsBadgeLabel}
+                        </span>
+                      </div>
+
+                      {/* Col 3 — Status */}
+                      <div style={{ padding: "13px 12px", borderTop: "3px solid #8b5cf6" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 7 }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1h.01c1.71 0 3.1 1.39 3.1 3.1v2z" fill="#a78bfa"/></svg>
+                          <span style={{ fontSize: 9, color: "#a78bfa", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>Status</span>
+                        </div>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: ac.color, lineHeight: 1, marginBottom: 6 }}>{ac.label}</div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#22c55e" strokeWidth="1.8"/><path d="M8 12l3 3 5-5" stroke="#22c55e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          <span style={{ fontSize: 9, color: "#22c55e" }}>Secrets are protected</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                );
+              })()}
+
+              {/* ══ Scrollable body ══ */}
+              <div ref={drawerBodyRef} style={{ flex: 1, overflowY: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
 
                 {/* ── Employee card ── */}
                 <div style={{ ...card, display: "flex", alignItems: "center", gap: 14 }}>
