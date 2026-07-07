@@ -637,60 +637,200 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                 </button>
               </div>
 
-              {/* ══ Incident ID / Risk Level / Status — fixed below header, never scrolls ══ */}
+
               {(() => {
-                const brightSev: Record<string, string> = { Critical: "#ef4444", High: "#f97316", Medium: "#eab308", Low: "#84cc16" };
-                const bsColor = brightSev[inc.severity] ?? "#f97316";
-                const bsBadgeLabel = inc.severity === "Critical" ? "Critical Threat" : inc.severity === "High" ? "Immediate Attention" : inc.severity === "Medium" ? "Review Required" : "Monitor";
-                return (
-                  <div style={{    flexShrink: 0,padding: "20px 16px 16px", marginTop: 8,borderBottom: "1px solid #1a2540",}}>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", background: "#0c1628", border: "1px solid #1e3a5f", borderRadius: 12, overflow: "hidden" }}>
-                      {/* Col 1 — Incident ID */}
-                      <div style={{ padding: "13px 12px", borderRight: "1px solid #1e3a5f", borderTop: "3px solid #3b82f6" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 7 }}>
-                          <div style={{ width: 22, height: 22, borderRadius: 6, background: "#1e3a8a33", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="#60a5fa"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-                          </div>
-                          <span style={{ fontSize: 9, color: "#60a5fa", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>Incident ID</span>
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4, flexWrap: "wrap" }}>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: "#e2e8f0", fontFamily: "monospace", wordBreak: "break-all", lineHeight: 1.3 }}>{incId}</span>
-                          <button title="Copy" onClick={() => navigator.clipboard.writeText(incId)}
-                            style={{ background: "none", border: "none", cursor: "pointer", padding: 2, color: "#60a5fa", display: "flex", alignItems: "center", flexShrink: 0 }}>
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="#60a5fa" strokeWidth="1.8"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="#60a5fa" strokeWidth="1.8"/></svg>
-                          </button>
-                        </div>
-                        <span style={{ fontSize: 9, color: "#4a6080" }}>Detected: {inc.detectedAt}</span>
-                      </div>
+  const severityStyles: Record<string, { bg: string; color: string; border: string }> = {
+    Critical: {
+      bg: "#3b0d0d",
+      color: "#ff6b6b",
+      border: "#7f1d1d",
+    },
+    High: {
+      bg: "#3a1d08",
+      color: "#fb923c",
+      border: "#7c2d12",
+    },
+    Medium: {
+      bg: "#3b2d08",
+      color: "#fbbf24",
+      border: "#854d0e",
+    },
+    Low: {
+      bg: "#0f2e1b",
+      color: "#4ade80",
+      border: "#166534",
+    },
+  };
 
-                      {/* Col 2 — Risk Level */}
-                      <div style={{ padding: "13px 12px", borderRight: "1px solid #1e3a5f", borderTop: `3px solid ${bsColor}` }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 7 }}>
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill={bsColor}><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
-                          <span style={{ fontSize: 9, color: bsColor, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>Risk Level</span>
-                        </div>
-                        <div style={{ fontSize: 18, fontWeight: 800, color: bsColor, lineHeight: 1, marginBottom: 6 }}>{inc.severity}</div>
-                        <span style={{ display: "inline-block", fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 20, color: bsColor, background: `${bsColor}18`, border: `1px solid ${bsColor}50` }}>
-                          {bsBadgeLabel}
-                        </span>
-                      </div>
+  const sev = severityStyles[inc.severity] || severityStyles.High;
 
-                      {/* Col 3 — Status */}
-                      <div style={{ padding: "13px 12px", borderTop: "3px solid #8b5cf6" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 7 }}>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1h.01c1.71 0 3.1 1.39 3.1 3.1v2z" fill="#a78bfa"/></svg>
-                          <span style={{ fontSize: 9, color: "#a78bfa", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>Status</span>
-                        </div>
-                        <div style={{ fontSize: 18, fontWeight: 800, color: ac.color, lineHeight: 1, marginBottom: 6 }}>{ac.label}</div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#22c55e" strokeWidth="1.8"/><path d="M8 12l3 3 5-5" stroke="#22c55e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                          <span style={{ fontSize: 9, color: "#22c55e" }}>Secrets are protected</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
+  return (
+    <div
+      style={{
+        flexShrink: 0,
+        padding: "16px",
+        borderBottom: "1px solid #1f2b43",
+      }}
+    >
+      <div
+        style={{
+          background: "#101827",
+          border: "1px solid #253247",
+          borderRadius: 14,
+          display: "grid",
+          gridTemplateColumns: "1fr auto 1fr auto 1fr",
+          alignItems: "center",
+          padding: "18px 22px",
+        }}
+      >
+        {/* Incident */}
+        <div>
+          <div
+            style={{
+              fontSize: 12,
+              color: "#94A3B8",
+              marginBottom: 6,
+              fontWeight: 500,
+            }}
+          >
+            Incident ID
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <span
+              style={{
+                color: "#F8FAFC",
+                fontWeight: 700,
+                fontSize: 22,
+                fontFamily: "monospace",
+              }}
+            >
+              {incId || "INC-2026-0707-2496"}
+            </span>
+
+            <button
+              onClick={() => navigator.clipboard.writeText(incId)}
+              style={{
+                border: "none",
+                background: "transparent",
+                cursor: "pointer",
+                color: "#60A5FA",
+                fontSize: 16,
+              }}
+            >
+              📋
+            </button>
+          </div>
+
+          <div
+            style={{
+              marginTop: 10,
+              fontSize: 12,
+              color: "#94A3B8",
+            }}
+          >
+            🕒 Detected: {inc.detectedAt || "2026-07-07"}
+          </div>
+        </div>
+
+        <div
+          style={{
+            width: 1,
+            height: 70,
+            background: "#243247",
+            margin: "0 26px",
+          }}
+        />
+
+        {/* Risk */}
+        <div>
+          <div
+            style={{
+              color: "#94A3B8",
+              fontSize: 12,
+              marginBottom: 10,
+            }}
+          >
+            Risk Level
+          </div>
+
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              background: sev.bg,
+              border: `1px solid ${sev.border}`,
+              color: sev.color,
+              padding: "8px 16px",
+              borderRadius: 999,
+              fontWeight: 700,
+              fontSize: 18,
+            }}
+          >
+            🛡 {inc.severity}
+          </div>
+        </div>
+
+        <div
+          style={{
+            width: 1,
+            height: 70,
+            background: "#243247",
+            margin: "0 26px",
+          }}
+        />
+
+        {/* Status */}
+        <div>
+          <div
+            style={{
+              color: "#94A3B8",
+              fontSize: 12,
+              marginBottom: 10,
+            }}
+          >
+            Status
+          </div>
+
+          <div
+            style={{
+              fontSize: 22,
+              fontWeight: 700,
+              color: "#A78BFA",
+              marginBottom: 10,
+            }}
+          >
+            {ac.label}
+          </div>
+
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              background: "#0F2E1B",
+              border: "1px solid #166534",
+              color: "#4ADE80",
+              borderRadius: 999,
+              padding: "7px 14px",
+              fontSize: 13,
+              fontWeight: 600,
+            }}
+          >
+            ✓ Secrets are protected
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+})()}
 
               {/* ══ Scrollable body ══ */}
               <div ref={drawerBodyRef} style={{ flex: 1, overflowY: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
