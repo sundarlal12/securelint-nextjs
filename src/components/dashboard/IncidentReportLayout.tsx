@@ -68,6 +68,8 @@ const alertStatusConfig: Record<string, { color: string; bg: string; border: str
 
 const cs: React.CSSProperties = { background: "#0d1117", border: "1px solid #21262d", borderRadius: 14 };
 
+type GroupedIncident = Incident & { count: number; occurrences: Incident[] };
+
 const DETAIL_ICONS: Record<string, string> = {
   "Employee":      "M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z",
   "Email":         "M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z",
@@ -146,9 +148,9 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
 
   /* ── Drawer state ── */
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerInc, setDrawerInc]   = useState<Incident | null>(null);
+  const [drawerInc, setDrawerInc]   = useState<GroupedIncident | null>(null);
 
-  const openDrawer  = useCallback((inc: Incident) => { setDrawerInc(inc); setDrawerOpen(true); }, []);
+  const openDrawer  = useCallback((inc: GroupedIncident) => { setDrawerInc(inc); setDrawerOpen(true); }, []);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
   useEffect(() => {
@@ -178,8 +180,24 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
     });
   }, [incidents, sevFilter, dateFrom, dateTo, searchQuery]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
-  const pageInc = filtered.slice(page * perPage, (page + 1) * perPage);
+  /* ── Group identical incidents (same user + type + date) into one row ── */
+  const grouped = useMemo<GroupedIncident[]>(() => {
+    const map = new Map<string, GroupedIncident>();
+    filtered.forEach(inc => {
+      const key = `${inc.email}||${inc.secretType}||${inc.detectedAt}`;
+      if (map.has(key)) {
+        const g = map.get(key)!;
+        g.count++;
+        g.occurrences.push(inc);
+      } else {
+        map.set(key, { ...inc, count: 1, occurrences: [inc] });
+      }
+    });
+    return Array.from(map.values());
+  }, [filtered]);
+
+  const totalPages = Math.max(1, Math.ceil(grouped.length / perPage));
+  const pageInc = grouped.slice(page * perPage, (page + 1) * perPage);
 
   // Compute daily counts from actual incidents as a fallback for trend chart
   const derivedTrend = useMemo(() => {
@@ -450,22 +468,30 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                       ))}
                     </tr></thead>
                     <tbody>
-                      {pageInc.map((inc, i) => {
+                      {(pageInc as GroupedIncident[]).map((inc, i) => {
                         const sv = sevStyles[inc.severity] ?? sevStyles.Medium;
                         const asc = alertStatusConfig[inc.alertStatus] ?? alertStatusConfig.Blocked;
                         return (
-                          <tr key={inc.id} onClick={() => openDrawer(inc)}
+                          <tr key={`${inc.id}-${i}`} onClick={() => openDrawer(inc)}
                             style={{ borderBottom: "1px solid #21262d", cursor: "pointer", background: "transparent", transition: "background .15s" }}
                             onMouseEnter={e => { e.currentTarget.style.background = "#0f1319"; }}
                             onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}>
                             <td style={{ padding: "12px 10px" }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                 <div style={{ width: 32, height: 32, borderRadius: "50%", background: inc.initialsColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#fff", flexShrink: 0 }}>{inc.initials}</div>
-                                <div><div style={{ color: "#e6edf3", fontWeight: 600, fontSize: 12 }}>{inc.name}</div><div style={{ color: "#8b949e", fontSize: 10 }}>{inc.email}</div></div>
+                                <div>
+                                  <div style={{ color: "#e6edf3", fontWeight: 600, fontSize: 12 }}>{inc.name}</div>
+                                  <div style={{ color: "#8b949e", fontSize: 10 }}>{inc.email}</div>
+                                </div>
                               </div>
                             </td>
                             <td style={{ padding: "10px 10px" }}>
-                              <div style={{ fontSize: 11, color: "#e6edf3", fontWeight: 500, marginBottom: 5, whiteSpace: "nowrap" }}>{inc.secretType}</div>
+                              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                                <span style={{ fontSize: 11, color: "#e6edf3", fontWeight: 500, whiteSpace: "nowrap" }}>{inc.secretType}</span>
+                                {inc.count > 1 && (
+                                  <span style={{ fontSize: 9, fontWeight: 800, padding: "1px 7px", borderRadius: 10, background: "#0a1e1a", border: "1px solid #2dd4bf44", color: "#2dd4bf", whiteSpace: "nowrap" }}>×{inc.count}</span>
+                                )}
+                              </div>
                               <div style={{ display: "flex" }}>{inc.secretIcon}</div>
                             </td>
                             <td style={{ padding: "12px 10px" }}><span style={{ fontSize: 10, fontWeight: 600, padding: "2px 10px", borderRadius: 20, color: sv.color, background: sv.bg, border: `1px solid ${sv.border}` }}>{inc.severity}</span></td>
@@ -527,117 +553,151 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
         {drawerInc && (() => {
           const inc = drawerInc;
           const ac = alertStatusConfig[inc.alertStatus] ?? alertStatusConfig.Blocked;
-          const sv = sevStyles[inc.severity]  ?? sevStyles.Medium;
-
-          /* synthetic timeline — 3 steps */
-          const tSteps = [
-            { time: inc.detectedAt,   color: "#3b82f6", icon: "M", label: "Detection scan initiated",        sub: `SecureLint policy engine activated on ${inc.email}` },
-            { time: inc.detectedTime, color: "#f97316", icon: "!",  label: `${inc.secretType} matched`,      sub: inc.preview },
-            { time: inc.detectedTime, color: ac.dot,    icon: ac.label[0], label: `Action taken: ${inc.alertStatus}`, sub: inc.details.find(d => d.label === "Policy")?.value ?? "SecureLint Security Policy" },
-          ];
+          const sv = sevStyles[inc.severity] ?? sevStyles.Medium;
+          const dateLabel = (() => {
+            try { return new Date(inc.detectedAt).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }); }
+            catch { return inc.detectedAt; }
+          })();
+          const SHOW_LIMIT = 5;
+          const hasMany = inc.count > 1;
 
           return (
             <>
-              {/* Header */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid #21262d", flexShrink: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 100 18A9 9 0 0012 3z" stroke="#8b949e" strokeWidth="1.5"/><path d="M12 8v4l3 3" stroke="#8b949e" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "#e6edf3" }}>Detection details</span>
+              {/* ── Header ── */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", borderBottom: "1px solid #21262d", flexShrink: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#8b949e" strokeWidth="1.6"/><path d="M12 8v4l2.5 2.5" stroke="#8b949e" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#e6edf3" }}>Detection details</span>
                 </div>
                 <button onClick={closeDrawer} aria-label="Close"
-                  style={{ width: 28, height: 28, borderRadius: 6, border: "1px solid #21262d", background: "none", color: "#8b949e", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>
+                  style={{ width: 26, height: 26, borderRadius: 5, border: "1px solid #21262d", background: "none", color: "#8b949e", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>
                   ✕
                 </button>
               </div>
 
-              {/* Status band */}
-              <div style={{ padding: "16px 20px 14px", borderBottom: "1px solid #21262d", background: ac.bg, flexShrink: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 10px", borderRadius: 20, color: sv.color, background: sv.bg, border: `1px solid ${sv.border}` }}>{inc.severity}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#e6edf3" }}>{inc.secretType}</span>
+              {/* ── Status band ── */}
+              <div style={{ padding: "14px 20px 12px", borderBottom: "1px solid #21262d", background: ac.bg, flexShrink: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 9px", borderRadius: 20, color: sv.color, background: sv.bg, border: `1px solid ${sv.border}` }}>{inc.severity}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#e6edf3" }}>{inc.secretType}{hasMany ? ` ×${inc.count}` : ""}</span>
                 </div>
-                <div style={{ fontSize: 12, color: "#e6edf3", fontWeight: 600, lineHeight: 1.45, marginBottom: 8 }}>{inc.alertTitle}</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: `${ac.color}bb` }}>
-                  <span>First seen: {inc.detectedAt}</span>
-                  <span>·</span>
+                <div style={{ fontSize: 11, color: "#c9d1d9", lineHeight: 1.5, marginBottom: 8 }}>{inc.alertTitle}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11 }}>
+                  <span style={{ color: "#4a5568" }}>First seen: {inc.detectedAt}</span>
+                  <span style={{ color: "#21262d" }}>|</span>
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: ac.color, fontWeight: 600 }}>
-                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: ac.dot }} />
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 20h18L12 2z" stroke={ac.dot} strokeWidth="2.2" strokeLinejoin="round"/><path d="M12 9v4M12 17h.01" stroke={ac.dot} strokeWidth="2.2" strokeLinecap="round"/></svg>
                     {ac.label}
                   </span>
                 </div>
               </div>
 
-              {/* Timeline */}
-              <div style={{ padding: "16px 20px", borderBottom: "1px solid #21262d", flexShrink: 0 }}>
-                <div style={{ fontSize: 10, color: "#8b949e", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 14 }}>Timeline</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                  {tSteps.map((step, si) => (
-                    <div key={si} style={{ display: "flex", gap: 12, position: "relative" }}>
-                      {/* vertical connector */}
-                      {si < tSteps.length - 1 && (
-                        <div style={{ position: "absolute", left: 14, top: 28, bottom: -6, width: 2, background: "#21262d", zIndex: 0 }} />
-                      )}
-                      {/* dot */}
-                      <div style={{ width: 28, height: 28, borderRadius: "50%", background: `${step.color}22`, border: `2px solid ${step.color}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, zIndex: 1, fontSize: 10, fontWeight: 800, color: step.color }}>
-                        {step.icon}
-                      </div>
-                      {/* content */}
-                      <div style={{ paddingBottom: si < tSteps.length - 1 ? 18 : 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{ fontSize: 10, color: "#4a5568", fontVariantNumeric: "tabular-nums" }}>{step.time}</span>
-                        </div>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: "#e6edf3", marginTop: 2 }}>{step.label}</div>
-                        <div style={{ fontSize: 11, color: "#8b949e", marginTop: 2, fontFamily: step.sub.includes("█") ? "monospace" : "inherit", wordBreak: "break-all", lineHeight: 1.5 }}>{step.sub}</div>
-                      </div>
+              {/* ── Timeline ── */}
+              <div style={{ padding: "14px 20px 0", flexShrink: 0 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#e6edf3", marginBottom: 2 }}>Timeline</div>
+                <div style={{ fontSize: 10, color: "#4a5568", marginBottom: 14 }}>{dateLabel}</div>
+
+                {/* Step 1: Browser session opened */}
+                <div style={{ display: "flex", gap: 12, position: "relative" }}>
+                  <div style={{ position: "absolute", left: 14, top: 28, height: 30, width: 2, background: "#21262d" }} />
+                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "#1e3a5f", border: "2px solid #3b82f6", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, zIndex: 1 }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#3b82f6" strokeWidth="1.8"/><path d="M8 21h8M12 17v4" stroke="#3b82f6" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                  </div>
+                  <div style={{ paddingBottom: 24 }}>
+                    <div style={{ fontSize: 9, color: "#4a5568", fontVariantNumeric: "tabular-nums", marginBottom: 2 }}>{inc.detectedAt}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#e6edf3" }}>Browser session active</div>
+                    <div style={{ fontSize: 11, color: "#8b949e", marginTop: 2 }}>SecureLint monitoring: {inc.email}</div>
+                  </div>
+                </div>
+
+                {/* Step 2: Secret pasted / typed */}
+                <div style={{ display: "flex", gap: 12, position: "relative" }}>
+                  <div style={{ position: "absolute", left: 14, top: 28, height: hasMany ? 46 + Math.min(inc.count, SHOW_LIMIT + 1) * 22 : 30, width: 2, background: "#21262d" }} />
+                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "#2d1a0a", border: "2px solid #f97316", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, zIndex: 1 }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="8" y="2" width="8" height="4" rx="1" stroke="#f97316" strokeWidth="1.6"/><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" stroke="#f97316" strokeWidth="1.6"/><path d="M9 12h6M9 16h4" stroke="#f97316" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                  </div>
+                  <div style={{ paddingBottom: 24, flex: 1 }}>
+                    <div style={{ fontSize: 9, color: "#4a5568", fontVariantNumeric: "tabular-nums", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#e6edf3" }}>
+                      {inc.secretType} detected{hasMany ? ` — ${inc.count} occurrences` : ""}
                     </div>
-                  ))}
+                    {/* occurrence list */}
+                    {hasMany && (
+                      <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
+                        {inc.occurrences.slice(0, SHOW_LIMIT).map((occ, oi) => (
+                          <div key={oi} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 8px", borderRadius: 6, background: "#161b22", border: "1px solid #21262d" }}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1h.01c1.71 0 3.1 1.39 3.1 3.1v2z" fill="#f97316"/></svg>
+                            <span style={{ fontFamily: "monospace", fontSize: 10, color: "#c9d1d9", flex: 1 }}>{occ.preview}</span>
+                            <span style={{ fontSize: 9, color: "#4a5568" }}>{occ.detectedTime || occ.detectedAt}</span>
+                          </div>
+                        ))}
+                        {inc.count > SHOW_LIMIT && (
+                          <div style={{ fontSize: 10, color: "#2dd4bf", padding: "2px 8px", fontWeight: 600 }}>
+                            +{inc.count - SHOW_LIMIT} more occurrences
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {!hasMany && (
+                      <div style={{ fontFamily: "monospace", fontSize: 11, color: "#8b949e", marginTop: 3, wordBreak: "break-all" }}>{inc.preview}</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Step 3: Action taken */}
+                <div style={{ display: "flex", gap: 12, position: "relative" }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 6, background: `${ac.dot}22`, border: `2px solid ${ac.dot}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, zIndex: 1 }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 100 18A9 9 0 0012 3z|M9 12l2 2 4-4" stroke={ac.dot} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </div>
+                  <div style={{ paddingBottom: 16 }}>
+                    <div style={{ fontSize: 9, color: "#4a5568", fontVariantNumeric: "tabular-nums", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#e6edf3" }}>Action: <span style={{ color: ac.color }}>{inc.alertStatus}</span></div>
+                    <div style={{ fontSize: 11, color: "#8b949e", marginTop: 2 }}>{inc.details.find(d => d.label === "Policy")?.value ?? "SecureLint Security Policy"}</div>
+                  </div>
                 </div>
               </div>
 
-              {/* Detection Details card (like the bottom card in screenshot) */}
-              <div style={{ margin: "14px 20px", padding: "14px 16px", borderRadius: 10, border: `1px solid ${ac.border}`, background: ac.bg, flexShrink: 0 }}>
+              {/* ── Detection card ── */}
+              <div style={{ margin: "4px 20px 4px", padding: "12px 14px", borderRadius: 10, border: `1px solid ${ac.border}`, background: ac.bg, flexShrink: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 20h18L12 2z" stroke={ac.dot} strokeWidth="2" strokeLinejoin="round"/><path d="M12 9v4M12 17h.01" stroke={ac.dot} strokeWidth="2" strokeLinecap="round"/></svg>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: ac.color }}>{inc.secretType} detected</span>
-                  <span style={{ marginLeft: "auto", fontSize: 10, color: `${ac.color}99`, display: "inline-flex", alignItems: "center", gap: 4 }}>
-                    <span style={{ width: 5, height: 5, borderRadius: "50%", background: ac.dot }} />{ac.label}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke={ac.dot} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: ac.color }}>
+                    {inc.secretType} detected{hasMany ? ` ×${inc.count}` : ""}
+                  </span>
+                  <span style={{ marginLeft: "auto", fontSize: 9, color: `${ac.color}88`, display: "inline-flex", alignItems: "center", gap: 3 }}>
+                    <span style={{ width: 5, height: 5, borderRadius: "50%", background: ac.dot, flexShrink: 0 }} />{ac.label}
                   </span>
                 </div>
-                {inc.details.filter(d => ["Page URL","Full URL","Domain","Detection Engine","Policy","Incident ID"].includes(d.label)).map((d, di) => (
-                  <div key={di} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 7 }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill={`${ac.color}88`} style={{ flexShrink: 0, marginTop: 1 }}>
-                      <path d={DETAIL_ICONS[d.label] ?? DETAIL_ICONS["Incident ID"]} />
-                    </svg>
-                    <span style={{ fontSize: 11, color: `${ac.color}aa`, minWidth: 100, flexShrink: 0 }}>{d.label}</span>
-                    <span style={{ fontSize: 11, color: ac.color, wordBreak: "break-all", lineHeight: 1.5 }}>{d.value}</span>
+                {[
+                  { icon: "M12 11c0-3.87-3.13-7-7-7S-2 7.13-2 11M15 5l-3 3-3-3M21 21H3", label: "Secret type", value: inc.secretType },
+                  { icon: "M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z", label: "Employee", value: `${inc.name} <${inc.email}>` },
+                  { icon: "M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z", label: "Detection engine", value: inc.details.find(d => d.label === "Detection Engine")?.value ?? "SecureLint AI" },
+                  { icon: "M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2z", label: "Timestamp", value: `${inc.detectedAt}${inc.detectedTime ? " · " + inc.detectedTime : ""}` },
+                ].map((row, ri) => (
+                  <div key={ri} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: ri < 3 ? 7 : 0 }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill={`${ac.color}77`} style={{ flexShrink: 0, marginTop: 1 }}><path d={row.icon} /></svg>
+                    <span style={{ fontSize: 11, color: `${ac.color}99`, minWidth: 110, flexShrink: 0 }}>{row.label}</span>
+                    <span style={{ fontSize: 11, color: ac.color, wordBreak: "break-all", lineHeight: 1.4 }}>{row.value}</span>
                   </div>
                 ))}
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill={`${ac.color}88`} style={{ flexShrink: 0, marginTop: 1 }}>
-                    <path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2z" />
-                  </svg>
-                  <span style={{ fontSize: 11, color: `${ac.color}aa`, minWidth: 100, flexShrink: 0 }}>Timestamp</span>
-                  <span style={{ fontSize: 11, color: ac.color }}>{inc.detectedAt} {inc.detectedTime}</span>
-                </div>
               </div>
 
-              {/* Full details list */}
-              <div style={{ padding: "0 20px 4px", flexShrink: 0 }}>
-                <div style={{ fontSize: 10, color: "#8b949e", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>Incident Info</div>
+              {/* ── Incident Info ── */}
+              <div style={{ padding: "10px 20px 4px", flexShrink: 0 }}>
+                <div style={{ fontSize: 10, color: "#8b949e", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>Incident Info</div>
                 {inc.details.map((d, i) => {
-                  const isAction = d.label === "Action";
-                  const isSev = d.label === "Severity";
+                  const isAction = d.label === "Action", isSev = d.label === "Severity";
                   return (
-                    <div key={i} style={{ display: "flex", alignItems: "center", padding: "7px 0", borderBottom: i < inc.details.length - 1 ? "1px solid #161b22" : "none" }}>
-                      <div style={{ width: 26, height: 26, borderRadius: 6, background: "#161b22", border: "1px solid #21262d", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 10 }}>
+                    <div key={i} style={{ display: "flex", alignItems: "center", padding: "6px 0", borderBottom: i < inc.details.length - 1 ? "1px solid #161b22" : "none" }}>
+                      <div style={{ width: 24, height: 24, borderRadius: 5, background: "#161b22", border: "1px solid #21262d", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 10 }}>
                         <DetailIcon label={d.label} />
                       </div>
-                      <span style={{ fontSize: 11, color: "#6b7280", fontWeight: 500, minWidth: 95, flexShrink: 0 }}>{d.label}</span>
-                      <span style={{ flex: 1, fontSize: 11, color: "#c9d1d9", fontWeight: 500, wordBreak: "break-all", lineHeight: 1.4, textAlign: "right" }}>
+                      <span style={{ fontSize: 11, color: "#6b7280", minWidth: 90, flexShrink: 0 }}>{d.label}</span>
+                      <span style={{ flex: 1, fontSize: 11, color: "#c9d1d9", wordBreak: "break-all", textAlign: "right", lineHeight: 1.4 }}>
                         {isSev ? (
                           <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 20, color: sv.color, background: sv.bg, border: `1px solid ${sv.border}` }}>{d.value}</span>
                         ) : isAction ? (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: alertStatusConfig[d.value]?.color ?? "#39d353" }}>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 700, color: alertStatusConfig[d.value]?.color ?? "#39d353" }}>
                             <span style={{ width: 5, height: 5, borderRadius: "50%", background: alertStatusConfig[d.value]?.dot ?? "#39d353" }} />{d.value}
                           </span>
                         ) : d.value}
@@ -647,13 +707,13 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                 })}
               </div>
 
-              {/* Matched content */}
-              <div style={{ margin: "12px 20px", padding: "10px 12px", borderRadius: 8, border: "1px solid #21262d", background: "#0a0d11", flexShrink: 0 }}>
-                <div style={{ fontSize: 9, color: "#4a5568", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>Matched Content</div>
+              {/* ── Matched content ── */}
+              <div style={{ margin: "10px 20px", padding: "9px 12px", borderRadius: 8, border: "1px solid #21262d", background: "#0a0d11", flexShrink: 0 }}>
+                <div style={{ fontSize: 9, color: "#4a5568", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 }}>Matched Content</div>
                 <div style={{ fontFamily: "monospace", fontSize: 11, color: "#8b949e", wordBreak: "break-all", lineHeight: 1.6 }}>{inc.maskedContent}</div>
               </div>
 
-              {/* Action buttons */}
+              {/* ── Action buttons ── */}
               <div style={{ padding: "4px 20px 20px", display: "flex", gap: 10, flexShrink: 0 }}>
                 <button style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: "none", background: "#238636", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Export Report</button>
                 <button style={{ flex: 1, padding: "10px 14px", borderRadius: 8, border: "1px solid #21262d", background: "transparent", color: "#e6edf3", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Investigate</button>
