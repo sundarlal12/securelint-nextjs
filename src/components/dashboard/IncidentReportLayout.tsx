@@ -78,7 +78,7 @@ const alertStatusConfig: Record<string, { color: string; bg: string; border: str
 
 const cs: React.CSSProperties = { background: "#0d1117", border: "1px solid #21262d", borderRadius: 14 };
 
-type GroupedIncident = Incident & { count: number; occurrences: Incident[] };
+type GroupedIncident = Incident & { count: number; occurrences: Incident[]; secretTypes: string[] };
 
 const DETAIL_ICONS: Record<string, string> = {
   "Employee":      "M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z",
@@ -191,17 +191,25 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
     });
   }, [incidents, sevFilter, dateFrom, dateTo, searchQuery]);
 
-  /* ── Group identical incidents (same user + type + date) into one row ── */
+  /* ── Group incidents by (employee + page URL + date).
+       Falls back to (email + secretType + date) if no Page URL available.
+       This collapses all secrets found on the same page visit into one row. ── */
   const grouped = useMemo<GroupedIncident[]>(() => {
     const map = new Map<string, GroupedIncident>();
     filtered.forEach(inc => {
-      const key = `${inc.email}||${inc.secretType}||${inc.detectedAt}`;
+      const pageUrl = inc.details.find(d => d.label === "Page URL")?.value
+                   ?? inc.details.find(d => d.label === "Full URL")?.value
+                   ?? "";
+      const key = pageUrl
+        ? `${inc.email}||${pageUrl}||${inc.detectedAt}`
+        : `${inc.email}||${inc.secretType}||${inc.detectedAt}`;
       if (map.has(key)) {
         const g = map.get(key)!;
         g.count++;
         g.occurrences.push(inc);
+        if (!g.secretTypes.includes(inc.secretType)) g.secretTypes.push(inc.secretType);
       } else {
-        map.set(key, { ...inc, count: 1, occurrences: [inc] });
+        map.set(key, { ...inc, count: 1, occurrences: [inc], secretTypes: [inc.secretType] });
       }
     });
     return Array.from(map.values());
@@ -497,8 +505,15 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                               </div>
                             </td>
                             <td style={{ padding: "10px 10px" }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                                <span style={{ fontSize: 11, color: "#e6edf3", fontWeight: 500, whiteSpace: "nowrap" }}>{inc.secretType}</span>
+                              <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 4, flexWrap: "wrap" }}>
+                                <span style={{ fontSize: 11, color: "#e6edf3", fontWeight: 500, whiteSpace: "nowrap" }}>
+                                  {inc.secretTypes.length > 1 ? inc.secretTypes[0] : inc.secretType}
+                                </span>
+                                {inc.secretTypes.length > 1 && (
+                                  <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 10, background: "#1c1508", border: "1px solid #78350f44", color: "#fbbf24", whiteSpace: "nowrap" }}>
+                                    +{inc.secretTypes.length - 1} type{inc.secretTypes.length > 2 ? "s" : ""}
+                                  </span>
+                                )}
                                 {inc.count > 1 && (
                                   <span style={{ fontSize: 9, fontWeight: 800, padding: "1px 7px", borderRadius: 10, background: "#0a1e1a", border: "1px solid #2dd4bf44", color: "#2dd4bf", whiteSpace: "nowrap" }}>×{inc.count}</span>
                                 )}
@@ -591,9 +606,32 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
 
               {/* ── Status band ── */}
               <div style={{ padding: "14px 20px 12px", borderBottom: "1px solid #21262d", background: ac.bg, flexShrink: 0 }}>
+                {/* Employee row */}
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <div style={{ width: 20, height: 20, borderRadius: "50%", background: inc.initialsColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
+                      {inc.initials}
+                    </div>
+                    <span style={{ fontSize: 11, color: "#c9d1d9", fontWeight: 600 }}>{inc.name}</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="#4a5568"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                    <span style={{ fontSize: 11, color: "#8b949e" }}>{inc.email}</span>
+                  </div>
+                </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                   <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 9px", borderRadius: 20, color: sv.color, background: sv.bg, border: `1px solid ${sv.border}` }}>{inc.severity}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#e6edf3" }}>{inc.secretType}{hasMany ? ` ×${inc.count}` : ""}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#e6edf3" }}>
+                    {inc.secretTypes.length > 1
+                      ? `${inc.secretTypes.length} secret types`
+                      : inc.secretType}
+                    {hasMany ? ` ×${inc.count}` : ""}
+                  </span>
+                  {inc.secretTypes.length > 1 && (
+                    <span style={{ fontSize: 9, color: "#fbbf24", background: "#1c1508", border: "1px solid #78350f44", padding: "1px 7px", borderRadius: 10, fontWeight: 700 }}>
+                      {inc.secretTypes.join(", ")}
+                    </span>
+                  )}
                 </div>
                 <div style={{ fontSize: 11, color: "#c9d1d9", lineHeight: 1.5, marginBottom: 8 }}>{inc.alertTitle}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, marginBottom: browserId || extVer ? 10 : 0 }}>
@@ -711,7 +749,9 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                   <div style={{ paddingBottom: 20, flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 9, color: "#4a5568", fontVariantNumeric: "tabular-nums", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
                     <div style={{ fontSize: 12, fontWeight: 600, color: "#e6edf3" }}>
-                      {inc.secretType} detected{hasMany ? ` — ${inc.count} occurrences` : ""}
+                      {inc.secretTypes.length > 1
+                        ? `${inc.count} secrets detected — ${inc.secretTypes.length} types`
+                        : `${inc.secretType} detected${hasMany ? ` — ${inc.count} occurrences` : ""}`}
                     </div>
 
                     {/* Occurrence rows — fixed-height scrollable */}
@@ -762,7 +802,9 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke={ac.dot} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   <span style={{ fontSize: 12, fontWeight: 700, color: ac.color }}>
-                    {inc.secretType} detected{hasMany ? ` ×${inc.count}` : ""}
+                    {inc.secretTypes.length > 1
+                      ? `${inc.secretTypes.length} secret types detected${hasMany ? ` ×${inc.count}` : ""}`
+                      : `${inc.secretType} detected${hasMany ? ` ×${inc.count}` : ""}`}
                   </span>
                   <span style={{ marginLeft: "auto", fontSize: 9, color: `${ac.color}88`, display: "inline-flex", alignItems: "center", gap: 3 }}>
                     <span style={{ width: 5, height: 5, borderRadius: "50%", background: ac.dot, flexShrink: 0 }} />{ac.label}
