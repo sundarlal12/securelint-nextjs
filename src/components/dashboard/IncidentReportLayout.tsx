@@ -823,28 +823,43 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
 
                 {/* ── Browser ID + Scanner Version ── */}
                 {(browserId || extVer) && (
-                  <div style={{ ...card, display: "flex", alignItems: "center", gap: 0, padding: 0, overflow: "hidden" }}>
+                  <div style={{ ...card, display: "flex", alignItems: "stretch", gap: 0, padding: 0, overflow: "hidden" }}>
+                    {/* Browser ID */}
                     {browserId && (
-                      <div style={{ flex: 1, padding: "12px 14px", borderRight: extVer ? "1px solid #1a2540" : "none", display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><ellipse cx="12" cy="8" rx="5" ry="7" stroke="#4a5568" strokeWidth="1.6"/><path d="M7 8c0 3 2.24 5 5 5s5-2 5-5" stroke="#4a5568" strokeWidth="1.4"/><circle cx="12" cy="8" r="1.5" fill="#4a5568"/></svg>
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: 9, color: "#4a5568", marginBottom: 3, fontWeight: 600 }}>Browser ID</div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                            <span style={{ fontFamily: "monospace", fontSize: 10, color: "#9ca3af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{browserId}</span>
-                            <button title="Copy" onClick={() => navigator.clipboard.writeText(browserId)}
-                              style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", padding: 2, color: "#4a5568", display: "flex", alignItems: "center" }}>
-                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="#6b7280" strokeWidth="1.8"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="#6b7280" strokeWidth="1.8"/></svg>
+                      <div style={{ flex: 1, padding: "14px 16px", borderRight: extVer ? "1px solid #1a2540" : "none", display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: "#1a2a4a", border: "1px solid #2a3f6f", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 1C8.5 1 5.5 3.5 5.5 7c0 2 .8 3.8 2 5" stroke="#60a5fa" strokeWidth="1.6" strokeLinecap="round"/>
+                            <path d="M12 1c3.5 0 6.5 2.5 6.5 6 0 2-.8 3.8-2 5" stroke="#60a5fa" strokeWidth="1.6" strokeLinecap="round"/>
+                            <path d="M8.5 10c-.3-1-.5-2-.5-3 0-2.2 1.8-4 4-4s4 1.8 4 4c0 1-.2 2-.5 3" stroke="#60a5fa" strokeWidth="1.6" strokeLinecap="round"/>
+                            <path d="M10 13c-.2-.9-.5-1.9-.5-3" stroke="#60a5fa" strokeWidth="1.6" strokeLinecap="round"/>
+                            <path d="M14 13c.2-.9.5-1.9.5-3" stroke="#60a5fa" strokeWidth="1.6" strokeLinecap="round"/>
+                            <path d="M12 13v8" stroke="#60a5fa" strokeWidth="1.6" strokeLinecap="round"/>
+                            <path d="M9 16h6" stroke="#60a5fa" strokeWidth="1.6" strokeLinecap="round"/>
+                            <path d="M10 19h4" stroke="#60a5fa" strokeWidth="1.6" strokeLinecap="round"/>
+                          </svg>
+                        </div>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ fontSize: 10, color: "#64748b", fontWeight: 500, marginBottom: 4 }}>Browser ID</div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <span style={{ fontFamily: "monospace", fontSize: 11, color: "#c9d1d9", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{browserId}</span>
+                            <button title="Copy Browser ID" onClick={() => navigator.clipboard.writeText(browserId)}
+                              style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", padding: 3, display: "flex", alignItems: "center" }}>
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="#64748b" strokeWidth="1.8"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="#64748b" strokeWidth="1.8"/></svg>
                             </button>
                           </div>
                         </div>
                       </div>
                     )}
+                    {/* Scanner Version */}
                     {extVer && (
-                      <div style={{ padding: "12px 14px", display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="#6b7280" strokeWidth="1.8"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="#6b7280" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                      <div style={{ padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: "#1a2a4a", border: "1px solid #2a3f6f", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="#60a5fa" strokeWidth="1.8"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="#60a5fa" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                        </div>
                         <div>
-                          <div style={{ fontSize: 9, color: "#4a5568", marginBottom: 3, fontWeight: 600 }}>Scanner Version</div>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: "#818cf8" }}>v{extVer}</div>
+                          <div style={{ fontSize: 10, color: "#64748b", fontWeight: 500, marginBottom: 4 }}>Scanner Version</div>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: "#818cf8" }}>v{extVer}</div>
                         </div>
                       </div>
                     )}
