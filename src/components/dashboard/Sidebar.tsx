@@ -40,6 +40,7 @@ const navItems = [
       { label: "Secrets Report", href: "/dashboard/incident-reports/secrets" },
       { label: "Phishing Mail Report", href: "/dashboard/incident-reports/phishing" },
       { label: "Email DLP Report", href: "/dashboard/incident-reports/email-dlp" },
+      { label: "Extensions Report", href: "/dashboard/incident-reports/extensions" },
     ],
   },
   // { label: "Compliance", href: "/dashboard/compliance", Icon: ClipboardCheck },

@@ -64,6 +64,11 @@ function mapAction(action: string): Incident["alertStatus"] {
     case "flagged":  return "Flagged";
     case "quarantine":
     case "quarantined": return "Quarantined";
+    /* extension-specific actions kept as-is via Detected label */
+    case "sync":     return "Synced" as Incident["alertStatus"];
+    case "install":  return "Installed" as Incident["alertStatus"];
+    case "uninstall":return "Uninstalled" as Incident["alertStatus"];
+    case "info":     return "Info" as Incident["alertStatus"];
     default:         return "Detected";
   }
 }

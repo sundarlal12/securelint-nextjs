@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { BarChart, Bar, XAxis, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, Tooltip } from "recharts";
 import { LazyCard } from "@/components/dashboard/CardLoader";
 
@@ -110,6 +110,172 @@ function DetailIcon({ label }: { label: string }) {
 
 const emptyKF = `@keyframes ePulse{0%,100%{opacity:.22;transform:scale(.97)}50%{opacity:.5;transform:scale(1)}}@keyframes eLine{0%,100%{width:40%}50%{width:70%}}@keyframes summaryIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}@keyframes summaryOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-6px)}}`;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Extension Activity Card — rich extension list with expandable permissions
+// ─────────────────────────────────────────────────────────────────────────────
+type ExtRow = {
+  extensionId?: string; extensionName?: string; extensionVersion?: string;
+  isMalicious?: boolean; isSuspicious?: boolean; enabled?: boolean;
+  fromStore?: boolean; installType?: string;
+  permissions?: string[]; hostPerms?: string[]; detectedAt?: string;
+};
+
+function ExtensionActivityCard({ inc }: { inc: Incident }) {
+  const [expandedIdx, setExpandedIdx] = React.useState<number | null>(null);
+
+  const dv = (lbl: string) => inc.details.find(x => x.label === lbl)?.value ?? "";
+  const totalExts    = Number(dv("_totalExts")    || 0);
+  const malicious    = Number(dv("_maliciousCnt") || 0);
+  const suspicious   = Number(dv("_suspiciousCnt")|| 0);
+  const sideloaded   = Number(dv("_sideloadedCnt")|| 0);
+  const extListRaw   = dv("_extensionsList");
+  const malListRaw   = dv("_maliciousList");
+  const susListRaw   = dv("_suspiciousList");
+  const extList: ExtRow[] = (() => { try { return JSON.parse(extListRaw || "[]"); } catch { return []; } })();
+  const malList: { extensionId?: string; extensionName?: string }[] = (() => { try { return JSON.parse(malListRaw || "[]"); } catch { return []; } })();
+  const susList: { extensionId?: string; extensionName?: string }[] = (() => { try { return JSON.parse(susListRaw || "[]"); } catch { return []; } })();
+
+  const actionColor: Record<string, string> = {
+    Synced: "#818cf8", Installed: "#22c55e", Uninstalled: "#f87171",
+    Blocked: "#ef4444", Masked: "#a78bfa", Detected: "#94a3b8", Info: "#60a5fa",
+  };
+
+  return (
+    <>
+      {/* Header row */}
+      <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+        <div style={{ width: 26, height: 26, borderRadius: 7, background: "#1e1a35", border: "1px solid #4c1d95", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#a78bfa" strokeWidth="1.6"/><path d="M8 9h8M8 12h8M8 15h5" stroke="#a78bfa" strokeWidth="1.4" strokeLinecap="round"/></svg>
+        </div>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "#c9d1d9", flex: 1 }}>Extension Activity</span>
+        {inc.alertStatus && (
+          <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 20, background: "#0d1525", border: `1px solid ${(actionColor[inc.alertStatus] ?? "#94a3b8") + "44"}`, color: actionColor[inc.alertStatus] ?? "#94a3b8" }}>
+            {inc.alertStatus}
+          </span>
+        )}
+      </div>
+
+      {/* Risk summary chips */}
+      {(totalExts > 0 || malicious > 0 || suspicious > 0) && (
+        <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 10 }}>
+          {totalExts > 0   && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, background: "#1e1a35", border: "1px solid #4c1d9544", color: "#a78bfa" }}>{totalExts} scanned</span>}
+          {malicious > 0   && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, background: "#2d0a0a", border: "1px solid #ef444444", color: "#ef4444", fontWeight: 700 }}>⚠ {malicious} malicious</span>}
+          {suspicious > 0  && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, background: "#2d1a0a", border: "1px solid #f9731644", color: "#f97316" }}>⚠ {suspicious} suspicious</span>}
+          {sideloaded > 0  && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, background: "#1a1a0a", border: "1px solid #eab30844", color: "#eab308" }}>{sideloaded} sideloaded</span>}
+        </div>
+      )}
+
+      {/* Malicious/Suspicious named lists */}
+      {malList.length > 0 && (
+        <div style={{ borderRadius: 7, background: "#0d0606", border: "1px solid #ef444433", marginBottom: 8, overflow: "hidden" }}>
+          <div style={{ padding: "4px 8px", borderBottom: "1px solid #ef444422", fontSize: 9, color: "#ef4444", fontWeight: 700, letterSpacing: 0.5 }}>MALICIOUS</div>
+          {malList.map((m, mi) => (
+            <div key={mi} style={{ padding: "4px 8px", borderBottom: mi < malList.length - 1 ? "1px solid #1a0808" : "none", fontSize: 10, color: "#fca5a5", display: "flex", alignItems: "center", gap: 5 }}>
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#ef4444" strokeWidth="2"/></svg>
+              <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{String(m.extensionName ?? "")}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {susList.length > 0 && malList.length === 0 && (
+        <div style={{ borderRadius: 7, background: "#120a02", border: "1px solid #f9731433", marginBottom: 8, overflow: "hidden" }}>
+          <div style={{ padding: "4px 8px", borderBottom: "1px solid #f9731422", fontSize: 9, color: "#f97316", fontWeight: 700, letterSpacing: 0.5 }}>SUSPICIOUS ({susList.length})</div>
+          <div style={{ maxHeight: 72, overflowY: "auto" }}>
+            {susList.map((s, si) => (
+              <div key={si} style={{ padding: "4px 8px", borderBottom: si < susList.length - 1 ? "1px solid #1a0e04" : "none", fontSize: 10, color: "#fdba74", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {String(s.extensionName ?? "")}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Full extension list — each row expandable */}
+      {extList.length > 0 && (
+        <div style={{ borderRadius: 7, border: "1px solid #1a2540", overflow: "hidden", flex: 1 }}>
+          <div style={{ padding: "5px 8px", borderBottom: "1px solid #1a2540", fontSize: 9, color: "#64748b", fontWeight: 600, background: "#080e1a", letterSpacing: 0.4 }}>
+            ALL EXTENSIONS ({extList.length})
+          </div>
+          <div style={{ maxHeight: 340, overflowY: "auto" }}>
+            {extList.map((e, ei) => {
+              const eName   = String(e.extensionName ?? "");
+              const eId     = String(e.extensionId   ?? "");
+              const eVer    = String(e.extensionVersion ?? "");
+              const isMal   = Boolean(e.isMalicious);
+              const isSus   = Boolean(e.isSuspicious);
+              const enabled = e.enabled;
+              const perms   = Array.isArray(e.permissions) ? (e.permissions as string[]) : [];
+              const hPerms  = Array.isArray(e.hostPerms)   ? (e.hostPerms as string[])   : [];
+              const isOpen  = expandedIdx === ei;
+              const rowBg   = isMal ? "#100404" : isSus ? "#0e0804" : ei % 2 === 0 ? "#080e1a" : "#060c17";
+              return (
+                <div key={ei} style={{ borderBottom: ei < extList.length - 1 ? "1px solid #0d1424" : "none" }}>
+                  {/* Row header — click to expand */}
+                  <div
+                    role="button"
+                    onClick={() => setExpandedIdx(isOpen ? null : ei)}
+                    style={{ padding: "7px 8px", background: rowBg, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
+                  >
+                    {/* status dot */}
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: enabled === false ? "#374151" : "#22c55e", flexShrink: 0 }} />
+                    <span style={{ flex: 1, fontSize: 10, color: isMal ? "#fca5a5" : isSus ? "#fdba74" : "#c9d1d9", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{eName}</span>
+                    {eVer && <span style={{ fontSize: 8, color: "#4a5568", flexShrink: 0 }}>v{eVer}</span>}
+                    {isMal && <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 10, background: "#2d0a0a", border: "1px solid #ef444433", color: "#ef4444", flexShrink: 0 }}>mal</span>}
+                    {!isMal && isSus && <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 10, background: "#2d1a0a", border: "1px solid #f9731433", color: "#f97316", flexShrink: 0 }}>sus</span>}
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, transform: isOpen ? "rotate(180deg)" : "none", transition: "transform .2s" }}><path d="M6 9l6 6 6-6" stroke="#4a5568" strokeWidth="2" strokeLinecap="round"/></svg>
+                  </div>
+                  {/* Expanded detail */}
+                  {isOpen && (
+                    <div style={{ padding: "8px 10px 10px", background: "#05080f", borderTop: "1px solid #0d1424", display: "flex", flexDirection: "column", gap: 5 }}>
+                      {/* ID */}
+                      {eId && (
+                        <div>
+                          <div style={{ fontSize: 8, color: "#4a5568", marginBottom: 1 }}>Extension ID</div>
+                          <div style={{ fontFamily: "monospace", fontSize: 9, color: "#64748b", wordBreak: "break-all" }}>{eId}</div>
+                        </div>
+                      )}
+                      {/* Meta row */}
+                      <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                        {e.installType && <span style={{ fontSize: 8, padding: "1px 6px", borderRadius: 20, background: "#0d1525", border: "1px solid #1e2d45", color: "#64748b" }}>{String(e.installType)}</span>}
+                        {e.fromStore   && <span style={{ fontSize: 8, padding: "1px 6px", borderRadius: 20, background: "#0a1a14", border: "1px solid #16422a33", color: "#4ade80" }}>from store</span>}
+                        {enabled === false && <span style={{ fontSize: 8, padding: "1px 6px", borderRadius: 20, background: "#1a1a1a", border: "1px solid #374151", color: "#6b7280" }}>disabled</span>}
+                        {enabled === true  && <span style={{ fontSize: 8, padding: "1px 6px", borderRadius: 20, background: "#0a1a14", border: "1px solid #22c55e33", color: "#22c55e" }}>enabled</span>}
+                      </div>
+                      {/* Permissions */}
+                      {perms.length > 0 && (
+                        <div>
+                          <div style={{ fontSize: 8, color: "#4a5568", marginBottom: 3 }}>PERMISSIONS ({perms.length})</div>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
+                            {perms.map((p, pi) => {
+                              const isRisky = ["proxy","webRequest","declarativeNetRequestWithHostAccess","downloads","nativeMessaging","clipboardRead","management"].includes(p);
+                              return <span key={pi} style={{ fontSize: 7.5, padding: "1px 5px", borderRadius: 10, background: isRisky ? "#2d1a0a" : "#0d1525", border: `1px solid ${isRisky ? "#f9731433" : "#1e2d4533"}`, color: isRisky ? "#f97316" : "#64748b" }}>{p}</span>;
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      {/* Host permissions */}
+                      {hPerms.length > 0 && (
+                        <div>
+                          <div style={{ fontSize: 8, color: "#4a5568", marginBottom: 3 }}>HOST ACCESS</div>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
+                            {hPerms.map((h, hi) => (
+                              <span key={hi} style={{ fontSize: 7.5, padding: "1px 5px", borderRadius: 10, background: h === "<all_urls>" ? "#2d0a0a" : "#0d1525", border: `1px solid ${h === "<all_urls>" ? "#ef444433" : "#1e2d4533"}`, color: h === "<all_urls>" ? "#ef4444" : "#64748b" }}>{h}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 function EmptyState({ text }: { text: string }) {
   return (
     <>
@@ -201,14 +367,23 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
        Falls back to (email + secretType + date) if no Page URL available.
        This collapses all secrets found on the same page visit into one row. ── */
   const grouped = useMemo<GroupedIncident[]>(() => {
+    const EXTENSION_RAW_SET = new Set(["extension_sync","extension_install","extension_uninstall","extension_malicious","extension_blacklist","extension_all","extension_type","Extension Installed","Extension Uninstalled","Extension Synced","Malicious Extension","Blacklisted Extension","Extension Activity"]);
     const map = new Map<string, GroupedIncident>();
     filtered.forEach(inc => {
-      const pageUrl = inc.details.find(d => d.label === "Page URL")?.value
-                   ?? inc.details.find(d => d.label === "Full URL")?.value
-                   ?? "";
-      const key = pageUrl
-        ? `${inc.email}||${pageUrl}||${inc.detectedAt}`
-        : `${inc.email}||${inc.secretType}||${inc.detectedAt}`;
+      const isExt = EXTENSION_RAW_SET.has(inc.secretType) || inc.details.some(d => d.label === "_extName");
+      let key: string;
+      if (isExt) {
+        /* Group extensions by browser_id + day so each device session is one row */
+        const browserId = inc.details.find(d => d.label === "Browser ID")?.value ?? inc.email;
+        key = `ext||${browserId}||${inc.detectedAt}`;
+      } else {
+        const pageUrl = inc.details.find(d => d.label === "Page URL")?.value
+                     ?? inc.details.find(d => d.label === "Full URL")?.value
+                     ?? "";
+        key = pageUrl
+          ? `${inc.email}||${pageUrl}||${inc.detectedAt}`
+          : `${inc.email}||${inc.secretType}||${inc.detectedAt}`;
+      }
       if (map.has(key)) {
         const g = map.get(key)!;
         g.count++;
@@ -801,85 +976,7 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                         </div>
                       </>
                     ) : isExtension ? (
-                      <>
-                        <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12 }}>
-                          <div style={{ width: 26, height: 26, borderRadius: 7, background: "#1e1a35", border: "1px solid #4c1d95", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#a78bfa" strokeWidth="1.6"/><path d="M8 9h8M8 12h8M8 15h5" stroke="#a78bfa" strokeWidth="1.4" strokeLinecap="round"/></svg>
-                          </div>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: "#c9d1d9" }}>Extension Activity</span>
-                        </div>
-                        {(() => {
-                          const d = (lbl: string) => inc.details.find(x => x.label === lbl)?.value ?? "";
-                          const extName     = d("_extName")     || inc.preview || "";
-                          const extId       = d("_extId")       || d("Extension ID");
-                          const extVersion  = d("_extVersion")  || d("Ext Version");
-                          const totalExts   = Number(d("_totalExts")    || 0);
-                          const malicious   = Number(d("_maliciousCnt") || 0);
-                          const suspicious  = Number(d("_suspiciousCnt")|| 0);
-                          const sideloaded  = Number(d("_sideloadedCnt")|| 0);
-                          const extListRaw  = d("_extensionsList");
-                          const malListRaw  = d("_maliciousList");
-                          const extList: Record<string,unknown>[] = (() => { try { return JSON.parse(extListRaw || "[]"); } catch { return []; } })();
-                          const malList: Record<string,unknown>[] = (() => { try { return JSON.parse(malListRaw  || "[]"); } catch { return []; } })();
-                          return (
-                            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
-                              {/* Primary extension */}
-                              {extName && (
-                                <div style={{ padding: "8px 10px", borderRadius: 7, background: "#080e1a", border: "1px solid #1a2540" }}>
-                                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 6 }}>
-                                    <div style={{ minWidth: 0, flex: 1 }}>
-                                      <div style={{ fontSize: 9, color: "#64748b", marginBottom: 3 }}>Extension</div>
-                                      <span style={{ fontSize: 11, color: "#a78bfa", fontWeight: 600, wordBreak: "break-word" }}>{extName}</span>
-                                    </div>
-                                    {extVersion && <span style={{ fontSize: 9, color: "#64748b", background: "#1e1a35", border: "1px solid #4c1d9533", borderRadius: 20, padding: "1px 6px", flexShrink: 0 }}>v{extVersion}</span>}
-                                  </div>
-                                  {extId && <div style={{ fontFamily: "monospace", fontSize: 9, color: "#4a5568", marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{extId}</div>}
-                                </div>
-                              )}
-                              {/* Risk summary chips */}
-                              {(totalExts > 0 || malicious > 0 || suspicious > 0) && (
-                                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                                  {totalExts > 0  && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, background: "#1e1a35", border: "1px solid #4c1d9544", color: "#a78bfa" }}>{totalExts} scanned</span>}
-                                  {malicious > 0  && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, background: "#2d0a0a", border: "1px solid #ef444444", color: "#ef4444", fontWeight: 700 }}>⚠ {malicious} malicious</span>}
-                                  {suspicious > 0 && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, background: "#2d1a0a", border: "1px solid #f9731644", color: "#f97316" }}>⚠ {suspicious} suspicious</span>}
-                                  {sideloaded > 0 && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, background: "#1a1a0a", border: "1px solid #eab30844", color: "#eab308" }}>{sideloaded} sideloaded</span>}
-                                </div>
-                              )}
-                              {/* Malicious list */}
-                              {malList.length > 0 && (
-                                <div style={{ borderRadius: 7, background: "#0d0606", border: "1px solid #ef444422", overflow: "hidden" }}>
-                                  <div style={{ padding: "4px 8px", borderBottom: "1px solid #ef444422", fontSize: 9, color: "#ef4444", fontWeight: 700 }}>FLAGGED EXTENSIONS</div>
-                                  {malList.map((m, mi) => (
-                                    <div key={mi} style={{ padding: "5px 8px", borderBottom: mi < malList.length - 1 ? "1px solid #1a0808" : "none", fontSize: 10, color: "#fca5a5" }}>
-                                      {String(m.extensionName ?? m.name ?? "")}
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                              {/* Full extension list (collapsed, scrollable) */}
-                              {extList.length > 1 && (
-                                <div style={{ borderRadius: 7, background: "#080e1a", border: "1px solid #1a2540", overflow: "hidden" }}>
-                                  <div style={{ padding: "4px 8px", borderBottom: "1px solid #1a2540", fontSize: 9, color: "#64748b", fontWeight: 600 }}>ALL EXTENSIONS ({extList.length})</div>
-                                  <div style={{ maxHeight: 120, overflowY: "auto" }}>
-                                    {extList.map((e, ei) => {
-                                      const eName = String(e.extensionName ?? e.name ?? "");
-                                      const isMal = Boolean(e.isMalicious);
-                                      const isSus = Boolean(e.isSuspicious);
-                                      return (
-                                        <div key={ei} style={{ padding: "5px 8px", borderBottom: ei < extList.length - 1 ? "1px solid #0d1424" : "none", display: "flex", alignItems: "center", gap: 6 }}>
-                                          <span style={{ flex: 1, fontSize: 10, color: isMal ? "#fca5a5" : isSus ? "#fdba74" : "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{eName}</span>
-                                          {isMal && <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 10, background: "#2d0a0a", border: "1px solid #ef444433", color: "#ef4444", flexShrink: 0 }}>mal</span>}
-                                          {!isMal && isSus && <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 10, background: "#2d1a0a", border: "1px solid #f9731433", color: "#f97316", flexShrink: 0 }}>sus</span>}
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })()}
-                      </>
+                      <ExtensionActivityCard inc={inc} />
                     ) : (
                       <>
                         <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12 }}>
