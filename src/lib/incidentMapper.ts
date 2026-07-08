@@ -332,6 +332,88 @@ export function mapDlpIncident(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// EXTENSION (browser extension activity) mapper
+// ─────────────────────────────────────────────────────────────────────────────
+const EXT_TYPE_LABELS: Record<string, string> = {
+  extension_install:    "Extension Installed",
+  extension_uninstall:  "Extension Uninstalled",
+  extension_sync:       "Extension Synced",
+  extension_malicious:  "Malicious Extension",
+  extension_blacklist:  "Blacklisted Extension",
+  extension_all:        "Extension Activity",
+  extension_type:       "Extension Activity",
+};
+
+function resolveExtensionName(extensions: unknown): { extName: string; extId: string } {
+  if (!extensions) return { extName: "", extId: "" };
+  const tryObj = (o: Record<string, unknown>) => ({
+    extName: String(o.name ?? o.extension_name ?? o.title ?? ""),
+    extId:   String(o.id   ?? o.extension_id   ?? o.ext_id   ?? ""),
+  });
+  if (Array.isArray(extensions) && extensions.length > 0) return tryObj(extensions[0] as Record<string, unknown>);
+  if (typeof extensions === "object") return tryObj(extensions as Record<string, unknown>);
+  return { extName: "", extId: "" };
+}
+
+export function mapExtensionIncident(
+  inc: Record<string, unknown>,
+  icon: React.ReactNode,
+): Incident {
+  const email = String(inc.user_email ?? "");
+  const { name, initials } = nameFromEmail(email);
+  const { detectedAt, detectedTime } = parseTimestamp(String(inc.timestamp ?? inc.created_at ?? ""));
+  const rawType     = String(inc.type ?? inc.secret_type ?? "extension_type");
+  const activityType = EXT_TYPE_LABELS[rawType] ?? "Extension Activity";
+  const alertStatus  = mapAction(String(inc.action ?? "sync"));
+  const severity     = mapSeverity(String(inc.severity ?? "medium"));
+  const { extName, extId } = resolveExtensionName(inc.extensions);
+  const browserId    = String(inc.browser_id ?? "");
+  const extVer       = String(inc.extension_version ?? "");
+  const tabUrl       = resolveUrl(String(inc.tab_url ?? ""));
+  const tabTitle     = String(inc.tab_title ?? "");
+  const incId        = String(inc.id ?? "");
+
+  return {
+    id: incId,
+    initials,
+    initialsColor: avatarColor(email),
+    name,
+    email,
+    secretType: activityType,
+    secretIcon: icon,
+    severity,
+    alertStatus,
+    detectedAt,
+    detectedTime,
+    preview: extName || extId || tabUrl,
+    alertTitle: `${activityType}${extName ? ` — ${extName}` : ""} — ${alertStatus}`,
+    alertDesc: [
+      `Activity type: ${activityType}`,
+      extName  ? `Extension: ${extName}` : "",
+      extId    ? `Extension ID: ${extId}` : "",
+      `Response: ${alertStatus.toLowerCase()} by SecureLint`,
+      `Severity: ${severity}`,
+    ].filter(Boolean).join("\n"),
+    details: [
+      { icon: "👤",  label: "Employee",      value: name },
+      { icon: "📧",  label: "Email",         value: email },
+      { icon: "🧩",  label: "Activity Type", value: activityType },
+      { icon: "📦",  label: "Extension",     value: extName },
+      { icon: "#️⃣", label: "Extension ID",  value: extId },
+      { icon: "⚠️",  label: "Severity",      value: severity },
+      { icon: "✅",  label: "Action",        value: alertStatus },
+      { icon: "🌐",  label: "Page URL",      value: tabUrl },
+      { icon: "📋",  label: "Page Title",    value: tabTitle },
+      { icon: "🖥️",  label: "Browser ID",   value: browserId },
+      { icon: "📦",  label: "Extension Ver", value: extVer },
+      { icon: "#️⃣", label: "Incident ID",   value: `EXT-${incId}` },
+    ].filter(d => d.value && d.value !== "undefined"),
+    maskedContent: extName || extId || "(no extension data)",
+    browserInfo: mapBrowserInfo(inc.browser_info),
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Compute stats from incident array
 // ─────────────────────────────────────────────────────────────────────────────
 import type { ReportStats } from "@/components/dashboard/IncidentReportLayout";

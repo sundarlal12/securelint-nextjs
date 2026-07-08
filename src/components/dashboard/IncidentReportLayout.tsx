@@ -600,8 +600,10 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
 
           /* Incident category detection */
           const PHISHING_TYPES = ["Phishing Page Blocked","Social Domain Block","WAF Domain Block","Malware Site","Phishing Blocked","Malicious Site","Suspicious Site","Allowlisted Visit","Blocked Site"];
-          const isEmailDlp = inc.secretType === "Email DLP";
-          const isPhishing = !isEmailDlp && (PHISHING_TYPES.includes(inc.secretType) || inc.secretTypes.some(t => PHISHING_TYPES.includes(t)));
+          const EXTENSION_TYPES = ["Extension Installed","Extension Uninstalled","Extension Synced","Malicious Extension","Blacklisted Extension","Extension Activity"];
+          const isEmailDlp  = inc.secretType === "Email DLP" || inc.secretType === "email_dlp";
+          const isPhishing  = !isEmailDlp && (PHISHING_TYPES.includes(inc.secretType) || inc.secretTypes.some(t => PHISHING_TYPES.includes(t)));
+          const isExtension = !isEmailDlp && !isPhishing && (EXTENSION_TYPES.includes(inc.secretType) || inc.secretTypes.some(t => EXTENSION_TYPES.includes(t)));
 
           /* Recipient domains for email DLP */
           const recipientsRaw = inc.details.find(d => d.label === "Recipients")?.value ?? "";
@@ -791,6 +793,44 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                               {cnt > 1 && <span style={{ fontSize: 9, fontWeight: 800, padding: "1px 7px", borderRadius: 10, background: "#1a0e06", border: "1px solid #f9731633", color: "#f97316", flexShrink: 0, marginLeft: 6 }}>×{cnt}</span>}
                             </div>
                           ))}
+                        </div>
+                      </>
+                    ) : isExtension ? (
+                      <>
+                        <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12 }}>
+                          <div style={{ width: 26, height: 26, borderRadius: 7, background: "#1e1a35", border: "1px solid #4c1d95", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#a78bfa" strokeWidth="1.6"/><path d="M8 9h8M8 12h8M8 15h5" stroke="#a78bfa" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                          </div>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: "#c9d1d9" }}>Extension Activity</span>
+                        </div>
+                        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                          {/* Extension name */}
+                          {(() => {
+                            const extName = inc.details.find(d => d.label === "Extension")?.value ?? inc.preview;
+                            const extId   = inc.details.find(d => d.label === "Extension ID")?.value ?? "";
+                            return (
+                              <>
+                                {extName && (
+                                  <div style={{ padding: "6px 8px", borderRadius: 7, background: "#080e1a", border: "1px solid #1a2540" }}>
+                                    <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>Extension Name</div>
+                                    <span style={{ fontSize: 11, color: "#a78bfa", fontWeight: 600 }}>{extName}</span>
+                                  </div>
+                                )}
+                                {extId && (
+                                  <div style={{ padding: "6px 8px", borderRadius: 7, background: "#080e1a", border: "1px solid #1a2540" }}>
+                                    <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>Extension ID</div>
+                                    <span style={{ fontFamily: "monospace", fontSize: 10, color: "#94a3b8" }}>{extId}</span>
+                                  </div>
+                                )}
+                                {typeCounts.map(([type, cnt], ti) => (
+                                  <div key={ti} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 8px", borderRadius: 7, background: "#080e1a", border: "1px solid #1a2540" }}>
+                                    <span style={{ fontSize: 10, color: "#a78bfa", fontWeight: 600, flex: 1 }}>{type}</span>
+                                    {cnt > 1 && <span style={{ fontSize: 9, fontWeight: 800, padding: "1px 7px", borderRadius: 10, background: "#1e1a35", border: "1px solid #4c1d9544", color: "#a78bfa", flexShrink: 0, marginLeft: 6 }}>×{cnt}</span>}
+                                  </div>
+                                ))}
+                              </>
+                            );
+                          })()}
                         </div>
                       </>
                     ) : (
@@ -1035,6 +1075,50 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                               <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
                               <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>Access <span style={{ color: ac.color }}>{ac.label}</span> by SecureLint WAF</div>
                               <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>Threat intelligence + AI scoring enforced</div>
+                            </div>
+                          </div>
+                        </>
+                      );
+                    }
+
+                    /* ── EXTENSION TIMELINE ── */
+                    if (isExtension) {
+                      const extName = inc.details.find(d => d.label === "Extension")?.value ?? inc.preview ?? "";
+                      const extId   = inc.details.find(d => d.label === "Extension ID")?.value ?? "";
+                      const actType = inc.secretType;
+                      const isMalicious = actType === "Malicious Extension" || actType === "Blacklisted Extension";
+                      return (
+                        <>
+                          {/* Step 1: Browser session */}
+                          <div style={{ display: "flex", gap: 12 }}>
+                            {stepIcon("#1e3a5f", "#3b82f6", <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#3b82f6" strokeWidth="1.8"/><path d="M8 21h8M12 17v4" stroke="#3b82f6" strokeWidth="1.8" strokeLinecap="round"/></svg>)}
+                            <div style={{ paddingBottom: 20, flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedAt}</div>
+                              <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>Browser session active</div>
+                              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>SecureLint monitoring: {inc.email}</div>
+                              {urlBlock}
+                              {biChips}
+                            </div>
+                          </div>
+
+                          {/* Step 2: Extension detected */}
+                          <div style={{ display: "flex", gap: 12 }}>
+                            {stepIcon("#1e1a35", "#a78bfa", <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#a78bfa" strokeWidth="1.6"/><path d="M8 9h8M8 12h8M8 15h5" stroke="#a78bfa" strokeWidth="1.4" strokeLinecap="round"/></svg>)}
+                            <div style={{ paddingBottom: 20, flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
+                              <div style={{ fontSize: 12, fontWeight: 600, color: isMalicious ? "#ef4444" : "#e2e8f0" }}>{actType}</div>
+                              {extName && <div style={{ fontSize: 11, color: "#a78bfa", marginTop: 2, fontWeight: 600 }}>{extName}</div>}
+                              {extId && <div style={{ fontFamily: "monospace", fontSize: 10, color: "#64748b", marginTop: 2 }}>{extId}</div>}
+                            </div>
+                          </div>
+
+                          {/* Step 3: Action */}
+                          <div style={{ display: "flex", gap: 12 }}>
+                            {lastIcon(`${ac.dot}22`, ac.dot, <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke={ac.dot} strokeWidth="1.8"/><path d="M9 12l2 2 4-4" stroke={ac.dot} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>)}
+                            <div style={{ paddingBottom: 4, flex: 1 }}>
+                              <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
+                              <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>Extension <span style={{ color: ac.color }}>{ac.label}</span> by SecureLint</div>
+                              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>Browser extension policy enforced</div>
                             </div>
                           </div>
                         </>

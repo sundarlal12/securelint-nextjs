@@ -123,6 +123,16 @@ export async function fetchIncidentsEmailDlp(params?: IncidentQueryParams) {
   return apiFetch(`/api/admin/incidents/email-dlp?${new URLSearchParams(p as Record<string, string>).toString()}`);
 }
 
+export async function fetchIncidentsExtension(params?: IncidentQueryParams & { type?: string }) {
+  const p = { ...defaultParams(), ...params };
+  return apiFetch(`/api/admin/incidents/extension?${new URLSearchParams(p as Record<string, string>).toString()}`);
+}
+
+export async function fetchExtensionStats(params?: { start_time?: string; end_time?: string }) {
+  const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+  return apiFetch(`/api/admin/extension-stats${qs}`);
+}
+
 export async function fetchSecretScanner() {
   return apiFetch("/api/admin/secret-scanner");
 }

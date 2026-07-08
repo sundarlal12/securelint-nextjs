@@ -3,16 +3,16 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { BarChart, Bar, XAxis, ResponsiveContainer, AreaChart, Area } from "recharts";
 import { LazyCard } from "@/components/dashboard/CardLoader";
-import { fetchIncidents, fetchIncidentsSecrets, fetchIncidentsPhishing, fetchIncidentsEmailDlp, fetchCharts } from "@/lib/adminApi";
+import { fetchIncidents, fetchIncidentsSecrets, fetchIncidentsPhishing, fetchIncidentsEmailDlp, fetchIncidentsExtension, fetchCharts } from "@/lib/adminApi";
 
 const defaultWeeklyData = [
-  { day: "Mon", secrets: 8, phishing: 1, dlp: 3 },
-  { day: "Tue", secrets: 6, phishing: 0, dlp: 2 },
-  { day: "Wed", secrets: 10, phishing: 1, dlp: 1 },
-  { day: "Thu", secrets: 7, phishing: 0, dlp: 2 },
-  { day: "Fri", secrets: 9, phishing: 1, dlp: 2 },
-  { day: "Sat", secrets: 4, phishing: 0, dlp: 1 },
-  { day: "Sun", secrets: 3, phishing: 0, dlp: 1 },
+  { day: "Mon", secrets: 8, phishing: 1, dlp: 3, ext: 1 },
+  { day: "Tue", secrets: 6, phishing: 0, dlp: 2, ext: 0 },
+  { day: "Wed", secrets: 10, phishing: 1, dlp: 1, ext: 2 },
+  { day: "Thu", secrets: 7, phishing: 0, dlp: 2, ext: 1 },
+  { day: "Fri", secrets: 9, phishing: 1, dlp: 2, ext: 2 },
+  { day: "Sat", secrets: 4, phishing: 0, dlp: 1, ext: 0 },
+  { day: "Sun", secrets: 3, phishing: 0, dlp: 1, ext: 0 },
 ];
 
 const defaultTrendData = [
@@ -31,11 +31,14 @@ function HookIcon() {
 function EnvIcon() {
   return <svg width="28" height="28" viewBox="0 0 28 28"><rect x="4" y="7" width="20" height="14" rx="2" fill="none" stroke="#39d353" strokeWidth="1.5"/><path d="M4 11l10 5 10-5" fill="none" stroke="#39d353" strokeWidth="1.5"/></svg>;
 }
+function ExtensionIcon() {
+  return <svg width="28" height="28" viewBox="0 0 28 28"><rect x="4" y="4" width="20" height="20" rx="3" fill="none" stroke="#39d353" strokeWidth="1.5"/><path d="M10 11h8M10 14h8M10 17h5" stroke="#39d353" strokeWidth="1.5" strokeLinecap="round"/><circle cx="19" cy="17" r="3" fill="none" stroke="#39d353" strokeWidth="1.3"/></svg>;
+}
 
 export default function IncidentReportsPage() {
   const [weeklyData, setWeeklyData] = useState(defaultWeeklyData);
   const [trendData, setTrendData] = useState(defaultTrendData);
-  const [counts, setCounts] = useState({ secrets: 47, phishing: 3, dlp: 12 });
+  const [counts, setCounts] = useState({ secrets: 47, phishing: 3, dlp: 12, extensions: 0 });
 
   useEffect(() => {
     // Fetch totals from each typed endpoint (uses 90-day window, page_size=1 just for count)
@@ -43,11 +46,13 @@ export default function IncidentReportsPage() {
       fetchIncidentsSecrets({ page: 0, page_size: 200 }),
       fetchIncidentsPhishing({ page: 0, page_size: 200 }),
       fetchIncidentsEmailDlp({ page: 0, page_size: 200 }),
-    ]).then(([s, p, d]) => {
+      fetchIncidentsExtension({ page: 0, page_size: 200 }),
+    ]).then(([s, p, d, e]) => {
       setCounts({
-        secrets:  Number(s?.total  ?? s?.count  ?? 47),
-        phishing: Number(p?.total  ?? p?.count  ?? 3),
-        dlp:      Number(d?.total  ?? d?.count  ?? 12),
+        secrets:    Number(s?.total ?? s?.count ?? 47),
+        phishing:   Number(p?.total ?? p?.count ?? 3),
+        dlp:        Number(d?.total ?? d?.count ?? 12),
+        extensions: Number(e?.total ?? e?.count ?? 0),
       });
     }).catch(() => {});
 
@@ -55,9 +60,10 @@ export default function IncidentReportsPage() {
     fetchIncidents().then((data) => {
       if (data?.counts) {
         setCounts(prev => ({
-          secrets:  data.counts.secrets  ?? prev.secrets,
-          phishing: data.counts.phishing ?? prev.phishing,
-          dlp:      data.counts.dlp      ?? prev.dlp,
+          secrets:    data.counts.secrets    ?? prev.secrets,
+          phishing:   data.counts.phishing   ?? prev.phishing,
+          dlp:        data.counts.dlp        ?? prev.dlp,
+          extensions: data.counts.extensions ?? prev.extensions,
         }));
       }
     }).catch(() => {});
@@ -75,6 +81,7 @@ export default function IncidentReportsPage() {
     { title: "Secrets Report", desc: "Exposed API keys, tokens, and credentials detected across repositories and cloud environments.", href: "/dashboard/incident-reports/secrets", count: counts.secrets, sub: "secrets detected\nthis week", Icon: ShieldIcon },
     { title: "Phishing Mail Report", desc: "Phishing email incidents intercepted, flagged sender domains, and impersonation attempts.", href: "/dashboard/incident-reports/phishing", count: counts.phishing, sub: "phishing attempts\nblocked", Icon: HookIcon },
     { title: "Email DLP Report", desc: "Outbound data loss prevention violations, blocked emails, and sensitive content exfiltration.", href: "/dashboard/incident-reports/email-dlp", count: counts.dlp, sub: "email DLP blocks\nthis week", Icon: EnvIcon },
+    { title: "Extension Report", desc: "Browser extension activity — malicious extensions, blacklisted add-ons, installs, and removals across your org.", href: "/dashboard/incident-reports/extensions", count: counts.extensions, sub: "extension events\ndetected", Icon: ExtensionIcon },
   ];
 
   return (
@@ -112,7 +119,7 @@ export default function IncidentReportsPage() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
               <span className="card-title">Weekly Incident Breakdown</span>
               <div style={{ display: "flex", gap: 12 }}>
-                {[{ label: "Secrets", color: "#2dd4bf" }, { label: "Phishing", color: "#dc2626" }, { label: "DLP", color: "#2563eb" }].map(l => (
+                {[{ label: "Secrets", color: "#2dd4bf" }, { label: "Phishing", color: "#dc2626" }, { label: "DLP", color: "#2563eb" }, { label: "Ext", color: "#7c3aed" }].map(l => (
                   <div key={l.label} style={{ display: "flex", alignItems: "center", gap: 4 }}>
                     <span style={{ width: 8, height: 8, borderRadius: 2, background: l.color }} />
                     <span style={{ fontSize: 10, color: "#8b949e" }}>{l.label}</span>
@@ -123,9 +130,10 @@ export default function IncidentReportsPage() {
             <ResponsiveContainer width="100%" height={140}>
               <BarChart data={weeklyData} margin={{ top: 4, right: 4, left: -10, bottom: 0 }}>
                 <XAxis dataKey="day" tick={{ fill: "#6b7280", fontSize: 10 }} axisLine={false} tickLine={false} />
-                <Bar dataKey="secrets" fill="#2dd4bf" radius={[2, 2, 0, 0]} barSize={10} />
-                <Bar dataKey="phishing" fill="#dc2626" radius={[2, 2, 0, 0]} barSize={10} />
-                <Bar dataKey="dlp" fill="#2563eb" radius={[2, 2, 0, 0]} barSize={10} />
+                <Bar dataKey="secrets"  fill="#2dd4bf" radius={[2, 2, 0, 0]} barSize={8} />
+                <Bar dataKey="phishing" fill="#dc2626" radius={[2, 2, 0, 0]} barSize={8} />
+                <Bar dataKey="dlp"      fill="#2563eb" radius={[2, 2, 0, 0]} barSize={8} />
+                <Bar dataKey="ext"      fill="#7c3aed" radius={[2, 2, 0, 0]} barSize={8} />
               </BarChart>
             </ResponsiveContainer>
           </LazyCard>
