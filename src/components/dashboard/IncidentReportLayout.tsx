@@ -47,6 +47,12 @@ export interface ReportStats {
   weeklyData: { day: string; count: number }[];
 }
 
+interface FilterTab {
+  label: string;
+  value: string | null; /* null = show all */
+  color?: string;
+}
+
 interface Props {
   title: string;
   subtitle: string;
@@ -55,6 +61,7 @@ interface Props {
   onFetch?: (params: FetchParams) => void;
   isFetching?: boolean;
   isLoading?: boolean;
+  filterTabs?: FilterTab[];
 }
 
 const sevStyles: Record<string, { color: string; bg: string; border: string }> = {
@@ -308,7 +315,7 @@ function Sk({ w = "100%", h = 16, r = 6 }: { w?: string | number; h?: number; r?
   return <div style={{ width: w, height: h, borderRadius: r, background: "#21262d", animation: "skPulse 1.4s ease-in-out infinite" }} />;
 }
 
-export default function IncidentReportLayout({ title, subtitle, incidents, stats, onFetch, isFetching = false, isLoading = false }: Props) {
+export default function IncidentReportLayout({ title, subtitle, incidents, stats, onFetch, isFetching = false, isLoading = false, filterTabs }: Props) {
   const [page, setPage] = useState(0);
   const [sevFilter, setSevFilter] = useState<string>("All");
   const [dateFrom, setDateFrom] = useState(() => {
@@ -320,6 +327,7 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
   const [sevOpen, setSevOpen]     = useState(false);
   const [calOpen, setCalOpen]     = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<string | null>(null);
   const perPage = 12;
 
   /* ── Drawer state ── */
@@ -349,6 +357,8 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
       const d = new Date(inc.detectedAt), from = new Date(dateFrom), to = new Date(dateTo);
       to.setHours(23, 59, 59);
       if (d < from || d > to) return false;
+      /* filterTabs active tab */
+      if (activeTab !== null && inc.alertStatus.toLowerCase() !== activeTab.toLowerCase()) return false;
       if (q) {
         return (
           inc.name.toLowerCase().includes(q) ||
@@ -361,7 +371,7 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
       }
       return true;
     });
-  }, [incidents, sevFilter, dateFrom, dateTo, searchQuery]);
+  }, [incidents, sevFilter, dateFrom, dateTo, searchQuery, activeTab]);
 
   /* ── Group incidents by (employee + page URL + date).
        Falls back to (email + secretType + date) if no Page URL available.
@@ -373,9 +383,9 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
       const isExt = EXTENSION_RAW_SET.has(inc.secretType) || inc.details.some(d => d.label === "_extName");
       let key: string;
       if (isExt) {
-        /* Group extensions by browser_id + day so each device session is one row */
+        /* Group all events from the same browser into one row (most-recent first after sort) */
         const browserId = inc.details.find(d => d.label === "Browser ID")?.value ?? inc.email;
-        key = `ext||${browserId}||${inc.detectedAt}`;
+        key = `ext||${browserId}`;
       } else {
         const pageUrl = inc.details.find(d => d.label === "Page URL")?.value
                      ?? inc.details.find(d => d.label === "Full URL")?.value
@@ -448,6 +458,37 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
         <h2 style={{ fontSize: 22, fontWeight: 800, color: "#e6edf3", letterSpacing: "-0.5px", margin: 0 }}>SecureLint Enterprise — {title}</h2>
         <p style={{ fontSize: 13, color: "#8b949e", marginTop: 6 }}>{subtitle}</p>
       </div>
+
+      {/* Optional filter tabs (e.g. Sync / Install / Uninstall for extension reports) */}
+      {filterTabs && filterTabs.length > 0 && (
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {[{ label: "All", value: null, color: "#64748b" }, ...filterTabs].map((tab, ti) => {
+            const isActive = activeTab === tab.value;
+            const c = tab.color ?? "#64748b";
+            return (
+              <button
+                key={ti}
+                onClick={() => setActiveTab(tab.value)}
+                style={{
+                  padding: "5px 16px", borderRadius: 20, border: `1.5px solid ${isActive ? c : c + "44"}`,
+                  background: isActive ? `${c}18` : "transparent",
+                  color: isActive ? c : "#64748b",
+                  fontSize: 12, fontWeight: isActive ? 700 : 500, cursor: "pointer",
+                  transition: "all .15s",
+                }}
+              >
+                {tab.label}
+                {/* show live count from filtered incidents */}
+                {tab.value !== null && (
+                  <span style={{ marginLeft: 5, fontSize: 10, opacity: 0.8 }}>
+                    ({incidents.filter(i => i.alertStatus.toLowerCase() === (tab.value ?? "").toLowerCase()).length})
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -739,13 +780,16 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
         />
       )}
 
-      {/* Drawer panel */}
+      {/* Drawer panel — extension incidents get extra width for the permission cards */}
       <div style={{
         position: "fixed",
         top: 0,
         right: 0,
         height: "100dvh",
-        width: 540,
+        width: drawerInc && (
+          drawerInc.details.some(d => d.label === "_extName") ||
+          ["Extension Installed","Extension Uninstalled","Extension Synced","Malicious Extension","Blacklisted Extension","Extension Activity","extension_sync","extension_install","extension_uninstall","extension_malicious"].includes(drawerInc.secretType)
+        ) ? 680 : 540,
         maxWidth: "98vw",
         background: "#080e1a",
         borderLeft: "1px solid #1a2540",

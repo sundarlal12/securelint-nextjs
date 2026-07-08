@@ -85,6 +85,14 @@ export default function ExtensionsReportPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const EXT_TABS = [
+    { label: "Sync",      value: "Synced",      color: "#818cf8" },
+    { label: "Install",   value: "Installed",   color: "#22c55e" },
+    { label: "Uninstall", value: "Uninstalled",  color: "#f87171" },
+    { label: "Info",      value: "Info",         color: "#60a5fa" },
+    { label: "Blocked",   value: "Blocked",      color: "#ef4444" },
+  ];
+
   return (
     <IncidentReportLayout
       title="Browser Extension Report"
@@ -94,6 +102,7 @@ export default function ExtensionsReportPage() {
       onFetch={loadIncidents}
       isFetching={isFetching}
       isLoading={isLoading}
+      filterTabs={EXT_TABS}
     />
   );
 }
