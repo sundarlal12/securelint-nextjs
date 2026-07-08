@@ -344,15 +344,13 @@ const EXT_TYPE_LABELS: Record<string, string> = {
   extension_type:       "Extension Activity",
 };
 
-function resolveExtensionName(extensions: unknown): { extName: string; extId: string } {
-  if (!extensions) return { extName: "", extId: "" };
-  const tryObj = (o: Record<string, unknown>) => ({
-    extName: String(o.name ?? o.extension_name ?? o.title ?? ""),
-    extId:   String(o.id   ?? o.extension_id   ?? o.ext_id   ?? ""),
-  });
-  if (Array.isArray(extensions) && extensions.length > 0) return tryObj(extensions[0] as Record<string, unknown>);
-  if (typeof extensions === "object") return tryObj(extensions as Record<string, unknown>);
-  return { extName: "", extId: "" };
+/**
+ * Real API stores rich extension data in `inc.extra` as a JSONB object.
+ * `inc.extensions` is typically null; primary data lives in `extra`.
+ */
+function parseExtra(extra: unknown): Record<string, unknown> {
+  if (!extra || typeof extra !== "object") return {};
+  return extra as Record<string, unknown>;
 }
 
 export function mapExtensionIncident(
@@ -362,16 +360,35 @@ export function mapExtensionIncident(
   const email = String(inc.user_email ?? "");
   const { name, initials } = nameFromEmail(email);
   const { detectedAt, detectedTime } = parseTimestamp(String(inc.timestamp ?? inc.created_at ?? ""));
-  const rawType     = String(inc.type ?? inc.secret_type ?? "extension_type");
+  const rawType      = String(inc.type ?? inc.secret_type ?? "extension_type");
   const activityType = EXT_TYPE_LABELS[rawType] ?? "Extension Activity";
   const alertStatus  = mapAction(String(inc.action ?? "sync"));
   const severity     = mapSeverity(String(inc.severity ?? "medium"));
-  const { extName, extId } = resolveExtensionName(inc.extensions);
   const browserId    = String(inc.browser_id ?? "");
   const extVer       = String(inc.extension_version ?? "");
   const tabUrl       = resolveUrl(String(inc.tab_url ?? ""));
   const tabTitle     = String(inc.tab_title ?? "");
   const incId        = String(inc.id ?? "");
+
+  /* ── Parse `extra` which is the primary rich payload ── */
+  const extra        = parseExtra(inc.extra);
+  const extName      = String(extra.extensionName ?? "");
+  const extId        = String(extra.extensionId   ?? "");
+  const extVersion   = String(extra.extensionVersion ?? extVer);
+  const trigger      = String(extra.trigger ?? rawType);
+  const totalExts    = Number(extra.totalExtensions   ?? 0);
+  const maliciousCnt = Number(extra.maliciousCount    ?? 0);
+  const suspiciousCnt= Number(extra.suspiciousCount   ?? 0);
+  const sideloadedCnt= Number(extra.sideloadedCount   ?? 0);
+
+  /* ── serialise extensionsList for the drawer to consume ── */
+  const extensionsList = Array.isArray(extra.extensionsList) ? extra.extensionsList : [];
+  const maliciousList  = Array.isArray(extra.maliciousList)  ? extra.maliciousList  : [];
+  const suspiciousList = Array.isArray(extra.suspiciousList) ? extra.suspiciousList : [];
+
+  /* friendly display name from masked_preview if extra fields are empty */
+  const maskedPreview = String(inc.masked_preview ?? "");
+  const displayName   = extName || maskedPreview.split(" (")[0] || "(unknown)";
 
   return {
     id: incId,
@@ -385,30 +402,46 @@ export function mapExtensionIncident(
     alertStatus,
     detectedAt,
     detectedTime,
-    preview: extName || extId || tabUrl,
-    alertTitle: `${activityType}${extName ? ` — ${extName}` : ""} — ${alertStatus}`,
+    preview: displayName,
+    alertTitle: `${activityType}${displayName ? ` — ${displayName}` : ""} — ${alertStatus}`,
     alertDesc: [
       `Activity type: ${activityType}`,
-      extName  ? `Extension: ${extName}` : "",
-      extId    ? `Extension ID: ${extId}` : "",
+      displayName ? `Extension: ${displayName}` : "",
+      extId       ? `Extension ID: ${extId}` : "",
+      totalExts   ? `Total extensions scanned: ${totalExts}` : "",
+      maliciousCnt  ? `Malicious: ${maliciousCnt}` : "",
+      suspiciousCnt ? `Suspicious: ${suspiciousCnt}` : "",
       `Response: ${alertStatus.toLowerCase()} by SecureLint`,
       `Severity: ${severity}`,
     ].filter(Boolean).join("\n"),
     details: [
-      { icon: "👤",  label: "Employee",      value: name },
-      { icon: "📧",  label: "Email",         value: email },
-      { icon: "🧩",  label: "Activity Type", value: activityType },
-      { icon: "📦",  label: "Extension",     value: extName },
-      { icon: "#️⃣", label: "Extension ID",  value: extId },
-      { icon: "⚠️",  label: "Severity",      value: severity },
-      { icon: "✅",  label: "Action",        value: alertStatus },
-      { icon: "🌐",  label: "Page URL",      value: tabUrl },
-      { icon: "📋",  label: "Page Title",    value: tabTitle },
-      { icon: "🖥️",  label: "Browser ID",   value: browserId },
-      { icon: "📦",  label: "Extension Ver", value: extVer },
-      { icon: "#️⃣", label: "Incident ID",   value: `EXT-${incId}` },
-    ].filter(d => d.value && d.value !== "undefined"),
-    maskedContent: extName || extId || "(no extension data)",
+      { icon: "👤",  label: "Employee",       value: name },
+      { icon: "📧",  label: "Email",          value: email },
+      { icon: "🧩",  label: "Activity Type",  value: activityType },
+      { icon: "📦",  label: "Extension",      value: displayName },
+      { icon: "#️⃣", label: "Extension ID",   value: extId },
+      { icon: "🔢",  label: "Ext Version",    value: extVersion },
+      { icon: "⚠️",  label: "Severity",       value: severity },
+      { icon: "✅",  label: "Action",         value: alertStatus },
+      { icon: "🌐",  label: "Page URL",       value: tabUrl },
+      { icon: "📋",  label: "Page Title",     value: tabTitle },
+      { icon: "🖥️",  label: "Browser ID",    value: browserId },
+      { icon: "📦",  label: "Extension Ver",  value: extVer },
+      { icon: "#️⃣", label: "Incident ID",    value: `EXT-${incId}` },
+      /* serialised rich data consumed by the drawer */
+      { icon: "🔍",  label: "_extTrigger",    value: trigger },
+      { icon: "🔍",  label: "_extName",       value: displayName },
+      { icon: "🔍",  label: "_extId",         value: extId },
+      { icon: "🔍",  label: "_extVersion",    value: extVersion },
+      { icon: "🔍",  label: "_totalExts",     value: String(totalExts) },
+      { icon: "🔍",  label: "_maliciousCnt",  value: String(maliciousCnt) },
+      { icon: "🔍",  label: "_suspiciousCnt", value: String(suspiciousCnt) },
+      { icon: "🔍",  label: "_sideloadedCnt", value: String(sideloadedCnt) },
+      { icon: "🔍",  label: "_extensionsList",value: JSON.stringify(extensionsList) },
+      { icon: "🔍",  label: "_maliciousList", value: JSON.stringify(maliciousList) },
+      { icon: "🔍",  label: "_suspiciousList",value: JSON.stringify(suspiciousList) },
+    ].filter(d => d.value && d.value !== "undefined" && d.value !== "0" && d.value !== "[]"),
+    maskedContent: displayName || "(no extension data)",
     browserInfo: mapBrowserInfo(inc.browser_info),
   };
 }
