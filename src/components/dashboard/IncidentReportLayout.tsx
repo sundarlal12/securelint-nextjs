@@ -379,13 +379,22 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
   const grouped = useMemo<GroupedIncident[]>(() => {
     const EXTENSION_RAW_SET = new Set(["extension_sync","extension_install","extension_uninstall","extension_malicious","extension_blacklist","extension_all","extension_type","Extension Installed","Extension Uninstalled","Extension Synced","Malicious Extension","Blacklisted Extension","Extension Activity"]);
     const map = new Map<string, GroupedIncident>();
-    filtered.forEach(inc => {
+
+    /* Sort desc by detectedAt so the newest occurrence becomes the representative */
+    const sorted = [...filtered].sort((a, b) =>
+      new Date(b.detectedAt).getTime() - new Date(a.detectedAt).getTime()
+    );
+
+    sorted.forEach(inc => {
       const isExt = EXTENSION_RAW_SET.has(inc.secretType) || inc.details.some(d => d.label === "_extName");
       let key: string;
       if (isExt) {
-        /* Group all events from the same browser into one row (most-recent first after sort) */
-        const browserId = inc.details.find(d => d.label === "Browser ID")?.value ?? inc.email;
-        key = `ext||${browserId}`;
+        /* Group by extensionId — one row per unique extension */
+        const extId = inc.details.find(d => d.label === "_extId")?.value
+                   || inc.details.find(d => d.label === "Extension ID")?.value
+                   || inc.preview
+                   || inc.id;
+        key = `ext||${extId}`;
       } else {
         const pageUrl = inc.details.find(d => d.label === "Page URL")?.value
                      ?? inc.details.find(d => d.label === "Full URL")?.value
