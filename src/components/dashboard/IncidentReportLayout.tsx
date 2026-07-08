@@ -468,37 +468,6 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
         <p style={{ fontSize: 13, color: "#8b949e", marginTop: 6 }}>{subtitle}</p>
       </div>
 
-      {/* Optional filter tabs (e.g. Sync / Install / Uninstall for extension reports) */}
-      {filterTabs && filterTabs.length > 0 && (
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          {[{ label: "All", value: null, color: "#64748b" }, ...filterTabs].map((tab, ti) => {
-            const isActive = activeTab === tab.value;
-            const c = tab.color ?? "#64748b";
-            return (
-              <button
-                key={ti}
-                onClick={() => setActiveTab(tab.value)}
-                style={{
-                  padding: "5px 16px", borderRadius: 20, border: `1.5px solid ${isActive ? c : c + "44"}`,
-                  background: isActive ? `${c}18` : "transparent",
-                  color: isActive ? c : "#64748b",
-                  fontSize: 12, fontWeight: isActive ? 700 : 500, cursor: "pointer",
-                  transition: "all .15s",
-                }}
-              >
-                {tab.label}
-                {/* show live count from filtered incidents */}
-                {tab.value !== null && (
-                  <span style={{ marginLeft: 5, fontSize: 10, opacity: 0.8 }}>
-                    ({incidents.filter(i => i.alertStatus.toLowerCase() === (tab.value ?? "").toLowerCase()).length})
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {([
@@ -695,6 +664,38 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
           </button>
         </div>
       </div>
+
+      {/* Filter tabs — shown between search bar and table when provided */}
+      {filterTabs && filterTabs.length > 0 && (
+        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", paddingBottom: 2 }}>
+          {[{ label: "All", value: null, color: "#64748b" }, ...filterTabs].map((tab, ti) => {
+            const isActive = activeTab === tab.value;
+            const c = tab.color ?? "#64748b";
+            const cnt = tab.value === null
+              ? incidents.length
+              : incidents.filter(i => i.alertStatus.toLowerCase() === tab.value!.toLowerCase()).length;
+            return (
+              <button
+                key={ti}
+                onClick={() => { setActiveTab(tab.value); setPage(0); }}
+                style={{
+                  padding: "5px 14px", borderRadius: 20,
+                  border: `1.5px solid ${isActive ? c : "#21262d"}`,
+                  background: isActive ? `${c}18` : "#0d1117",
+                  color: isActive ? c : "#8b949e",
+                  fontSize: 12, fontWeight: isActive ? 700 : 400, cursor: "pointer",
+                  transition: "all .15s",
+                }}
+              >
+                {tab.label}
+                <span style={{ marginLeft: 5, fontSize: 11, opacity: isActive ? 1 : 0.6 }}>
+                  ({cnt})
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Table — full width */}
       <div style={{ ...cs, padding: 0, overflow: "hidden" }}>
