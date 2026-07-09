@@ -1040,10 +1040,10 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                   </div>
                 </div>
 
-                {/* ── Detection Overview + Secret Types (2 col) ── */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  {/* Left: Detection Overview */}
-                  <div style={{ ...card, display: "flex", flexDirection: "column", gap: 0 }}>
+                {/* ── Detection Overview + Secret Types (2 col, or full-width for phishing) ── */}
+                <div style={{ display: isPhishing ? "block" : "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  {/* Left: Detection Overview — hidden for phishing */}
+                  <div style={{ ...card, display: isPhishing ? "none" : "flex", flexDirection: "column", gap: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12 }}>
                       <div style={{ width: 26, height: 26, borderRadius: 7, background: "#111827", border: "1px solid #1a2540", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="12" width="4" height="9" rx="1" fill="#60a5fa"/><rect x="10" y="7" width="4" height="14" rx="1" fill="#3b82f6"/><rect x="17" y="3" width="4" height="18" rx="1" fill="#2563eb"/></svg>
@@ -1080,7 +1080,7 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                   </div>
 
                   {/* Right: Secret Types / Email DLP / Phishing Detection */}
-                  <div style={{ ...card, display: "flex", flexDirection: "column" }}>
+                  <div style={{ ...card, display: "flex", flexDirection: "column", gridColumn: isPhishing ? "1 / -1" : undefined }}>
                     {isEmailDlp ? (
                       <>
                         <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12 }}>
@@ -1215,13 +1215,130 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                             </div>
                           )}
 
-                          {/* Site phishing: show type counts */}
-                          {!isMailPhish && typeCounts.map(([type, cnt], ti) => (
-                            <div key={ti} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 8px", borderRadius: 7, background: "#080e1a", border: "1px solid #1a2540" }}>
-                              <span style={{ fontSize: 10, color: "#fb923c", fontWeight: 600, flex: 1 }}>{type}</span>
-                              {cnt > 1 && <span style={{ fontSize: 9, fontWeight: 800, padding: "1px 7px", borderRadius: 10, background: "#1a0e06", border: "1px solid #f9731633", color: "#f97316", flexShrink: 0, marginLeft: 6 }}>×{cnt}</span>}
-                            </div>
-                          ))}
+                          {/* Site phishing: rich detection data */}
+                          {!isMailPhish && (() => {
+                            const spv = (lbl: string) => inc.details.find(x => x.label === lbl)?.value ?? "";
+                            const isPhishSite    = spv("_isPhishSite") === "true";
+                            const siteUrl        = spv("_psite_url");
+                            const siteScore      = spv("_psite_score");
+                            const siteRisk       = spv("_psite_riskScore");
+                            const siteVerdict    = spv("_psite_verdict");
+                            const siteStatus2    = spv("_psite_status");
+                            const ssl: Record<string,unknown>  = (() => { try { return JSON.parse(spv("_psite_ssl") || "{}"); } catch { return {}; } })();
+                            const whois: Record<string,unknown> = (() => { try { return JSON.parse(spv("_psite_whois") || "{}"); } catch { return {}; } })();
+                            const goog: Record<string,unknown>  = (() => { try { return JSON.parse(spv("_psite_google") || "{}"); } catch { return {}; } })();
+                            const tank: Record<string,unknown>  = (() => { try { return JSON.parse(spv("_psite_tankphish") || "{}"); } catch { return {}; } })();
+                            const slData: Record<string,unknown> = (() => { try { return JSON.parse(spv("_psite_securelint") || "{}"); } catch { return {}; } })();
+                            const trans: Record<string,unknown>  = (() => { try { return JSON.parse(spv("_psite_transparency") || "{}"); } catch { return {}; } })();
+
+                            const statusColor = (s: string) => s === "safe" ? "#22c55e" : s === "unsafe" || s === "danger" ? "#ef4444" : s === "suspicious" ? "#f97316" : "#94a3b8";
+                            const tick  = (ok: unknown) => ok ? <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#22c55e" strokeWidth="1.8"/><path d="M8 12l3 3 5-5" stroke="#22c55e" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                                                               : <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#ef4444" strokeWidth="1.8"/><path d="M15 9l-6 6M9 9l6 6" stroke="#ef4444" strokeWidth="1.8" strokeLinecap="round"/></svg>;
+
+                            if (!isPhishSite) return typeCounts.map(([type, cnt], ti) => (
+                              <div key={ti} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 8px", borderRadius: 7, background: "#080e1a", border: "1px solid #1a2540" }}>
+                                <span style={{ fontSize: 10, color: "#fb923c", fontWeight: 600, flex: 1 }}>{type}</span>
+                                {cnt > 1 && <span style={{ fontSize: 9, fontWeight: 800, padding: "1px 7px", borderRadius: 10, background: "#1a0e06", border: "1px solid #f9731633", color: "#f97316", flexShrink: 0, marginLeft: 6 }}>×{cnt}</span>}
+                              </div>
+                            ));
+
+                            return (
+                              <>
+                                {/* URL + verdict row */}
+                                {siteUrl && (
+                                  <div style={{ padding: "7px 10px", background: "#0d0a06", border: "1px solid #f9731444", borderRadius: 7, marginBottom: 8 }}>
+                                    <div style={{ fontSize: 8, color: "#4a5568", marginBottom: 2 }}>PHISHING URL</div>
+                                    <div style={{ fontSize: 10, color: "#fca5a5", fontFamily: "monospace", wordBreak: "break-all", fontWeight: 600 }}>{siteUrl}</div>
+                                  </div>
+                                )}
+
+                                {/* Scores row */}
+                                <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 8 }}>
+                                  {siteScore   && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, background: "#2d0a0a", border: "1px solid #ef444444", color: "#ef4444", fontWeight: 700 }}>Score {siteScore}/100</span>}
+                                  {siteRisk    && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, background: "#2d1a0a", border: "1px solid #f9731444", color: "#f97316", fontWeight: 700 }}>Risk {siteRisk}/100</span>}
+                                  {siteVerdict && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, background: "#0d1525", border: "1px solid #1e2d45", color: statusColor(siteVerdict), fontWeight: 600, textTransform: "capitalize" }}>{siteVerdict}</span>}
+                                  {siteStatus2 && siteStatus2 !== siteVerdict && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, background: "#0d1525", border: "1px solid #1e2d45", color: statusColor(siteStatus2), textTransform: "capitalize" }}>{siteStatus2}</span>}
+                                </div>
+
+                                {/* Detection engines */}
+                                <div style={{ marginBottom: 8 }}>
+                                  <div style={{ fontSize: 8, color: "#4a5568", fontWeight: 700, letterSpacing: 0.5, marginBottom: 4 }}>DETECTION ENGINES</div>
+                                  <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                                    {/* Google Safe Browsing */}
+                                    {goog.score != null && (
+                                      <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "5px 8px", background: "#080e1a", border: "1px solid #1a2540", borderRadius: 6 }}>
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10" stroke="#4285f4" strokeWidth="1.6"/><circle cx="12" cy="12" r="4" fill="#4285f4"/></svg>
+                                        <span style={{ fontSize: 10, color: "#94a3b8", flex: 1 }}>Google Safe Browsing</span>
+                                        <span style={{ fontSize: 9, color: goog.severity === "low" ? "#22c55e" : "#ef4444", fontFamily: "monospace" }}>score {String(goog.score)}</span>
+                                        {!!goog.severity && <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 10, background: goog.severity === "low" ? "#0a1a14" : "#2d0a0a", color: goog.severity === "low" ? "#22c55e" : "#ef4444" }}>{String(goog.severity)}</span>}
+                                      </div>
+                                    )}
+                                    {/* PhishTank */}
+                                    {(tank.is_phish != null || tank.verified != null) && (
+                                      <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "5px 8px", background: "#080e1a", border: `1px solid ${tank.is_phish ? "#ef444433" : "#1a2540"}`, borderRadius: 6 }}>
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93z" fill={tank.is_phish ? "#ef4444" : "#4a5568"}/></svg>
+                                        <span style={{ fontSize: 10, color: "#94a3b8", flex: 1 }}>PhishTank</span>
+                                        {tick(tank.is_phish === false)}
+                                        <span style={{ fontSize: 9, color: tank.is_phish ? "#ef4444" : "#22c55e" }}>{tank.is_phish ? "phishing detected" : "clean"}</span>
+                                        {!!tank.verified && <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 10, background: "#1e1a35", color: "#a78bfa" }}>verified</span>}
+                                      </div>
+                                    )}
+                                    {/* SecureLint */}
+                                    {slData.type != null && (
+                                      <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "5px 8px", background: "#080e1a", border: "1px solid #4338ca33", borderRadius: 6 }}>
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4z" stroke="#818cf8" strokeWidth="1.8"/></svg>
+                                        <span style={{ fontSize: 10, color: "#94a3b8", flex: 1 }}>SecureLint AI</span>
+                                        <span style={{ fontSize: 9, color: "#818cf8", fontFamily: "monospace" }}>{String(slData.type)}</span>
+                                        {!!slData.action && <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 10, background: "#0f0f2a", border: "1px solid #4338ca33", color: "#818cf8" }}>{String(slData.action)}</span>}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* SSL + WHOIS in 2 cols */}
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                                  {/* SSL */}
+                                  {Object.keys(ssl).length > 0 && (
+                                    <div style={{ padding: "8px 10px", background: "#080e1a", border: "1px solid #1a2540", borderRadius: 8 }}>
+                                      <div style={{ fontSize: 8, color: "#4a5568", fontWeight: 700, letterSpacing: 0.5, marginBottom: 5 }}>SSL / TLS</div>
+                                      <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                          {tick(ssl.hasHttps)}<span style={{ fontSize: 9, color: ssl.hasHttps ? "#22c55e" : "#ef4444" }}>HTTPS</span>
+                                        </div>
+                                        {!!ssl.tlsVersion && <div style={{ fontSize: 9, color: "#64748b" }}>TLS: <span style={{ color: "#94a3b8" }}>{String(ssl.tlsVersion)}</span></div>}
+                                        {!!ssl.issuer && <div style={{ fontSize: 9, color: "#64748b" }}>Issuer: <span style={{ color: "#94a3b8" }}>{String(ssl.issuer)}</span></div>}
+                                        {ssl.daysLeft != null && <div style={{ fontSize: 9, color: "#64748b" }}>Expires in: <span style={{ color: Number(ssl.daysLeft) < 30 ? "#f97316" : "#22c55e" }}>{String(ssl.daysLeft)}d</span></div>}
+                                      </div>
+                                    </div>
+                                  )}
+                                  {/* WHOIS */}
+                                  {Object.keys(whois).length > 0 && (
+                                    <div style={{ padding: "8px 10px", background: "#080e1a", border: "1px solid #1a2540", borderRadius: 8 }}>
+                                      <div style={{ fontSize: 8, color: "#4a5568", fontWeight: 700, letterSpacing: 0.5, marginBottom: 5 }}>DOMAIN WHOIS</div>
+                                      <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                                        {whois.ageDays != null && <div style={{ fontSize: 9, color: "#64748b" }}>Age: <span style={{ color: Number(whois.ageDays) < 30 ? "#ef4444" : "#94a3b8", fontWeight: 600 }}>{String(whois.ageDays)} days</span></div>}
+                                        {!!whois.registrationDate && <div style={{ fontSize: 9, color: "#64748b" }}>Reg: <span style={{ color: "#94a3b8" }}>{String(whois.registrationDate)}</span></div>}
+                                        {!!whois.registrar && <div style={{ fontSize: 9, color: "#64748b" }}>Registrar: <span style={{ color: "#94a3b8" }}>{String(whois.registrar)}</span></div>}
+                                        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 1 }}>
+                                          {tick(!whois.privacyProtected)}<span style={{ fontSize: 9, color: "#64748b" }}>Privacy {whois.privacyProtected ? "protected" : "public"}</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Transparency report flags */}
+                                {(trans.phishing || trans.malware || trans.harmfulRedirects || trans.dangerousDownloads) && (
+                                  <div style={{ marginTop: 6, display: "flex", gap: 4, flexWrap: "wrap" }}>
+                                    {!!trans.phishing          && <span style={{ fontSize: 8, padding: "2px 7px", borderRadius: 20, background: "#2d0a0a", border: "1px solid #ef444433", color: "#ef4444" }}>phishing</span>}
+                                    {!!trans.malware           && <span style={{ fontSize: 8, padding: "2px 7px", borderRadius: 20, background: "#2d0a0a", border: "1px solid #ef444433", color: "#ef4444" }}>malware</span>}
+                                    {!!trans.harmfulRedirects  && <span style={{ fontSize: 8, padding: "2px 7px", borderRadius: 20, background: "#2d1a0a", border: "1px solid #f9731433", color: "#f97316" }}>harmful redirects</span>}
+                                    {!!trans.dangerousDownloads && <span style={{ fontSize: 8, padding: "2px 7px", borderRadius: 20, background: "#2d1a0a", border: "1px solid #f9731433", color: "#f97316" }}>dangerous downloads</span>}
+                                  </div>
+                                )}
+                              </>
+                            );
+                          })()}
                         </>
                       );
                     })() : isExtension ? (
@@ -1511,16 +1628,34 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                       }
 
                       /* Site phishing flow */
+                      const pSiteUrl   = dpv("_psite_url");
+                      const pSiteScore = dpv("_psite_score");
+                      const pSiteVerdict = dpv("_psite_verdict");
+                      const actualSiteUrl = pSiteUrl || pageUrl;
                       return (
                         <>
-                          {/* Step 1: Browser tab opened */}
+                          {/* Step 1: User opened new tab and navigated */}
                           <div style={{ display: "flex", gap: 12 }}>
                             {stepIcon("#0c1628", "#3b82f6", <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#3b82f6" strokeWidth="1.8"/><path d="M8 21h8M12 17v4" stroke="#3b82f6" strokeWidth="1.8" strokeLinecap="round"/></svg>)}
                             <div style={{ paddingBottom: 20, flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedAt}</div>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>User navigated to website</div>
+                              <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>User opened new browser tab</div>
                               <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{inc.email}</div>
-                              {urlBlock}
+                              {/* Show actual phishing URL if available, otherwise fallback */}
+                              {actualSiteUrl && (
+                                <div style={{ marginTop: 5 }}>
+                                  <div style={{ fontSize: 9, color: "#4a5568", marginBottom: 2 }}>Navigated to</div>
+                                  <a href={actualSiteUrl} target="_blank" rel="noopener noreferrer"
+                                    style={{ fontSize: 10, color: "#fca5a5", wordBreak: "break-all", textDecoration: "none", display: "flex", alignItems: "flex-start", gap: 4 }}
+                                    onMouseEnter={e => (e.currentTarget.style.textDecoration = "underline")}
+                                    onMouseLeave={e => (e.currentTarget.style.textDecoration = "none")}
+                                  >
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style={{ marginTop: 1, flexShrink: 0 }}><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke="#fca5a5" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                                    {actualSiteUrl}
+                                  </a>
+                                  {pageTitle && pageTitle !== "New Tab" && <div style={{ fontSize: 9, color: "#4a5568", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pageTitle}</div>}
+                                </div>
+                              )}
                               {biChips}
                             </div>
                           </div>
@@ -1530,19 +1665,22 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                             {stepIcon("#2d0a0a", "#ef4444", <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#ef4444" strokeWidth="1.6"/></svg>)}
                             <div style={{ paddingBottom: 20, flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: "#ef4444" }}>Phishing site detected by SecureLint</div>
-                              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 3 }}>Threat: {inc.secretType}</div>
-                              {inc.preview && <div style={{ marginTop: 4, fontSize: 10, color: "#64748b", fontFamily: "monospace", wordBreak: "break-all" }}>{inc.preview}</div>}
+                              <div style={{ fontSize: 12, fontWeight: 600, color: "#ef4444" }}>SecureLint v{extVer || "?"} detected phishing site</div>
+                              <div style={{ fontSize: 11, color: "#fca5a5", marginTop: 3, wordBreak: "break-all" }}>{actualSiteUrl}</div>
+                              <div style={{ marginTop: 5, display: "flex", gap: 5, flexWrap: "wrap" }}>
+                                {pSiteScore   && <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 20, background: "#2d0a0a", border: "1px solid #ef444433", color: "#ef4444", fontWeight: 700 }}>Score {pSiteScore}/100</span>}
+                                {pSiteVerdict && <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 20, background: "#0d1525", border: "1px solid #1e2d45", color: "#fca5a5", textTransform: "capitalize" }}>{pSiteVerdict}</span>}
+                              </div>
                             </div>
                           </div>
 
-                          {/* Step 3: Action */}
+                          {/* Step 3: Action taken */}
                           <div style={{ display: "flex", gap: 12 }}>
                             {lastIcon(`${ac.dot}22`, ac.dot, <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4z" stroke={ac.dot} strokeWidth="1.8"/><path d="M9 12l2 2 4-4" stroke={ac.dot} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>)}
                             <div style={{ paddingBottom: 4, flex: 1 }}>
                               <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
                               <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>Access <span style={{ color: ac.color }}>{ac.label}</span> by SecureLint WAF</div>
-                              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>Threat intelligence + AI scoring enforced. User protected from phishing site.</div>
+                              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>Threat intelligence, PhishTank, and AI scoring enforced. User protected from phishing site.</div>
                             </div>
                           </div>
                         </>

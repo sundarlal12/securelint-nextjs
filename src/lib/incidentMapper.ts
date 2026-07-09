@@ -213,6 +213,24 @@ export function mapPhishingIncident(
   const isPhishingMail  = rawType === "phishing_mail" || rawType === "phishing_mail_v2" ||
                           incidentTypeRaw === "Gmail_Phish" || incidentTypeRaw.includes("Phish") ||
                           rawType === "Gmail_Phish";
+  const isPhishingSite  = !isPhishingMail && (
+                          rawType === "phishing" || rawType === "phishing_site" ||
+                          (inc.type as string | undefined) === "phishing_site");
+
+  /* ── Phishing site — raw enhanced detection data ── */
+  const rawEnhanced     = (extra.rawEnhanced as Record<string, unknown>) ?? {};
+  const phishSiteUrl    = String(rawEnhanced.url ?? extra.tabUrl ?? (rawTabUrl.startsWith("chrome") ? "" : rawTabUrl) ?? "");
+  const phishSiteScore  = extra.score ?? extra.site_score ?? rawEnhanced.score;
+  const phishSiteRisk   = extra.riskScore ?? "";
+  const phishSiteVerdict= String(extra.verdict ?? extra.status ?? "");
+  const phishSiteStatus = String(extra.site_status ?? extra.status ?? "");
+  const sslObj          = (extra.ssl as Record<string,unknown>) ?? {};
+  const whoisObj        = (extra.whois as Record<string,unknown>) ?? {};
+  const googleObj       = (rawEnhanced.google  as Record<string,unknown>) ?? {};
+  const tankphishObj    = (rawEnhanced.tankphish as Record<string,unknown>) ?? {};
+  const slObj           = (rawEnhanced.securelint as Record<string,unknown>) ?? {};
+  const transRptObj     = (extra.transparencyReport as Record<string,unknown>) ?? {};
+  const blocklistObj    = (extra.blocklist as Record<string,unknown>) ?? {};
 
   const phishAuth      = (extra.auth   as Record<string, unknown>) ?? {};
   const phishFlags     = (extra.flags  as Record<string, unknown>) ?? {};
@@ -257,8 +275,8 @@ export function mapPhishingIncident(
     alertStatus,
     detectedAt,
     detectedTime,
-    preview: isPhishingMail ? (phishSubject || domain) : domain,
-    alertTitle: `${attackType} — ${isPhishingMail ? (phishSubject || domain) : domain}`,
+    preview: isPhishingMail ? (phishSubject || domain) : isPhishingSite ? (phishSiteUrl || domain) : domain,
+    alertTitle: `${attackType} — ${isPhishingMail ? (phishSubject || domain) : isPhishingSite ? (phishSiteUrl || domain) : domain}`,
     alertDesc: [
       `Incident type: ${attackType}`,
       `Domain: ${isPhishingMail ? phishDomain : domain}${phishScore ? ` · risk score ${phishScore}` : ""}`,
@@ -297,6 +315,22 @@ export function mapPhishingIncident(
         { icon: "", label: "_phish_signals",    value: JSON.stringify(phishSignals) },
         { icon: "", label: "_phish_bodyUrls",   value: JSON.stringify(bodyUrls) },
         { icon: "", label: "_isPhishMail",      value: "true" },
+      ] : []),
+      /* phishing-site rich fields */
+      ...(isPhishingSite ? [
+        { icon: "", label: "_psite_url",          value: phishSiteUrl },
+        { icon: "", label: "_psite_score",        value: phishSiteScore != null ? String(phishSiteScore) : "" },
+        { icon: "", label: "_psite_riskScore",    value: phishSiteRisk  != null ? String(phishSiteRisk)  : "" },
+        { icon: "", label: "_psite_verdict",      value: phishSiteVerdict },
+        { icon: "", label: "_psite_status",       value: phishSiteStatus },
+        { icon: "", label: "_psite_ssl",          value: JSON.stringify(sslObj) },
+        { icon: "", label: "_psite_whois",        value: JSON.stringify(whoisObj) },
+        { icon: "", label: "_psite_google",       value: JSON.stringify(googleObj) },
+        { icon: "", label: "_psite_tankphish",    value: JSON.stringify(tankphishObj) },
+        { icon: "", label: "_psite_securelint",   value: JSON.stringify(slObj) },
+        { icon: "", label: "_psite_transparency", value: JSON.stringify(transRptObj) },
+        { icon: "", label: "_psite_blocklist",    value: JSON.stringify(blocklistObj) },
+        { icon: "", label: "_isPhishSite",        value: "true" },
       ] : []),
     ].filter((d): d is { icon: string; label: string; value: string } =>
       d !== null && Boolean(d.value) && d.value !== "undefined" && d.value !== "[]"
