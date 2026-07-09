@@ -340,13 +340,14 @@ export function mapDlpIncident(
 // EXTENSION (browser extension activity) mapper
 // ─────────────────────────────────────────────────────────────────────────────
 const EXT_TYPE_LABELS: Record<string, string> = {
-  extension_install:    "Extension Installed",
-  extension_uninstall:  "Extension Uninstalled",
-  extension_sync:       "Extension Synced",
-  extension_malicious:  "Malicious Extension",
-  extension_blacklist:  "Blacklisted Extension",
-  extension_all:        "Extension Activity",
-  extension_type:       "Extension Activity",
+  extension_install:          "Extension Installed",
+  extension_uninstall:        "Extension Uninstalled",
+  extension_sync:             "Extension Synced",
+  extension_malicious:        "Malicious Extension",
+  extension_blacklist:        "Blacklisted Extension",
+  blacklist_extensions_visit: "Blacklisted Extension Visit",
+  extension_all:              "Extension Activity",
+  extension_type:             "Extension Activity",
 };
 
 /**
@@ -385,6 +386,17 @@ export function mapExtensionIncident(
   const maliciousCnt = Number(extra.maliciousCount    ?? 0);
   const suspiciousCnt= Number(extra.suspiciousCount   ?? 0);
   const sideloadedCnt= Number(extra.sideloadedCount   ?? 0);
+
+  /* ── blacklist_extensions_visit specific fields ── */
+  const isBlacklistVisit = rawType === "blacklist_extensions_visit";
+  const cwsUrl           = String(extra.cwsUrl       ?? "");
+  const riskScore        = extra.riskScore != null ? Number(extra.riskScore) : -1;
+  const policyStatus     = String(extra.policyStatus ?? "");
+  const detectionSource  = String(extra.detectionSource ?? "");
+  const complianceRefs   = Array.isArray(extra.complianceRefs) ? (extra.complianceRefs as string[]) : [];
+  const extPerms         = Array.isArray(extra.extensionPermissions) ? (extra.extensionPermissions as string[]) : [];
+  const extInstallType   = String(extra.extensionInstallType ?? extra.installType ?? "");
+  const extEnabled       = extra.extensionEnabled;
 
   /* ── serialise extensionsList for the drawer to consume ── */
   const extensionsList = Array.isArray(extra.extensionsList) ? extra.extensionsList : [];
@@ -434,18 +446,29 @@ export function mapExtensionIncident(
       { icon: "📦",  label: "Extension Ver",  value: extVer },
       { icon: "#️⃣", label: "Incident ID",    value: `EXT-${incId}` },
       /* serialised rich data consumed by the drawer */
-      { icon: "🔍",  label: "_extTrigger",    value: trigger },
-      { icon: "🔍",  label: "_extName",       value: displayName },
-      { icon: "🔍",  label: "_extId",         value: extId },
-      { icon: "🔍",  label: "_extVersion",    value: extVersion },
-      { icon: "🔍",  label: "_totalExts",     value: String(totalExts) },
-      { icon: "🔍",  label: "_maliciousCnt",  value: String(maliciousCnt) },
-      { icon: "🔍",  label: "_suspiciousCnt", value: String(suspiciousCnt) },
-      { icon: "🔍",  label: "_sideloadedCnt", value: String(sideloadedCnt) },
-      { icon: "🔍",  label: "_extensionsList",value: JSON.stringify(extensionsList) },
-      { icon: "🔍",  label: "_maliciousList", value: JSON.stringify(maliciousList) },
-      { icon: "🔍",  label: "_suspiciousList",value: JSON.stringify(suspiciousList) },
-    ].filter(d => d.value && d.value !== "undefined" && d.value !== "0" && d.value !== "[]"),
+      { icon: "🔍",  label: "_extTrigger",     value: trigger },
+      { icon: "🔍",  label: "_extName",        value: displayName },
+      { icon: "🔍",  label: "_extId",          value: extId },
+      { icon: "🔍",  label: "_extVersion",     value: extVersion },
+      { icon: "🔍",  label: "_extInstallType", value: extInstallType },
+      { icon: "🔍",  label: "_extEnabled",     value: extEnabled === true ? "true" : extEnabled === false ? "false" : "" },
+      { icon: "🔍",  label: "_totalExts",      value: String(totalExts) },
+      { icon: "🔍",  label: "_maliciousCnt",   value: String(maliciousCnt) },
+      { icon: "🔍",  label: "_suspiciousCnt",  value: String(suspiciousCnt) },
+      { icon: "🔍",  label: "_sideloadedCnt",  value: String(sideloadedCnt) },
+      { icon: "🔍",  label: "_extensionsList", value: JSON.stringify(extensionsList) },
+      { icon: "🔍",  label: "_maliciousList",  value: JSON.stringify(maliciousList) },
+      { icon: "🔍",  label: "_suspiciousList", value: JSON.stringify(suspiciousList) },
+      /* blacklist_extensions_visit specific */
+      ...(isBlacklistVisit ? [
+        { icon: "🔗",  label: "_cwsUrl",          value: cwsUrl },
+        { icon: "📊",  label: "_riskScore",        value: riskScore >= 0 ? String(riskScore) : "" },
+        { icon: "📋",  label: "_policyStatus",     value: policyStatus },
+        { icon: "🔎",  label: "_detectionSource",  value: detectionSource },
+        { icon: "🔑",  label: "_extPerms",         value: JSON.stringify(extPerms) },
+        { icon: "📜",  label: "_complianceRefs",   value: JSON.stringify(complianceRefs) },
+      ] : []),
+    ].filter(d => d.value && d.value !== "undefined" && d.value !== "0" && d.value !== "[]" && d.value !== "-1"),
     maskedContent: displayName || "(no extension data)",
     browserInfo: mapBrowserInfo(inc.browser_info),
   };

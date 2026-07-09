@@ -127,34 +127,63 @@ type ExtRow = {
   permissions?: string[]; hostPerms?: string[]; detectedAt?: string;
 };
 
+function ExtChip({ icon, label, color = "#64748b", bg = "#080e1a", border = "#1e2d45" }: { icon?: React.ReactNode; label: string; color?: string; bg?: string; border?: string }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 8, padding: "2px 7px", borderRadius: 20, background: bg, border: `1px solid ${border}`, color }}>
+      {icon}{label}
+    </span>
+  );
+}
+
 function ExtensionActivityCard({ inc }: { inc: Incident }) {
   const [expandedIdx, setExpandedIdx] = React.useState<number | null>(null);
 
   const dv = (lbl: string) => inc.details.find(x => x.label === lbl)?.value ?? "";
-  const totalExts    = Number(dv("_totalExts")    || 0);
-  const malicious    = Number(dv("_maliciousCnt") || 0);
-  const suspicious   = Number(dv("_suspiciousCnt")|| 0);
-  const sideloaded   = Number(dv("_sideloadedCnt")|| 0);
-  const extListRaw   = dv("_extensionsList");
-  const malListRaw   = dv("_maliciousList");
-  const susListRaw   = dv("_suspiciousList");
+  const totalExts       = Number(dv("_totalExts")    || 0);
+  const malicious       = Number(dv("_maliciousCnt") || 0);
+  const suspicious      = Number(dv("_suspiciousCnt")|| 0);
+  const sideloaded      = Number(dv("_sideloadedCnt")|| 0);
+  const extListRaw      = dv("_extensionsList");
+  const malListRaw      = dv("_maliciousList");
+  const susListRaw      = dv("_suspiciousList");
+  const cwsUrl          = dv("_cwsUrl");
+  const riskScore       = dv("_riskScore");
+  const policyStatus    = dv("_policyStatus");
+  const detectionSource = dv("_detectionSource");
+  const extPermsRaw     = dv("_extPerms");
+  const complianceRaw   = dv("_complianceRefs");
+  const extInstallType  = dv("_extInstallType");
+  const extEnabledStr   = dv("_extEnabled");
+
   const extList: ExtRow[] = (() => { try { return JSON.parse(extListRaw || "[]"); } catch { return []; } })();
   const malList: { extensionId?: string; extensionName?: string }[] = (() => { try { return JSON.parse(malListRaw || "[]"); } catch { return []; } })();
   const susList: { extensionId?: string; extensionName?: string }[] = (() => { try { return JSON.parse(susListRaw || "[]"); } catch { return []; } })();
+  const extPerms: string[] = (() => { try { return JSON.parse(extPermsRaw || "[]"); } catch { return []; } })();
+  const complianceRefs: string[] = (() => { try { return JSON.parse(complianceRaw || "[]"); } catch { return []; } })();
+  const isBlacklisted   = !!cwsUrl || inc.secretType === "Blacklisted Extension Visit";
 
   const actionColor: Record<string, string> = {
     Synced: "#818cf8", Installed: "#22c55e", Uninstalled: "#f87171",
     Blocked: "#ef4444", Masked: "#a78bfa", Detected: "#94a3b8", Info: "#60a5fa",
   };
+  const RISKY_PERMS = new Set(["proxy","webRequest","declarativeNetRequestWithHostAccess","downloads","nativeMessaging","clipboardRead","management","cookies","identity"]);
+
+  /* icons */
+  const storeIco = <svg width="8" height="8" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="M9 22V12h6v10" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg>;
+  const normalIco = <svg width="8" height="8" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4z" stroke="currentColor" strokeWidth="1.8"/></svg>;
+  const enabledIco = <svg width="8" height="8" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8"/><path d="M8 12l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>;
+  const disabledIco = <svg width="8" height="8" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8"/><path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>;
 
   return (
     <>
       {/* Header row */}
       <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
-        <div style={{ width: 26, height: 26, borderRadius: 7, background: "#1e1a35", border: "1px solid #4c1d95", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#a78bfa" strokeWidth="1.6"/><path d="M8 9h8M8 12h8M8 15h5" stroke="#a78bfa" strokeWidth="1.4" strokeLinecap="round"/></svg>
+        <div style={{ width: 26, height: 26, borderRadius: 7, background: isBlacklisted ? "#2d0a0a" : "#1e1a35", border: `1px solid ${isBlacklisted ? "#ef444455" : "#4c1d95"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          {isBlacklisted
+            ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#ef4444" strokeWidth="1.8"/></svg>
+            : <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#a78bfa" strokeWidth="1.6"/><path d="M8 9h8M8 12h8M8 15h5" stroke="#a78bfa" strokeWidth="1.4" strokeLinecap="round"/></svg>}
         </div>
-        <span style={{ fontSize: 12, fontWeight: 700, color: "#c9d1d9", flex: 1 }}>Extension Activity</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "#c9d1d9", flex: 1 }}>{isBlacklisted ? "Blacklisted Extension" : "Extension Activity"}</span>
         {inc.alertStatus && (
           <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 20, background: "#0d1525", border: `1px solid ${(actionColor[inc.alertStatus] ?? "#94a3b8") + "44"}`, color: actionColor[inc.alertStatus] ?? "#94a3b8" }}>
             {inc.alertStatus}
@@ -162,8 +191,60 @@ function ExtensionActivityCard({ inc }: { inc: Incident }) {
         )}
       </div>
 
+      {/* Blacklist-specific: CWS link + risk score + detection source */}
+      {isBlacklisted && (cwsUrl || riskScore || detectionSource || policyStatus) && (
+        <div style={{ borderRadius: 8, background: "#100404", border: "1px solid #ef444422", padding: "10px 12px", marginBottom: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+          {cwsUrl && (
+            <div>
+              <div style={{ fontSize: 8, color: "#64748b", marginBottom: 2 }}>CHROME WEB STORE</div>
+              <a href={cwsUrl} target="_blank" rel="noopener noreferrer"
+                style={{ fontSize: 10, color: "#60a5fa", wordBreak: "break-all", textDecoration: "none" }}
+                onMouseEnter={e => (e.currentTarget.style.textDecoration = "underline")}
+                onMouseLeave={e => (e.currentTarget.style.textDecoration = "none")}
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style={{ marginRight: 4, verticalAlign: "middle", flexShrink: 0 }}><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke="#60a5fa" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                {cwsUrl.replace("https://chromewebstore.google.com/detail/","CWS: ")}
+              </a>
+            </div>
+          )}
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+            {riskScore && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, background: Number(riskScore) >= 75 ? "#2d0a0a" : "#2d1a0a", border: `1px solid ${Number(riskScore) >= 75 ? "#ef444444" : "#f9731644"}`, color: Number(riskScore) >= 75 ? "#ef4444" : "#f97316", fontWeight: 700 }}>Risk {riskScore}/100</span>}
+            {policyStatus && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, background: "#0d1525", border: "1px solid #ef444444", color: "#ef4444" }}>{policyStatus}</span>}
+            {detectionSource && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, background: "#0d1525", border: "1px solid #1e2d45", color: "#64748b" }}>{detectionSource.replace(/_/g," ")}</span>}
+          </div>
+          {extPerms.length > 0 && (
+            <div>
+              <div style={{ fontSize: 8, color: "#64748b", marginBottom: 3 }}>PERMISSIONS</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
+                {extPerms.map((p, pi) => (
+                  <ExtChip key={pi} label={p} color={RISKY_PERMS.has(p) ? "#f97316" : "#64748b"} bg={RISKY_PERMS.has(p) ? "#2d1a0a" : "#0d1525"} border={RISKY_PERMS.has(p) ? "#f9731433" : "#1e2d4533"} />
+                ))}
+              </div>
+            </div>
+          )}
+          {complianceRefs.length > 0 && (
+            <div>
+              <div style={{ fontSize: 8, color: "#64748b", marginBottom: 3 }}>COMPLIANCE REFERENCES</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
+                {complianceRefs.map((c, ci) => (
+                  <ExtChip key={ci} label={c} color="#60a5fa" bg="#0c1628" border="#1e3a5f44" />
+                ))}
+              </div>
+            </div>
+          )}
+          {/* extInstallType + extEnabled meta */}
+          {(extInstallType || extEnabledStr) && (
+            <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+              {extInstallType && <ExtChip icon={normalIco} label={extInstallType} />}
+              {extEnabledStr === "true"  && <ExtChip icon={enabledIco}  label="enabled"  color="#22c55e" bg="#0a1a14" border="#22c55e33" />}
+              {extEnabledStr === "false" && <ExtChip icon={disabledIco} label="disabled" color="#6b7280" bg="#1a1a1a" border="#374151" />}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Risk summary chips */}
-      {(totalExts > 0 || malicious > 0 || suspicious > 0) && (
+      {!isBlacklisted && (totalExts > 0 || malicious > 0 || suspicious > 0) && (
         <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 10 }}>
           {totalExts > 0   && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, background: "#1e1a35", border: "1px solid #4c1d9544", color: "#a78bfa" }}>{totalExts} scanned</span>}
           {malicious > 0   && <span style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, background: "#2d0a0a", border: "1px solid #ef444444", color: "#ef4444", fontWeight: 700 }}>⚠ {malicious} malicious</span>}
@@ -241,12 +322,12 @@ function ExtensionActivityCard({ inc }: { inc: Incident }) {
                           <div style={{ fontFamily: "monospace", fontSize: 9, color: "#64748b", wordBreak: "break-all" }}>{eId}</div>
                         </div>
                       )}
-                      {/* Meta row */}
-                      <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                        {e.installType && <span style={{ fontSize: 8, padding: "1px 6px", borderRadius: 20, background: "#0d1525", border: "1px solid #1e2d45", color: "#64748b" }}>{String(e.installType)}</span>}
-                        {e.fromStore   && <span style={{ fontSize: 8, padding: "1px 6px", borderRadius: 20, background: "#0a1a14", border: "1px solid #16422a33", color: "#4ade80" }}>from store</span>}
-                        {enabled === false && <span style={{ fontSize: 8, padding: "1px 6px", borderRadius: 20, background: "#1a1a1a", border: "1px solid #374151", color: "#6b7280" }}>disabled</span>}
-                        {enabled === true  && <span style={{ fontSize: 8, padding: "1px 6px", borderRadius: 20, background: "#0a1a14", border: "1px solid #22c55e33", color: "#22c55e" }}>enabled</span>}
+                      {/* Meta row with icons */}
+                      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                        {e.installType && <ExtChip icon={normalIco} label={String(e.installType)} />}
+                        {e.fromStore   && <ExtChip icon={storeIco}   label="from store" color="#4ade80" bg="#0a1a14" border="#16422a33" />}
+                        {enabled === false && <ExtChip icon={disabledIco} label="disabled" color="#6b7280" bg="#1a1a1a" border="#374151" />}
+                        {enabled === true  && <ExtChip icon={enabledIco}  label="enabled"  color="#22c55e" bg="#0a1a14" border="#22c55e33" />}
                       </div>
                       {/* Permissions */}
                       {perms.length > 0 && (
@@ -254,7 +335,7 @@ function ExtensionActivityCard({ inc }: { inc: Incident }) {
                           <div style={{ fontSize: 8, color: "#4a5568", marginBottom: 3 }}>PERMISSIONS ({perms.length})</div>
                           <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
                             {perms.map((p, pi) => {
-                              const isRisky = ["proxy","webRequest","declarativeNetRequestWithHostAccess","downloads","nativeMessaging","clipboardRead","management"].includes(p);
+                              const isRisky = RISKY_PERMS.has(p);
                               return <span key={pi} style={{ fontSize: 7.5, padding: "1px 5px", borderRadius: 10, background: isRisky ? "#2d1a0a" : "#0d1525", border: `1px solid ${isRisky ? "#f9731433" : "#1e2d4533"}`, color: isRisky ? "#f97316" : "#64748b" }}>{p}</span>;
                             })}
                           </div>
@@ -377,7 +458,7 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
        Falls back to (email + secretType + date) if no Page URL available.
        This collapses all secrets found on the same page visit into one row. ── */
   const grouped = useMemo<GroupedIncident[]>(() => {
-    const EXTENSION_RAW_SET = new Set(["extension_sync","extension_install","extension_uninstall","extension_malicious","extension_blacklist","extension_all","extension_type","Extension Installed","Extension Uninstalled","Extension Synced","Malicious Extension","Blacklisted Extension","Extension Activity"]);
+    const EXTENSION_RAW_SET = new Set(["extension_sync","extension_install","extension_uninstall","extension_malicious","extension_blacklist","extension_all","extension_type","blacklist_extensions_visit","Blacklisted Extension Visit","Extension Installed","Extension Uninstalled","Extension Synced","Malicious Extension","Blacklisted Extension","Extension Activity"]);
     const map = new Map<string, GroupedIncident>();
 
     /* Sort desc by detectedAt so the newest occurrence becomes the representative */
@@ -830,7 +911,7 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
           /* Incident category detection */
           const PHISHING_TYPES = ["Phishing Page Blocked","Social Domain Block","WAF Domain Block","Malware Site","Phishing Blocked","Malicious Site","Suspicious Site","Allowlisted Visit","Blocked Site"];
           const EXTENSION_TYPES = ["Extension Installed","Extension Uninstalled","Extension Synced","Malicious Extension","Blacklisted Extension","Extension Activity"];
-          const EXTENSION_RAW  = ["extension_sync","extension_install","extension_uninstall","extension_malicious","extension_blacklist","extension_all","extension_type"];
+          const EXTENSION_RAW  = ["extension_sync","extension_install","extension_uninstall","extension_malicious","extension_blacklist","extension_all","extension_type","blacklist_extensions_visit"];
           const isEmailDlp  = inc.secretType === "Email DLP" || inc.secretType === "email_dlp";
           const isPhishing  = !isEmailDlp && (PHISHING_TYPES.includes(inc.secretType) || inc.secretTypes.some(t => PHISHING_TYPES.includes(t)));
           const isExtension = !isEmailDlp && !isPhishing && (
@@ -858,7 +939,7 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
           /* Incident ID formatted as INC-YYYY-MMDD-#### */
           const incId = (() => {
             const d = inc.detectedAt.replace(/-/g, "");
-            const num = String(inc.id).replace(/\D/g, "").slice(0, 4).padStart(4, "0");
+            const num = String(inc.id).replace(/\D/g, ""); /* keep full numeric ID */
             return `INC-${d.slice(0, 4)}-${d.slice(4, 8)}-${num}`;
           })();
 
@@ -921,12 +1002,14 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                         </span>
                       </div>
 
-                      {/* Col 3 — status + protected */}
+                      {/* Col 3 — status + context label */}
                       <div style={{ padding: "16px 14px", display: "flex", flexDirection: "column", justifyContent: "center", gap: 6 }}>
                         <span style={{ fontSize: 14, fontWeight: 700, color: ac.color }}>{ac.label}</span>
                         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#22c55e" strokeWidth="1.8"/><path d="M8 12l3 3 5-5" stroke="#22c55e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                          <span style={{ fontSize: 10, color: "#22c55e" }}>Secrets are protected</span>
+                          <span style={{ fontSize: 10, color: "#22c55e" }}>
+                            {isExtension ? "Extension policy enforced" : isEmailDlp ? "DLP policy enforced" : isPhishing ? "Threat neutralised" : "Secrets are protected"}
+                          </span>
                         </div>
                       </div>
 
@@ -1180,12 +1263,23 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                         </div>
                       ) : null
                     );
+                    const biChip = (icon: React.ReactNode, text: string, color = "#94a3b8", border = "#2d3748") => (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 9, color, background: "#080e1a", border: `1px solid ${border}`, borderRadius: 20, padding: "2px 8px" }}>
+                        {icon}{text}
+                      </span>
+                    );
+                    const chromeIcon = <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" fill="#4285f4"/><path d="M12 8h8.6A10 10 0 0112 2V8z" fill="#ea4335"/><path d="M12 8H3.4A10 10 0 0012 22V8z" fill="#34a853" transform="rotate(-120 12 12)"/><path d="M12 8H3.4A10 10 0 0012 22V8z" fill="#fbbc05" transform="rotate(120 12 12)"/></svg>;
+                    const osIcon = (os: string) => os.toLowerCase().includes("mac")
+                      ? <svg width="9" height="9" viewBox="0 0 24 24" fill="#94a3b8"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                      : <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#94a3b8" strokeWidth="1.8"/><path d="M8 21h8M12 17v4" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round"/></svg>;
+                    const slIcon = <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4z" stroke="#818cf8" strokeWidth="1.8" strokeLinejoin="round"/></svg>;
+                    const vpIcon = <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="14" rx="2" stroke="#64748b" strokeWidth="1.6"/></svg>;
                     const biChips = bi && (bi.browserName || bi.os) ? (
                       <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 4 }}>
-                        {bi.browserName && <span style={{ fontSize: 9, color: "#94a3b8", background: "#080e1a", border: "1px solid #2d3748", borderRadius: 20, padding: "2px 8px" }}>{bi.browserName}</span>}
-                        {bi.os && <span style={{ fontSize: 9, color: "#94a3b8", background: "#080e1a", border: "1px solid #2d3748", borderRadius: 20, padding: "2px 8px" }}>{bi.os}</span>}
-                        {bi.viewportWidth && bi.viewportHeight && <span style={{ fontSize: 9, color: "#94a3b8", background: "#080e1a", border: "1px solid #2d3748", borderRadius: 20, padding: "2px 8px" }}>{bi.viewportWidth}×{bi.viewportHeight}</span>}
-                        {extVer && <span style={{ fontSize: 9, color: "#818cf8", background: "#080e1a", border: "1px solid #4338ca44", borderRadius: 20, padding: "2px 8px" }}>SecureLint v{extVer}</span>}
+                        {bi.browserName && biChip(chromeIcon, bi.browserName.replace("Google Chrome","Chrome").replace("Mozilla Firefox","Firefox").replace("Microsoft Edge","Edge"), "#94a3b8")}
+                        {bi.os && biChip(osIcon(bi.os), bi.os, "#94a3b8")}
+                        {bi.viewportWidth && bi.viewportHeight && biChip(vpIcon, `${bi.viewportWidth}×${bi.viewportHeight}`, "#64748b")}
+                        {extVer && biChip(slIcon, `SecureLint v${extVer}`, "#818cf8", "#4338ca44")}
                       </div>
                     ) : null;
 
@@ -1281,68 +1375,105 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
 
                     /* ── EXTENSION TIMELINE ── */
                     if (isExtension) {
-                      const d = (lbl: string) => inc.details.find(x => x.label === lbl)?.value ?? "";
-                      const extName     = d("_extName")    || inc.preview || "";
-                      const extId       = d("_extId")      || d("Extension ID");
-                      const extVersion  = d("_extVersion") || d("Ext Version");
-                      const trigger     = d("_extTrigger") || inc.secretType;
-                      const malicious   = Number(d("_maliciousCnt")  || 0);
-                      const suspicious  = Number(d("_suspiciousCnt") || 0);
-                      const totalExts   = Number(d("_totalExts")     || 0);
-                      const isMalicious = malicious > 0 || inc.secretType === "Malicious Extension" || inc.secretType === "Blacklisted Extension";
-                      const step2Color  = isMalicious ? "#ef4444" : malicious === 0 && suspicious > 0 ? "#f97316" : "#a78bfa";
-                      const step2Bg     = isMalicious ? "#2d0a0a" : "#1e1a35";
-                      const step2Border = isMalicious ? "#ef4444" : "#a78bfa";
+                      const dExt = (lbl: string) => inc.details.find(x => x.label === lbl)?.value ?? "";
+                      const extName      = dExt("_extName")    || inc.preview || "";
+                      const extId        = dExt("_extId")      || dExt("Extension ID");
+                      const extVersion   = dExt("_extVersion") || dExt("Ext Version");
+                      const trigger      = dExt("_extTrigger") || inc.secretType;
+                      const cwsUrl       = dExt("_cwsUrl");
+                      const riskScore    = dExt("_riskScore");
+                      const malCnt       = Number(dExt("_maliciousCnt")  || 0);
+                      const susCnt       = Number(dExt("_suspiciousCnt") || 0);
+                      const totalExt     = Number(dExt("_totalExts")     || 0);
+                      const isBlacklist  = !!cwsUrl || inc.secretType === "Blacklisted Extension Visit";
+                      const isMalicious  = malCnt > 0 || inc.secretType === "Malicious Extension" || inc.secretType === "Blacklisted Extension";
+                      const step2Color   = isBlacklist ? "#ef4444" : isMalicious ? "#ef4444" : susCnt > 0 ? "#f97316" : "#a78bfa";
+                      const step2Bg      = (isBlacklist || isMalicious) ? "#2d0a0a" : "#1e1a35";
+                      const step2Border  = (isBlacklist || isMalicious) ? "#ef4444" : "#a78bfa";
 
-                      /* map trigger to a human label */
-                      const triggerLabel: Record<string, string> = {
-                        sync: "Extension inventory synced", install: "Extension installed",
-                        uninstall: "Extension uninstalled", blocked: "Extension blocked",
+                      const triggerMap: Record<string, string> = {
+                        sync: "Extension inventory synced by SecureLint Scanner",
+                        install: "Extension installed on browser",
+                        uninstall: "Extension removed from browser",
+                        blocked: "Extension access blocked by SecureLint",
                       };
-                      const step2Label = isMalicious
-                        ? `Malicious extension detected`
-                        : (triggerLabel[trigger] ?? `Extension ${trigger}`);
+                      const step1Label = isBlacklist ? "User navigated to Chrome Web Store" : "Browser session active";
+                      const step2Label = isBlacklist
+                        ? "Blacklisted extension detected by SecureLint"
+                        : isMalicious
+                          ? "Malicious extension identified"
+                          : (triggerMap[trigger] ?? `Extension ${trigger}`);
+                      const step3Label = isBlacklist
+                        ? `SecureLint v${extVer || "?"} blocked the extension installation from CWS`
+                        : trigger === "install"
+                          ? `Installation of ${extName || "extension"} (v${extVersion || "?"}) logged per org policy`
+                          : trigger === "uninstall"
+                            ? `Removal of ${extName || "extension"} recorded by SecureLint Scanner`
+                            : `Extension inventory report processed — ${inc.count > 1 ? `${inc.count} events` : "policy compliant"}`;
 
                       return (
                         <>
-                          {/* Step 1: Browser session */}
+                          {/* Step 1 */}
                           <div style={{ display: "flex", gap: 12 }}>
                             {stepIcon("#1e3a5f", "#3b82f6", <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#3b82f6" strokeWidth="1.8"/><path d="M8 21h8M12 17v4" stroke="#3b82f6" strokeWidth="1.8" strokeLinecap="round"/></svg>)}
                             <div style={{ paddingBottom: 20, flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedAt}</div>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>Browser session active</div>
-                              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>SecureLint monitoring: {inc.email}</div>
+                              <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{step1Label}</div>
+                              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{inc.email}</div>
+                              {/* for blacklist: show CWS link as the tab URL */}
+                              {isBlacklist && cwsUrl ? (
+                                <div style={{ marginTop: 5 }}>
+                                  <div style={{ fontSize: 9, color: "#4a5568", marginBottom: 2 }}>Chrome Web Store URL</div>
+                                  <a href={cwsUrl} target="_blank" rel="noopener noreferrer"
+                                    style={{ fontSize: 10, color: "#60a5fa", wordBreak: "break-all", textDecoration: "none", display: "flex", alignItems: "flex-start", gap: 4 }}
+                                    onMouseEnter={e => (e.currentTarget.style.textDecoration = "underline")}
+                                    onMouseLeave={e => (e.currentTarget.style.textDecoration = "none")}
+                                  >
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style={{ marginTop: 1, flexShrink: 0 }}><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke="#60a5fa" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                                    {cwsUrl}
+                                  </a>
+                                </div>
+                              ) : urlBlock}
                               {biChips}
                             </div>
                           </div>
 
-                          {/* Step 2: Extension event */}
+                          {/* Step 2: Extension detected/identified */}
                           <div style={{ display: "flex", gap: 12 }}>
                             {stepIcon(step2Bg, step2Border, <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke={step2Border} strokeWidth="1.6"/><path d="M8 9h8M8 12h8M8 15h5" stroke={step2Border} strokeWidth="1.4" strokeLinecap="round"/></svg>)}
                             <div style={{ paddingBottom: 20, flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
                               <div style={{ fontSize: 12, fontWeight: 600, color: step2Color }}>{step2Label}</div>
-                              {extName && <div style={{ fontSize: 11, color: "#a78bfa", marginTop: 3, fontWeight: 600, wordBreak: "break-word" }}>{extName}</div>}
-                              {extVersion && <div style={{ fontSize: 9, color: "#64748b", marginTop: 2 }}>v{extVersion}</div>}
-                              {extId && <div style={{ fontFamily: "monospace", fontSize: 9, color: "#4a5568", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis" }}>{extId}</div>}
-                              {/* risk chips */}
-                              {(totalExts > 0 || malicious > 0 || suspicious > 0) && (
+                              {extName && <div style={{ fontSize: 11, color: (isBlacklist || isMalicious) ? "#fca5a5" : "#a78bfa", marginTop: 3, fontWeight: 600, wordBreak: "break-word" }}>{extName}</div>}
+                              {/* ext ID + version */}
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3, flexWrap: "wrap" }}>
+                                {extId && <span style={{ fontFamily: "monospace", fontSize: 9, color: "#4a5568" }}>{extId}</span>}
+                                {extVersion && <span style={{ fontSize: 9, color: "#64748b", background: "#0d1525", border: "1px solid #1e2d45", borderRadius: 20, padding: "1px 6px" }}>v{extVersion}</span>}
+                                {riskScore && <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 20, background: "#2d0a0a", border: "1px solid #ef444433", color: "#ef4444" }}>Risk {riskScore}/100</span>}
+                              </div>
+                              {/* risk counts for non-blacklist syncs */}
+                              {!isBlacklist && (totalExt > 0 || malCnt > 0 || susCnt > 0) && (
                                 <div style={{ marginTop: 6, display: "flex", gap: 4, flexWrap: "wrap" }}>
-                                  {totalExts > 0   && <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 20, background: "#1e1a35", border: "1px solid #4c1d9544", color: "#a78bfa" }}>{totalExts} total</span>}
-                                  {malicious > 0   && <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 20, background: "#2d0a0a", border: "1px solid #ef444444", color: "#ef4444", fontWeight: 700 }}>⚠ {malicious} malicious</span>}
-                                  {suspicious > 0  && <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 20, background: "#2d1a0a", border: "1px solid #f9731644", color: "#f97316" }}>⚠ {suspicious} suspicious</span>}
+                                  {totalExt > 0  && <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 20, background: "#1e1a35", border: "1px solid #4c1d9544", color: "#a78bfa" }}>{totalExt} total</span>}
+                                  {malCnt > 0    && <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 20, background: "#2d0a0a", border: "1px solid #ef444444", color: "#ef4444", fontWeight: 700 }}>⚠ {malCnt} malicious</span>}
+                                  {susCnt > 0    && <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 20, background: "#2d1a0a", border: "1px solid #f9731644", color: "#f97316" }}>⚠ {susCnt} suspicious</span>}
                                 </div>
                               )}
                             </div>
                           </div>
 
-                          {/* Step 3: Policy response */}
+                          {/* Step 3: Policy outcome */}
                           <div style={{ display: "flex", gap: 12 }}>
-                            {lastIcon(`${ac.dot}22`, ac.dot, <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke={ac.dot} strokeWidth="1.8"/><path d="M9 12l2 2 4-4" stroke={ac.dot} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>)}
+                            {lastIcon(`${ac.dot}22`, ac.dot, <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4z" stroke={ac.dot} strokeWidth="1.8" strokeLinejoin="round"/><path d="M9 12l2 2 4-4" stroke={ac.dot} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>)}
                             <div style={{ paddingBottom: 4, flex: 1 }}>
                               <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>Extension event <span style={{ color: ac.color }}>{ac.label}</span> by SecureLint</div>
-                              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>Browser extension policy enforced</div>
+                              <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>
+                                {isBlacklist
+                                  ? <><span style={{ color: "#ef4444" }}>Blocked</span> — Extension blacklist policy applied</>
+                                  : <>Event <span style={{ color: ac.color }}>{ac.label}</span> — org policy enforced</>
+                                }
+                              </div>
+                              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 3 }}>{step3Label}</div>
                             </div>
                           </div>
                         </>
