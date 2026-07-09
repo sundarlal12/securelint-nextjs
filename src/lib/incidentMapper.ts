@@ -208,9 +208,32 @@ export function mapPhishingIncident(
     : [];
   const reasonStr = wafReason || extraReasons.join(" ") || "";
 
+  /* ── Phishing mail / Gmail_Phish specific fields ── */
+  const incidentTypeRaw = String(extra.incidentType ?? "");
+  const isPhishingMail  = rawType === "phishing_mail" || rawType === "phishing_mail_v2" ||
+                          incidentTypeRaw === "Gmail_Phish" || incidentTypeRaw.includes("Phish") ||
+                          rawType === "Gmail_Phish";
+
+  const phishAuth      = (extra.auth   as Record<string, unknown>) ?? {};
+  const phishFlags     = (extra.flags  as Record<string, unknown>) ?? {};
+  const phishHeaders   = (extra.headers as Record<string, unknown>) ?? {};
+  const phishSecurity  = (extra.security as Record<string, unknown>) ?? {};
+  const phishSignals: { sev: string; text: string; layer: string }[] =
+    Array.isArray(extra.signals) ? (extra.signals as { sev: string; text: string; layer: string }[]) : [];
+  const bodyUrls: string[] = Array.isArray(extra.bodyUrls) ? (extra.bodyUrls as string[]) : [];
+
+  const phishScore     = String(phishSecurity.riskScore ?? extra.site_score ?? riskScore ?? "");
+  const phishVerdict   = String(phishSecurity.verdictLabel ?? extra.verdict ?? siteStatus ?? "");
+  const phishSubject   = String(phishHeaders.subject ?? "");
+  const phishFrom      = String(phishHeaders.from ?? "");
+  const phishFromDisp  = String(phishHeaders.fromDisplay ?? "");
+  const phishSendingIp = String(phishHeaders.sendingIp ?? "");
+  const phishDomain    = String(phishHeaders.fromDomain ?? domain);
+
   // Derive a clean human-readable attack type
   const attackType =
-    rawType === "phishing"                                   ? "Phishing Page Blocked" :
+    isPhishingMail                                           ? "Phishing Mail Detected" :
+    rawType === "phishing" || rawType === "phishing_site"    ? "Phishing Page Blocked" :
     reasonStr.includes("waf_social_domain") ||
       reasonStr.includes("social_domain")                   ? "Social Domain Block" :
     reasonStr.includes("waf_domain_block") ||
@@ -234,36 +257,51 @@ export function mapPhishingIncident(
     alertStatus,
     detectedAt,
     detectedTime,
-    preview: domain,
-    alertTitle: `${attackType} — ${domain}`,
+    preview: isPhishingMail ? (phishSubject || domain) : domain,
+    alertTitle: `${attackType} — ${isPhishingMail ? (phishSubject || domain) : domain}`,
     alertDesc: [
       `Incident type: ${attackType}`,
-      `Domain: ${domain}${riskScore ? ` · risk score ${riskScore}` : ""}`,
-      wafReason ? `WAF rule triggered: ${wafReason.replace(/_/g, " ")}` : `Site verdict: ${siteStatus}`,
-      `Response: Access ${alertStatus.toLowerCase()} by SecureLint WAF`,
-      `Detection method: Threat intelligence, AI scoring, and WAF heuristics`,
+      `Domain: ${isPhishingMail ? phishDomain : domain}${phishScore ? ` · risk score ${phishScore}` : ""}`,
+      isPhishingMail ? `From: ${phishFrom}${phishFromDisp ? ` (${phishFromDisp})` : ""}` : (wafReason ? `WAF rule triggered: ${wafReason.replace(/_/g, " ")}` : `Site verdict: ${siteStatus}`),
+      `Response: ${alertStatus} by SecureLint`,
       `Severity classification: ${severity}`,
     ].join("\n"),
     details: [
       { icon: "", label: "Employee",         value: name },
       { icon: "", label: "Email",            value: email },
       { icon: "", label: "Incident Type",    value: attackType },
-      { icon: "", label: "Domain",           value: domain },
+      { icon: "", label: "Domain",           value: isPhishingMail ? phishDomain : domain },
       { icon: "", label: "Full URL",         value: tabUrl },
+      { icon: "", label: "Page Title",       value: tabTitle },
       { icon: "", label: "Site Status",      value: siteStatus },
-      { icon: "", label: "Risk Score",       value: riskScore },
+      { icon: "", label: "Risk Score",       value: phishScore || riskScore },
       wafReason ? { icon: "", label: "WAF Rule",  value: wafReason.replace(/_/g, " ") } : null,
       blockType  ? { icon: "", label: "Block Type", value: blockType } : null,
       { icon: "", label: "Severity",         value: severity },
       { icon: "", label: "Action",           value: alertStatus },
-      { icon: "", label: "Page Title",       value: tabTitle },
       { icon: "", label: "Browser ID",       value: browserId },
       { icon: "", label: "Extension Ver",    value: extVer },
       { icon: "", label: "Incident ID",      value: `PHI-${incId}` },
+      /* phishing-mail rich fields */
+      ...(isPhishingMail ? [
+        { icon: "", label: "_phish_subject",    value: phishSubject },
+        { icon: "", label: "_phish_from",       value: phishFrom },
+        { icon: "", label: "_phish_fromDisp",   value: phishFromDisp },
+        { icon: "", label: "_phish_sendingIp",  value: phishSendingIp },
+        { icon: "", label: "_phish_fromDomain", value: phishDomain },
+        { icon: "", label: "_phish_score",      value: phishScore },
+        { icon: "", label: "_phish_verdict",    value: phishVerdict },
+        { icon: "", label: "_phish_incType",    value: incidentTypeRaw },
+        { icon: "", label: "_phish_auth",       value: JSON.stringify(phishAuth) },
+        { icon: "", label: "_phish_flags",      value: JSON.stringify(phishFlags) },
+        { icon: "", label: "_phish_signals",    value: JSON.stringify(phishSignals) },
+        { icon: "", label: "_phish_bodyUrls",   value: JSON.stringify(bodyUrls) },
+        { icon: "", label: "_isPhishMail",      value: "true" },
+      ] : []),
     ].filter((d): d is { icon: string; label: string; value: string } =>
-      d !== null && Boolean(d.value) && d.value !== "undefined"
+      d !== null && Boolean(d.value) && d.value !== "undefined" && d.value !== "[]"
     ),
-    maskedContent: tabUrl || domain,
+    maskedContent: isPhishingMail ? (phishFrom || tabUrl) : (tabUrl || domain),
     browserInfo: mapBrowserInfo(inc.browser_info),
   };
 }

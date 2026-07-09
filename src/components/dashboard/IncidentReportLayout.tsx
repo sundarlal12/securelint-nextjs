@@ -914,7 +914,7 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                         ?? "";
 
           /* Incident category detection */
-          const PHISHING_TYPES = ["Phishing Page Blocked","Social Domain Block","WAF Domain Block","Malware Site","Phishing Blocked","Malicious Site","Suspicious Site","Allowlisted Visit","Blocked Site"];
+          const PHISHING_TYPES = ["Phishing Page Blocked","Phishing Mail Detected","Social Domain Block","WAF Domain Block","Malware Site","Phishing Blocked","Malicious Site","Suspicious Site","Allowlisted Visit","Blocked Site"];
           const EXTENSION_TYPES = ["Extension Installed","Extension Uninstalled","Extension Synced","Malicious Extension","Blacklisted Extension","Extension Activity"];
           const EXTENSION_RAW  = ["extension_sync","extension_install","extension_uninstall","extension_malicious","extension_blacklist","extension_all","extension_type","blacklist_extensions_visit"];
           const isEmailDlp  = inc.secretType === "Email DLP" || inc.secretType === "email_dlp";
@@ -1100,24 +1100,131 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                           )}
                         </div>
                       </>
-                    ) : isPhishing ? (
-                      <>
-                        <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12 }}>
-                          <div style={{ width: 26, height: 26, borderRadius: 7, background: "#2d1a0a", border: "1px solid #7c2d12", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#f97316" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    ) : isPhishing ? (() => {
+                      const dpv = (lbl: string) => inc.details.find(x => x.label === lbl)?.value ?? "";
+                      const isMailPhish = dpv("_isPhishMail") === "true";
+                      const phishScore   = dpv("_phish_score");
+                      const phishVerdict = dpv("_phish_verdict");
+                      const phishFrom    = dpv("_phish_from");
+                      const phishFromDisp= dpv("_phish_fromDisp");
+                      const phishSubject = dpv("_phish_subject");
+                      const phishIP      = dpv("_phish_sendingIp");
+                      const phishDomain  = dpv("_phish_fromDomain");
+                      const phishIncType = dpv("_phish_incType");
+                      const phishAuth: Record<string,unknown>     = (() => { try { return JSON.parse(dpv("_phish_auth") || "{}"); } catch { return {}; } })();
+                      const phishFlags: Record<string,unknown>    = (() => { try { return JSON.parse(dpv("_phish_flags") || "{}"); } catch { return {}; } })();
+                      const phishSignals: { sev: string; text: string }[] = (() => { try { return JSON.parse(dpv("_phish_signals") || "[]"); } catch { return []; } })();
+
+                      const sevColor: Record<string,string> = { critical: "#ef4444", high: "#f97316", medium: "#eab308", low: "#94a3b8" };
+                      const sevBg:    Record<string,string> = { critical: "#2d0a0a", high: "#2d1a0a", medium: "#2d2a0a", low: "#0d1525" };
+                      const authIcon = (pass: unknown) => pass === true || pass === "pass"
+                        ? <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#22c55e" strokeWidth="1.8"/><path d="M8 12l3 3 5-5" stroke="#22c55e" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                        : <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#ef4444" strokeWidth="1.8"/><path d="M15 9l-6 6M9 9l6 6" stroke="#ef4444" strokeWidth="1.8" strokeLinecap="round"/></svg>;
+                      const flagsActive = Object.entries(phishFlags).filter(([,v]) => v === true).map(([k]) => k.replace(/([A-Z])/g, ' $1').toLowerCase().trim());
+
+                      return (
+                        <>
+                          {/* Header */}
+                          <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+                            <div style={{ width: 26, height: 26, borderRadius: 7, background: "#2d0a0a", border: "1px solid #7f1d1d", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                              {isMailPhish
+                                ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" stroke="#ef4444" strokeWidth="1.4"/><path d="M12 9v4M12 17h.01" stroke="#f97316" strokeWidth="1.6"/></svg>
+                                : <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#ef4444" strokeWidth="1.6"/></svg>}
+                            </div>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: "#c9d1d9", flex: 1 }}>Phishing Detection</span>
+                            {phishScore && <span style={{ fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 20, background: "#2d0a0a", border: "1px solid #ef444444", color: "#ef4444" }}>Score {phishScore}/100</span>}
+                            {phishVerdict && <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 20, background: "#2d0a0a", border: "1px solid #ef444444", color: "#fca5a5" }}>{phishVerdict}</span>}
                           </div>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: "#c9d1d9" }}>Phishing Detection</span>
-                        </div>
-                        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
-                          {typeCounts.map(([type, cnt], ti) => (
+
+                          {/* Email header block (mail phishing only) */}
+                          {isMailPhish && (
+                            <div style={{ background: "#080e1a", border: "1px solid #2d3748", borderRadius: 8, padding: "8px 10px", marginBottom: 8, display: "flex", flexDirection: "column", gap: 5 }}>
+                              {phishIncType && <div style={{ fontSize: 8, color: "#4a5568", fontWeight: 700, marginBottom: 2, letterSpacing: 0.5 }}>{phishIncType.replace(/_/g," ").toUpperCase()}</div>}
+                              {phishSubject && (
+                                <div>
+                                  <div style={{ fontSize: 8, color: "#4a5568", marginBottom: 1 }}>SUBJECT</div>
+                                  <div style={{ fontSize: 10, color: "#fca5a5", fontWeight: 600, wordBreak: "break-word" }}>{phishSubject}</div>
+                                </div>
+                              )}
+                              {phishFrom && (
+                                <div style={{ display: "flex", gap: 12 }}>
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: 8, color: "#4a5568", marginBottom: 1 }}>FROM ADDRESS</div>
+                                    <div style={{ fontSize: 10, color: "#94a3b8", fontFamily: "monospace" }}>{phishFrom}</div>
+                                  </div>
+                                  {phishFromDisp && (
+                                    <div style={{ flex: 1 }}>
+                                      <div style={{ fontSize: 8, color: "#4a5568", marginBottom: 1 }}>DISPLAY NAME</div>
+                                      <div style={{ fontSize: 10, color: "#f97316", fontWeight: 600 }}>{phishFromDisp}</div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              {(phishDomain || phishIP) && (
+                                <div style={{ display: "flex", gap: 12 }}>
+                                  {phishDomain && <div style={{ flex: 1 }}><div style={{ fontSize: 8, color: "#4a5568", marginBottom: 1 }}>SENDER DOMAIN</div><div style={{ fontSize: 10, color: "#94a3b8", fontFamily: "monospace" }}>{phishDomain}</div></div>}
+                                  {phishIP && <div style={{ flex: 1 }}><div style={{ fontSize: 8, color: "#4a5568", marginBottom: 1 }}>SENDING IP</div><div style={{ fontSize: 10, color: "#94a3b8", fontFamily: "monospace" }}>{phishIP}</div></div>}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Auth results (SPF / DKIM / DMARC / ARC) */}
+                          {isMailPhish && Object.keys(phishAuth).length > 0 && (
+                            <div style={{ marginBottom: 8 }}>
+                              <div style={{ fontSize: 8, color: "#4a5568", fontWeight: 700, letterSpacing: 0.5, marginBottom: 4 }}>EMAIL AUTHENTICATION</div>
+                              <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                                {["spf","dkim","dmarc"].map(k => phishAuth[k] != null && (
+                                  <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 9, padding: "2px 7px", borderRadius: 20, background: "#080e1a", border: `1px solid ${phishAuth[k] === "pass" ? "#22c55e44" : "#ef444444"}`, color: phishAuth[k] === "pass" ? "#4ade80" : "#f87171" }}>
+                                    {authIcon(phishAuth[k])}{k.toUpperCase()} {String(phishAuth[k])}
+                                  </span>
+                                ))}
+                                {!!phishAuth.arcPresent && <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 9, padding: "2px 7px", borderRadius: 20, background: "#080e1a", border: "1px solid #818cf844", color: "#818cf8" }}>{authIcon(true)}ARC</span>}
+                                {!!phishAuth.dmarcPolicy && <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 20, background: "#080e1a", border: "1px solid #f9731444", color: "#f97316" }}>DMARC p={String(phishAuth.dmarcPolicy)}</span>}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Threat signals */}
+                          {phishSignals.length > 0 && (
+                            <div style={{ marginBottom: 8 }}>
+                              <div style={{ fontSize: 8, color: "#4a5568", fontWeight: 700, letterSpacing: 0.5, marginBottom: 4 }}>THREAT SIGNALS ({phishSignals.length})</div>
+                              <div style={{ display: "flex", flexDirection: "column", gap: 3, maxHeight: 160, overflowY: "auto" }}>
+                                {phishSignals.map((s, si) => (
+                                  <div key={si} style={{ display: "flex", gap: 6, padding: "5px 8px", borderRadius: 6, background: sevBg[s.sev] ?? "#0d1525", border: `1px solid ${sevColor[s.sev] ?? "#1e2d45"}33` }}>
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke={sevColor[s.sev] ?? "#94a3b8"} strokeWidth="1.8"/></svg>
+                                    <div style={{ flex: 1 }}>
+                                      <span style={{ fontSize: 8, fontWeight: 700, color: sevColor[s.sev] ?? "#94a3b8", marginRight: 5, textTransform: "uppercase" }}>{s.sev}</span>
+                                      <span style={{ fontSize: 10, color: "#c9d1d9", lineHeight: 1.4 }}>{s.text}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Active flags */}
+                          {flagsActive.length > 0 && (
+                            <div>
+                              <div style={{ fontSize: 8, color: "#4a5568", fontWeight: 700, letterSpacing: 0.5, marginBottom: 4 }}>RISK FLAGS</div>
+                              <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
+                                {flagsActive.map((f, fi) => (
+                                  <span key={fi} style={{ fontSize: 8, padding: "2px 7px", borderRadius: 20, background: "#2d1a0a", border: "1px solid #f9731433", color: "#f97316" }}>{f}</span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Site phishing: show type counts */}
+                          {!isMailPhish && typeCounts.map(([type, cnt], ti) => (
                             <div key={ti} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 8px", borderRadius: 7, background: "#080e1a", border: "1px solid #1a2540" }}>
                               <span style={{ fontSize: 10, color: "#fb923c", fontWeight: 600, flex: 1 }}>{type}</span>
                               {cnt > 1 && <span style={{ fontSize: 9, fontWeight: 800, padding: "1px 7px", borderRadius: 10, background: "#1a0e06", border: "1px solid #f9731633", color: "#f97316", flexShrink: 0, marginLeft: 6 }}>×{cnt}</span>}
                             </div>
                           ))}
-                        </div>
-                      </>
-                    ) : isExtension ? (
+                        </>
+                      );
+                    })() : isExtension ? (
                       <ExtensionActivityCard inc={inc} />
                     ) : (
                       <>
@@ -1337,41 +1444,105 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
 
                     /* ── PHISHING TIMELINE ── */
                     if (isPhishing) {
-                      const isMailClient = pageUrl && (pageUrl.includes("mail.google.com") || pageUrl.includes("outlook.") || pageUrl.includes("mail.yahoo") || pageUrl.includes("webmail"));
-                      const attackSurface = isMailClient ? "Phishing link detected in email" : "Phishing site visited";
-                      const step1Label = isMailClient ? "Mail client opened" : "Browser navigated to URL";
+                      const dpv = (lbl: string) => inc.details.find(x => x.label === lbl)?.value ?? "";
+                      const isMailPhish  = dpv("_isPhishMail") === "true";
+                      const phishSubject = dpv("_phish_subject");
+                      const phishFrom    = dpv("_phish_from");
+                      const phishFromDisp= dpv("_phish_fromDisp");
+                      const phishScore   = dpv("_phish_score");
+                      const phishVerdict = dpv("_phish_verdict");
+                      const phishIncType = dpv("_phish_incType");
+
+                      /* determine if it's Gmail or Outlook */
+                      const isGmail   = pageUrl.includes("mail.google.com");
+                      const isOutlook = pageUrl.includes("outlook.");
+                      const mailClient = isGmail ? "Gmail" : isOutlook ? "Outlook" : "Mail client";
+
+                      if (isMailPhish) {
+                        return (
+                          <>
+                            {/* Step 1: User opened mail */}
+                            <div style={{ display: "flex", gap: 12 }}>
+                              {stepIcon("#0c1628", "#3b82f6", <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" stroke="#3b82f6" strokeWidth="1.6"/></svg>)}
+                              <div style={{ paddingBottom: 20, flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedAt}</div>
+                                <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>User opened {mailClient}</div>
+                                <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{inc.email}</div>
+                                {urlBlock}
+                                {biChips}
+                              </div>
+                            </div>
+
+                            {/* Step 2: Phishing email identified */}
+                            <div style={{ display: "flex", gap: 12 }}>
+                              {stepIcon("#2d0a0a", "#ef4444", <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" stroke="#ef4444" strokeWidth="1.4"/><path d="M12 10v4M12 18h.01" stroke="#ef4444" strokeWidth="1.8"/></svg>)}
+                              <div style={{ paddingBottom: 20, flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
+                                <div style={{ fontSize: 12, fontWeight: 600, color: "#ef4444" }}>
+                                  SecureLint v{extVer || "?"} detected phishing email{phishIncType ? ` (${phishIncType.replace(/_/g," ")})` : ""}
+                                </div>
+                                {phishSubject && <div style={{ fontSize: 11, color: "#fca5a5", marginTop: 3, fontWeight: 600, wordBreak: "break-word" }}>"{phishSubject}"</div>}
+                                {phishFrom && (
+                                  <div style={{ marginTop: 4, display: "flex", gap: 6, flexWrap: "wrap" }}>
+                                    <span style={{ fontSize: 9, color: "#64748b" }}>From:</span>
+                                    <span style={{ fontSize: 9, color: "#94a3b8", fontFamily: "monospace" }}>{phishFrom}</span>
+                                    {phishFromDisp && <span style={{ fontSize: 9, color: "#f97316" }}>as "{phishFromDisp}"</span>}
+                                  </div>
+                                )}
+                                {phishScore && <span style={{ marginTop: 5, display: "inline-flex", fontSize: 9, padding: "2px 8px", borderRadius: 20, background: "#2d0a0a", border: "1px solid #ef444433", color: "#ef4444", fontWeight: 700 }}>Risk {phishScore}/100 — {phishVerdict || "Malicious"}</span>}
+                              </div>
+                            </div>
+
+                            {/* Step 3: User alerted */}
+                            <div style={{ display: "flex", gap: 12 }}>
+                              {lastIcon(`${ac.dot}22`, ac.dot, <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4z" stroke={ac.dot} strokeWidth="1.8"/><path d="M9 12l2 2 4-4" stroke={ac.dot} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>)}
+                              <div style={{ paddingBottom: 4, flex: 1 }}>
+                                <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
+                                <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>
+                                  <span style={{ color: ac.color }}>{ac.label}</span> — Phishing threat flagged
+                                </div>
+                                <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 3 }}>
+                                  SecureLint alerted user to phishing email in {mailClient} inbox. Threat intelligence + AI mail scoring applied.
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      }
+
+                      /* Site phishing flow */
                       return (
                         <>
-                          {/* Step 1 */}
+                          {/* Step 1: Browser tab opened */}
                           <div style={{ display: "flex", gap: 12 }}>
                             {stepIcon("#0c1628", "#3b82f6", <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#3b82f6" strokeWidth="1.8"/><path d="M8 21h8M12 17v4" stroke="#3b82f6" strokeWidth="1.8" strokeLinecap="round"/></svg>)}
                             <div style={{ paddingBottom: 20, flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedAt}</div>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{step1Label}</div>
+                              <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>User navigated to website</div>
                               <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{inc.email}</div>
                               {urlBlock}
                               {biChips}
                             </div>
                           </div>
 
-                          {/* Step 2: Threat identified */}
+                          {/* Step 2: Phishing site detected */}
                           <div style={{ display: "flex", gap: 12 }}>
-                            {stepIcon("#2d1a0a", "#ef4444", <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#ef4444" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>)}
+                            {stepIcon("#2d0a0a", "#ef4444", <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#ef4444" strokeWidth="1.6"/></svg>)}
                             <div style={{ paddingBottom: 20, flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: "#ef4444" }}>{attackSurface}</div>
+                              <div style={{ fontSize: 12, fontWeight: 600, color: "#ef4444" }}>Phishing site detected by SecureLint</div>
                               <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 3 }}>Threat: {inc.secretType}</div>
                               {inc.preview && <div style={{ marginTop: 4, fontSize: 10, color: "#64748b", fontFamily: "monospace", wordBreak: "break-all" }}>{inc.preview}</div>}
                             </div>
                           </div>
 
-                          {/* Step 3: Blocked */}
+                          {/* Step 3: Action */}
                           <div style={{ display: "flex", gap: 12 }}>
                             {lastIcon(`${ac.dot}22`, ac.dot, <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4z" stroke={ac.dot} strokeWidth="1.8"/><path d="M9 12l2 2 4-4" stroke={ac.dot} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>)}
                             <div style={{ paddingBottom: 4, flex: 1 }}>
                               <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
                               <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>Access <span style={{ color: ac.color }}>{ac.label}</span> by SecureLint WAF</div>
-                              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>Threat intelligence + AI scoring enforced</div>
+                              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>Threat intelligence + AI scoring enforced. User protected from phishing site.</div>
                             </div>
                           </div>
                         </>
