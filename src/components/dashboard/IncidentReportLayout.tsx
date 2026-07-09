@@ -81,6 +81,11 @@ const alertStatusConfig: Record<string, { color: string; bg: string; border: str
   Detected:    { color: "#60a5fa", bg: "#0d1626", border: "#1e3a8a", label: "Detected",    dot: "#3b82f6" },
   Masked:      { color: "#a78bfa", bg: "#150e24", border: "#4c1d95", label: "Masked",      dot: "#8b5cf6" },
   Quarantined: { color: "#fb923c", bg: "#1a1008", border: "#7c2d12", label: "Quarantined", dot: "#f97316" },
+  /* extension-specific statuses */
+  Installed:   { color: "#4ade80", bg: "#0a1a14", border: "#166534", label: "Installed",   dot: "#22c55e" },
+  Uninstalled: { color: "#f87171", bg: "#1f0e0e", border: "#7f1d1d", label: "Uninstalled", dot: "#f87171" },
+  Synced:      { color: "#818cf8", bg: "#0f0f2a", border: "#312e81", label: "Synced",      dot: "#818cf8" },
+  Info:        { color: "#60a5fa", bg: "#0d1626", border: "#1e3a8a", label: "Info",        dot: "#3b82f6" },
 };
 
 const cs: React.CSSProperties = { background: "#0d1117", border: "1px solid #21262d", borderRadius: 14 };
@@ -894,7 +899,7 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
       }}>
         {drawerInc && (() => {
           const inc = drawerInc;
-          const ac = alertStatusConfig[inc.alertStatus] ?? alertStatusConfig.Blocked;
+          const ac = alertStatusConfig[inc.alertStatus] ?? alertStatusConfig.Detected;
           const sv = sevStyles[inc.severity] ?? sevStyles.Medium;
           const SHOW_LIMIT = 5;
           const hasMany = inc.count > 1;
@@ -1391,36 +1396,73 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                       const step2Bg      = (isBlacklist || isMalicious) ? "#2d0a0a" : "#1e1a35";
                       const step2Border  = (isBlacklist || isMalicious) ? "#ef4444" : "#a78bfa";
 
-                      const triggerMap: Record<string, string> = {
-                        sync: "Extension inventory synced by SecureLint Scanner",
-                        install: "Extension installed on browser",
-                        uninstall: "Extension removed from browser",
-                        blocked: "Extension access blocked by SecureLint",
-                      };
-                      const step1Label = isBlacklist ? "User navigated to Chrome Web Store" : "Browser session active";
+                      /* Clickable CWS link helper */
+                      const cwsLink = (id: string, label: string) => (
+                        <a href={`https://chromewebstore.google.com/detail/${id}`} target="_blank" rel="noopener noreferrer"
+                          style={{ color: "#60a5fa", textDecoration: "none", fontFamily: "monospace", fontSize: 9, display: "inline-flex", alignItems: "center", gap: 3 }}
+                          onMouseEnter={e => (e.currentTarget.style.textDecoration = "underline")}
+                          onMouseLeave={e => (e.currentTarget.style.textDecoration = "none")}
+                        >
+                          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke="#60a5fa" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                          {label}
+                        </a>
+                      );
+
+                      /* Step-1 context per trigger */
+                      const isUninstall  = trigger === "uninstall";
+                      const isInstall    = trigger === "install";
+                      const isSync       = trigger === "sync";
+                      const step1Label   = isBlacklist
+                        ? "User navigated to Chrome Web Store"
+                        : isUninstall
+                          ? "User opened browser Extensions page"
+                          : isInstall
+                            ? "User visited Chrome Web Store"
+                            : "Browser session active";
+
                       const step2Label = isBlacklist
                         ? "Blacklisted extension detected by SecureLint"
                         : isMalicious
                           ? "Malicious extension identified"
-                          : (triggerMap[trigger] ?? `Extension ${trigger}`);
-                      const step3Label = isBlacklist
-                        ? `SecureLint v${extVer || "?"} blocked the extension installation from CWS`
-                        : trigger === "install"
-                          ? `Installation of ${extName || "extension"} (v${extVersion || "?"}) logged per org policy`
-                          : trigger === "uninstall"
-                            ? `Removal of ${extName || "extension"} recorded by SecureLint Scanner`
-                            : `Extension inventory report processed — ${inc.count > 1 ? `${inc.count} events` : "policy compliant"}`;
+                          : isUninstall
+                            ? "User initiated extension removal"
+                            : isInstall
+                              ? "Extension installation initiated"
+                              : isSync
+                                ? "Extension inventory scanned by SecureLint"
+                                : `Extension ${trigger}`;
+
+                      /* Step-3 outcome label */
+                      const step3Heading = isBlacklist
+                        ? <><span style={{ color: "#ef4444" }}>Blocked</span> — Extension blacklist policy applied</>
+                        : isUninstall
+                          ? <><span style={{ color: ac.color }}>Uninstalled</span> — Extension removed from browser</>
+                          : isInstall
+                            ? <><span style={{ color: ac.color }}>Installed</span> — Extension added to browser profile</>
+                            : isSync
+                              ? <><span style={{ color: ac.color }}>Synced</span> — Extension inventory updated</>
+                              : <>Event <span style={{ color: ac.color }}>{ac.label}</span> recorded</>;
+
+                      const step3Sub = isBlacklist
+                        ? `SecureLint v${extVer || "?"} intercepted and blocked the extension visit from Chrome Web Store`
+                        : isUninstall
+                          ? `${extName || "Extension"} (v${extVersion || "?"}) was removed from Chrome at this time`
+                          : isInstall
+                            ? `${extName || "Extension"} (v${extVersion || "?"}) successfully installed and logged`
+                            : isSync
+                              ? `Extension inventory report processed — ${totalExt > 0 ? `${totalExt} extensions` : "policy compliant"}`
+                              : `SecureLint recorded the extension event for audit`;
 
                       return (
                         <>
-                          {/* Step 1 */}
+                          {/* Step 1 — user context */}
                           <div style={{ display: "flex", gap: 12 }}>
                             {stepIcon("#1e3a5f", "#3b82f6", <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#3b82f6" strokeWidth="1.8"/><path d="M8 21h8M12 17v4" stroke="#3b82f6" strokeWidth="1.8" strokeLinecap="round"/></svg>)}
                             <div style={{ paddingBottom: 20, flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedAt}</div>
                               <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{step1Label}</div>
                               <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{inc.email}</div>
-                              {/* for blacklist: show CWS link as the tab URL */}
+                              {/* tab URL — clickable for CWS links, plain for chrome:// etc */}
                               {isBlacklist && cwsUrl ? (
                                 <div style={{ marginTop: 5 }}>
                                   <div style={{ fontSize: 9, color: "#4a5568", marginBottom: 2 }}>Chrome Web Store URL</div>
@@ -1438,21 +1480,21 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                             </div>
                           </div>
 
-                          {/* Step 2: Extension detected/identified */}
+                          {/* Step 2: Extension identified */}
                           <div style={{ display: "flex", gap: 12 }}>
                             {stepIcon(step2Bg, step2Border, <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke={step2Border} strokeWidth="1.6"/><path d="M8 9h8M8 12h8M8 15h5" stroke={step2Border} strokeWidth="1.4" strokeLinecap="round"/></svg>)}
                             <div style={{ paddingBottom: 20, flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
                               <div style={{ fontSize: 12, fontWeight: 600, color: step2Color }}>{step2Label}</div>
                               {extName && <div style={{ fontSize: 11, color: (isBlacklist || isMalicious) ? "#fca5a5" : "#a78bfa", marginTop: 3, fontWeight: 600, wordBreak: "break-word" }}>{extName}</div>}
-                              {/* ext ID + version */}
-                              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3, flexWrap: "wrap" }}>
-                                {extId && <span style={{ fontFamily: "monospace", fontSize: 9, color: "#4a5568" }}>{extId}</span>}
+                              {/* Extension ID — clickable CWS link + version chip */}
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4, flexWrap: "wrap" }}>
+                                {extId && cwsLink(extId, extId)}
                                 {extVersion && <span style={{ fontSize: 9, color: "#64748b", background: "#0d1525", border: "1px solid #1e2d45", borderRadius: 20, padding: "1px 6px" }}>v{extVersion}</span>}
                                 {riskScore && <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 20, background: "#2d0a0a", border: "1px solid #ef444433", color: "#ef4444" }}>Risk {riskScore}/100</span>}
                               </div>
-                              {/* risk counts for non-blacklist syncs */}
-                              {!isBlacklist && (totalExt > 0 || malCnt > 0 || susCnt > 0) && (
+                              {/* risk counts for sync */}
+                              {isSync && (totalExt > 0 || malCnt > 0 || susCnt > 0) && (
                                 <div style={{ marginTop: 6, display: "flex", gap: 4, flexWrap: "wrap" }}>
                                   {totalExt > 0  && <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 20, background: "#1e1a35", border: "1px solid #4c1d9544", color: "#a78bfa" }}>{totalExt} total</span>}
                                   {malCnt > 0    && <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 20, background: "#2d0a0a", border: "1px solid #ef444444", color: "#ef4444", fontWeight: 700 }}>⚠ {malCnt} malicious</span>}
@@ -1462,18 +1504,13 @@ export default function IncidentReportLayout({ title, subtitle, incidents, stats
                             </div>
                           </div>
 
-                          {/* Step 3: Policy outcome */}
+                          {/* Step 3: Outcome */}
                           <div style={{ display: "flex", gap: 12 }}>
                             {lastIcon(`${ac.dot}22`, ac.dot, <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4z" stroke={ac.dot} strokeWidth="1.8" strokeLinejoin="round"/><path d="M9 12l2 2 4-4" stroke={ac.dot} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>)}
                             <div style={{ paddingBottom: 4, flex: 1 }}>
                               <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>{inc.detectedTime || inc.detectedAt}</div>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>
-                                {isBlacklist
-                                  ? <><span style={{ color: "#ef4444" }}>Blocked</span> — Extension blacklist policy applied</>
-                                  : <>Event <span style={{ color: ac.color }}>{ac.label}</span> — org policy enforced</>
-                                }
-                              </div>
-                              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 3 }}>{step3Label}</div>
+                              <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{step3Heading}</div>
+                              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 3 }}>{step3Sub}</div>
                             </div>
                           </div>
                         </>
