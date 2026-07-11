@@ -396,7 +396,8 @@ function DrawerContent({ ctrl, settings, groups, isEnterprise, onChange }: {
           value={(settings.phish_detection_block?"BLOCK":settings.phish_detection_alert?"WARN":"DETECT") as ActionValue}
           onChange={v=>set({phish_detection_alert:v==="WARN", phish_detection_block:v==="BLOCK"})}/>
 
-        {isEnterprise && (<><Sec label="Apply to groups" info="Leave empty to apply to all employees"/><GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups}/></>)}
+        <Sec label="Apply to groups" info="Leave empty to apply to all employees"/>
+        <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups}/>
 
         <Sec label="Whitelist domains" info="Visits to these domains will never be flagged"/>
         <DomainTable label="Domains" placeholder="example.com" wildcardNote
@@ -414,7 +415,8 @@ function DrawerContent({ ctrl, settings, groups, isEnterprise, onChange }: {
           value={(settings.phish_mail_action?.toUpperCase() as ActionValue)||"DETECT"}
           onChange={v=>set({phish_mail_action:v.toLowerCase()})}/>
 
-        {isEnterprise && (<><Sec label="Apply to groups"/><GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups}/></>)}
+        <Sec label="Apply to groups"/>
+        <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups}/>
 
         <Sec label="Whitelist sender domains" info="Emails from these domains will not be flagged"/>
         <DomainTable label="Domains" placeholder="trusted-partner.com" wildcardNote
@@ -432,7 +434,8 @@ function DrawerContent({ ctrl, settings, groups, isEnterprise, onChange }: {
             value={(domains.length?"BLOCK":"OFF") as ActionValue}
             onChange={()=>{}}/>
 
-          {isEnterprise && (<><Sec label="Apply to groups"/><GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups}/></>)}
+          <Sec label="Apply to groups"/>
+          <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups}/>
 
           <Sec label={ctrl.id==="waf_domain"?"Blocked domains":"Blocked URLs / domains"} info="Supports wildcards e.g. *.example.com"/>
           <DomainTable label="Domains" placeholder="example.com" wildcardNote
@@ -484,7 +487,8 @@ function DrawerContent({ ctrl, settings, groups, isEnterprise, onChange }: {
             value={(bl.action?.toUpperCase() as ActionValue)||"BLOCK"}
             onChange={v=>set({blacklist_extension:{...bl,action:v.toLowerCase()},blacklist_extension_status:v.toLowerCase()})}/>
 
-          {isEnterprise && (<><Sec label="Apply to groups"/><GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups}/></>)}
+          <Sec label="Apply to groups"/>
+          <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups}/>
 
           <Sec label="Blocked extension IDs" info="Add Chrome Web Store extension IDs from your IT policy"/>
           <DomainTable label="Extension ID" placeholder="mdanidgdpmkimeiiojknlnekblgmpdll"
@@ -506,7 +510,8 @@ function DrawerContent({ ctrl, settings, groups, isEnterprise, onChange }: {
             value={(settings.email_dlp_action?.toUpperCase() as ActionValue)||"DETECT"}
             onChange={v=>set({email_dlp_action:v.toLowerCase()})}/>
 
-          {isEnterprise && (<><Sec label="Apply to groups"/><GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups}/></>)}
+          <Sec label="Apply to groups"/>
+          <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups}/>
 
           <Sec label="Allowed external domains" info="Emails to these domains will not be flagged"/>
           <DomainTable label="Domains" placeholder="partner.com" wildcardNote
@@ -537,7 +542,8 @@ function DrawerContent({ ctrl, settings, groups, isEnterprise, onChange }: {
           <Sec label="Action"/>
           <ActionDropdown choices={["DETECT","MASK"]} value={"MASK" as ActionValue} onChange={()=>{}}/>
 
-          {isEnterprise && (<><Sec label="Apply to groups"/><GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups}/></>)}
+          <Sec label="Apply to groups"/>
+          <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups}/>
 
           <Sec label="Behaviour"/>
           {([
@@ -731,7 +737,6 @@ export default function ControlsPage() {
         <h1 style={{ fontSize:22, fontWeight:800, color:"#e6edf3", margin:0 }}>Controls</h1>
         <p style={{ fontSize:13, color:"#64748b", marginTop:6 }}>
           Configure security policies and protection controls for your organisation.
-          {!isEnterprise && <> <span style={{ color:"#f59e0b" }}>⭐ Group targeting requires an Enterprise plan.</span></>}
         </p>
       </div>
 
