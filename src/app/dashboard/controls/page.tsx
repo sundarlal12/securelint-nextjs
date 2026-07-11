@@ -1,12 +1,12 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
-import { fetchSettings, updateSettings, fetchGroups } from "@/lib/adminApi";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { fetchSettings, updateSettings, fetchGroups, createGroup } from "@/lib/adminApi";
 
 /* ─────────────────────────────────────────────────────────────────────────
    Types
 ───────────────────────────────────────────────────────────────────────── */
 type ActionValue = "DETECT" | "WARN" | "BLOCK" | "MASK" | "OFF";
-type Group = { id: string; name: string };
+type Group = { id: string; group_name: string; member_count?: number; members?: { user_id: string; email: string }[] };
 
 interface UserSettings {
   phish_detection?: boolean;
@@ -336,36 +336,118 @@ function Sec({ label, info }: { label:string; info?:string }) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Group picker (enterprise only)
+   Group picker — shows groups from API with member counts + inline create
 ───────────────────────────────────────────────────────────────────────── */
-function GroupPicker({ groups, selected, onChange }: { groups:Group[]; selected:string[]; onChange:(v:string[])=>void }) {
-  const [open, setOpen] = useState(false);
+function GroupPicker({ groups, selected, onChange, onGroupCreated }: {
+  groups: Group[]; selected: string[]; onChange: (v: string[]) => void;
+  onGroupCreated?: (g: Group) => void;
+}) {
+  const [open,       setOpen]       = useState(false);
+  const [search,     setSearch]     = useState("");
+  const [newName,    setNewName]    = useState("");
+  const [creating,   setCreating]   = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    const h = (e: MouseEvent) => { if(ref.current&&!ref.current.contains(e.target as Node)) setOpen(false); };
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
   }, []);
-  const toggle = (id:string) => onChange(selected.includes(id)?selected.filter(x=>x!==id):[...selected,id]);
-  const label = selected.length===0?"All employees":`${selected.length} group${selected.length>1?"s":""} selected`;
+
+  const toggle = (id: string) =>
+    onChange(selected.includes(id) ? selected.filter(x => x !== id) : [...selected, id]);
+
+  const filtered = groups.filter(g =>
+    g.group_name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleCreate = async () => {
+    const name = newName.trim();
+    if (!name) return;
+    setCreating(true);
+    try {
+      const res = await createGroup(name) as { group?: Group } | null;
+      if (res?.group) {
+        onGroupCreated?.(res.group);
+        setNewName("");
+        setShowCreate(false);
+      }
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const label = selected.length === 0
+    ? "All employees"
+    : `${selected.length} group${selected.length > 1 ? "s" : ""} selected`;
+
   return (
-    <div ref={ref} style={{ position:"relative" }}>
-      <button onClick={() => setOpen(o=>!o)}
-        style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 12px", background:"#0d1525", border:"1px solid #2d3748", borderRadius:8, color:"#c9d1d9", fontSize:13, cursor:"pointer" }}>
+    <div ref={ref} style={{ position: "relative" }}>
+      {/* Trigger */}
+      <button onClick={() => setOpen(o => !o)}
+        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "#0d1525", border: "1px solid #2d3748", borderRadius: 8, color: "#c9d1d9", fontSize: 13, cursor: "pointer" }}>
         <span>{label}</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ transform:open?"rotate(180deg)":"none", transition:".2s" }}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ transform: open ? "rotate(180deg)" : "none", transition: ".2s" }}>
           <path d="M6 9l6 6 6-6" stroke="#64748b" strokeWidth="2" strokeLinecap="round"/>
         </svg>
       </button>
+
+      {/* Dropdown */}
       {open && (
-        <div style={{ position:"absolute", top:"calc(100% + 4px)", left:0, right:0, background:"#0d1525", border:"1px solid #2d3748", borderRadius:8, zIndex:60, overflow:"hidden", boxShadow:"0 8px 24px rgba(0,0,0,.6)" }}>
-          {groups.map(g => (
-            <label key={g.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 12px", cursor:"pointer", borderBottom:"1px solid #1a2540" }}>
-              <input type="checkbox" checked={selected.includes(g.id)} onChange={() => toggle(g.id)}
-                style={{ width:14, height:14, accentColor:"#818cf8", cursor:"pointer" }}/>
-              <span style={{ fontSize:13, color:"#c9d1d9", textTransform:"capitalize" }}>{g.name}</span>
-            </label>
-          ))}
+        <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, background: "#0b1120", border: "1px solid #2d3748", borderRadius: 10, zIndex: 60, overflow: "hidden", boxShadow: "0 12px 32px rgba(0,0,0,.7)", maxHeight: 320, display: "flex", flexDirection: "column" }}>
+
+          {/* Search */}
+          <div style={{ padding: "8px 10px", borderBottom: "1px solid #1a2540" }}>
+            <input value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Search groups…"
+              style={{ width: "100%", padding: "6px 10px", background: "#0d1525", border: "1px solid #2d3748", borderRadius: 6, color: "#c9d1d9", fontSize: 12, outline: "none" }} />
+          </div>
+
+          {/* Group list */}
+          <div style={{ overflowY: "auto", flex: 1 }}>
+            {filtered.length === 0 && (
+              <div style={{ padding: "14px 12px", fontSize: 12, color: "#4a5568", textAlign: "center" }}>
+                No groups found
+              </div>
+            )}
+            {filtered.map(g => (
+              <label key={g.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", cursor: "pointer", borderBottom: "1px solid #111827" }}>
+                <input type="checkbox" checked={selected.includes(g.id)}
+                  onChange={() => toggle(g.id)}
+                  style={{ width: 14, height: 14, accentColor: "#818cf8", cursor: "pointer", flexShrink: 0 }} />
+                <span style={{ flex: 1, fontSize: 13, color: "#c9d1d9" }}>{g.group_name}</span>
+                <span style={{ fontSize: 11, color: "#4a5568", background: "#1a2540", padding: "2px 7px", borderRadius: 20 }}>
+                  {g.member_count ?? 0} members
+                </span>
+              </label>
+            ))}
+          </div>
+
+          {/* Create new group */}
+          <div style={{ borderTop: "1px solid #1a2540", padding: "8px 10px" }}>
+            {!showCreate ? (
+              <button onClick={() => setShowCreate(true)}
+                style={{ width: "100%", padding: "7px", background: "transparent", border: "1px dashed #2d3748", borderRadius: 6, color: "#64748b", fontSize: 12, cursor: "pointer", textAlign: "center" }}>
+                + Create new group
+              </button>
+            ) : (
+              <div style={{ display: "flex", gap: 6 }}>
+                <input value={newName} onChange={e => setNewName(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleCreate()}
+                  placeholder="Group name…" autoFocus
+                  style={{ flex: 1, padding: "7px 10px", background: "#0d1525", border: "1px solid #818cf8", borderRadius: 6, color: "#c9d1d9", fontSize: 12, outline: "none" }} />
+                <button onClick={handleCreate} disabled={creating}
+                  style={{ padding: "7px 12px", background: "#818cf8", border: "none", borderRadius: 6, color: "#fff", fontSize: 12, fontWeight: 700, cursor: creating ? "wait" : "pointer" }}>
+                  {creating ? "…" : "Add"}
+                </button>
+                <button onClick={() => { setShowCreate(false); setNewName(""); }}
+                  style={{ padding: "7px 10px", background: "transparent", border: "1px solid #2d3748", borderRadius: 6, color: "#64748b", fontSize: 12, cursor: "pointer" }}>
+                  ✕
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -375,9 +457,10 @@ function GroupPicker({ groups, selected, onChange }: { groups:Group[]; selected:
 /* ─────────────────────────────────────────────────────────────────────────
    Drawer content per control
 ───────────────────────────────────────────────────────────────────────── */
-function DrawerContent({ ctrl, settings, groups, isEnterprise, onChange }: {
-  ctrl:ControlDef; settings:UserSettings; groups:Group[]; isEnterprise:boolean;
+function DrawerContent({ ctrl, settings, groups, onChange, onGroupCreated }: {
+  ctrl:ControlDef; settings:UserSettings; groups:Group[];
   onChange:(patch:Partial<UserSettings>)=>void;
+  onGroupCreated:(g:Group)=>void;
 }) {
   const [selGroups, setSelGroups] = useState<string[]>([]);
   const set = (patch:Partial<UserSettings>) => onChange(patch);
@@ -397,7 +480,7 @@ function DrawerContent({ ctrl, settings, groups, isEnterprise, onChange }: {
           onChange={v=>set({phish_detection_alert:v==="WARN", phish_detection_block:v==="BLOCK"})}/>
 
         <Sec label="Apply to groups" info="Leave empty to apply to all employees"/>
-        <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups}/>
+        <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups} onGroupCreated={onGroupCreated}/>
 
         <Sec label="Whitelist domains" info="Visits to these domains will never be flagged"/>
         <DomainTable label="Domains" placeholder="example.com" wildcardNote
@@ -416,7 +499,7 @@ function DrawerContent({ ctrl, settings, groups, isEnterprise, onChange }: {
           onChange={v=>set({phish_mail_action:v.toLowerCase()})}/>
 
         <Sec label="Apply to groups"/>
-        <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups}/>
+        <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups} onGroupCreated={onGroupCreated}/>
 
         <Sec label="Whitelist sender domains" info="Emails from these domains will not be flagged"/>
         <DomainTable label="Domains" placeholder="trusted-partner.com" wildcardNote
@@ -435,7 +518,7 @@ function DrawerContent({ ctrl, settings, groups, isEnterprise, onChange }: {
             onChange={()=>{}}/>
 
           <Sec label="Apply to groups"/>
-          <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups}/>
+          <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups} onGroupCreated={onGroupCreated}/>
 
           <Sec label={ctrl.id==="waf_domain"?"Blocked domains":"Blocked URLs / domains"} info="Supports wildcards e.g. *.example.com"/>
           <DomainTable label="Domains" placeholder="example.com" wildcardNote
@@ -488,7 +571,7 @@ function DrawerContent({ ctrl, settings, groups, isEnterprise, onChange }: {
             onChange={v=>set({blacklist_extension:{...bl,action:v.toLowerCase()},blacklist_extension_status:v.toLowerCase()})}/>
 
           <Sec label="Apply to groups"/>
-          <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups}/>
+          <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups} onGroupCreated={onGroupCreated}/>
 
           <Sec label="Blocked extension IDs" info="Add Chrome Web Store extension IDs from your IT policy"/>
           <DomainTable label="Extension ID" placeholder="mdanidgdpmkimeiiojknlnekblgmpdll"
@@ -511,7 +594,7 @@ function DrawerContent({ ctrl, settings, groups, isEnterprise, onChange }: {
             onChange={v=>set({email_dlp_action:v.toLowerCase()})}/>
 
           <Sec label="Apply to groups"/>
-          <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups}/>
+          <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups} onGroupCreated={onGroupCreated}/>
 
           <Sec label="Allowed external domains" info="Emails to these domains will not be flagged"/>
           <DomainTable label="Domains" placeholder="partner.com" wildcardNote
@@ -543,7 +626,7 @@ function DrawerContent({ ctrl, settings, groups, isEnterprise, onChange }: {
           <ActionDropdown choices={["DETECT","MASK"]} value={"MASK" as ActionValue} onChange={()=>{}}/>
 
           <Sec label="Apply to groups"/>
-          <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups}/>
+          <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups} onGroupCreated={onGroupCreated}/>
 
           <Sec label="Behaviour"/>
           {([
@@ -580,10 +663,11 @@ function DrawerContent({ ctrl, settings, groups, isEnterprise, onChange }: {
 /* ─────────────────────────────────────────────────────────────────────────
    Config Drawer with slide-in animation
 ───────────────────────────────────────────────────────────────────────── */
-function ConfigDrawer({ ctrl, settings, groups, isEnterprise, onChange, onClose, onSave, saving }: {
-  ctrl:ControlDef; settings:UserSettings; groups:Group[]; isEnterprise:boolean;
+function ConfigDrawer({ ctrl, settings, groups, onChange, onClose, onSave, saving, onGroupCreated }: {
+  ctrl:ControlDef; settings:UserSettings; groups:Group[];
   onChange:(patch:Partial<UserSettings>)=>void;
   onClose:()=>void; onSave:()=>void; saving:boolean;
+  onGroupCreated:(g:Group)=>void;
 }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => { const id = requestAnimationFrame(()=>setVisible(true)); return ()=>cancelAnimationFrame(id); }, []);
@@ -619,7 +703,7 @@ function ConfigDrawer({ ctrl, settings, groups, isEnterprise, onChange, onClose,
 
         {/* Body */}
         <div style={{ flex:1, overflowY:"auto", padding:"4px 20px 20px" }}>
-          <DrawerContent ctrl={ctrl} settings={settings} groups={groups} isEnterprise={isEnterprise} onChange={onChange}/>
+          <DrawerContent ctrl={ctrl} settings={settings} groups={groups} onChange={onChange} onGroupCreated={onGroupCreated}/>
         </div>
 
         {/* Footer */}
@@ -674,21 +758,13 @@ function ControlCard({ ctrl, settings, onClick }: { ctrl:ControlDef; settings:Us
 /* ─────────────────────────────────────────────────────────────────────────
    Main page
 ───────────────────────────────────────────────────────────────────────── */
-const DEFAULT_GROUPS: Group[] = [
-  {id:"engineering",name:"Engineering"},{id:"hr",name:"HR"},
-  {id:"support",name:"Support"},{id:"call_center",name:"Call Center"},
-  {id:"finance",name:"Finance"},{id:"marketing",name:"Marketing"},
-  {id:"all",name:"All Employees"},
-];
-
 export default function ControlsPage() {
-  const [settings,     setSettings]     = useState<UserSettings>({});
-  const [draft,        setDraft]        = useState<UserSettings>({});
-  const [groups,       setGroups]       = useState<Group[]>(DEFAULT_GROUPS);
-  const [isEnterprise, setIsEnterprise] = useState(false);
-  const [active,       setActive]       = useState<string|null>(null);
-  const [saving,       setSaving]       = useState(false);
-  const [toast,        setToast]        = useState<{msg:string;ok:boolean}|null>(null);
+  const [settings,  setSettings]  = useState<UserSettings>({});
+  const [draft,     setDraft]     = useState<UserSettings>({});
+  const [groups,    setGroups]    = useState<Group[]>([]);
+  const [active,    setActive]    = useState<string | null>(null);
+  const [saving,    setSaving]    = useState(false);
+  const [toast,     setToast]     = useState<{ msg: string; ok: boolean } | null>(null);
 
   useEffect(() => {
     fetchSettings().then((d: Record<string, unknown> | null) => {
@@ -696,65 +772,69 @@ export default function ControlsPage() {
       const s = (d.settings ?? d) as UserSettings;
       setSettings(s);
       setDraft(s);
-      setIsEnterprise((String(s.Plans||"")).toLowerCase()==="enterprise");
     });
     fetchGroups().then((d: Record<string, unknown> | null) => {
-      if (Array.isArray(d?.groups) && (d.groups as Group[]).length) setGroups(d.groups as Group[]);
+      if (Array.isArray(d?.groups)) setGroups(d.groups as Group[]);
     });
   }, []);
 
-  const openDrawer  = (id:string) => { setActive(id); setDraft({...settings}); };
+  const handleGroupCreated = useCallback((g: Group) => {
+    setGroups(prev => [...prev, g]);
+  }, []);
+
+  const openDrawer  = (id: string) => { setActive(id); setDraft({ ...settings }); };
   const closeDrawer = () => setActive(null);
-  const handleChange = (patch:Partial<UserSettings>) => setDraft(prev=>({...prev,...patch}));
+  const handleChange = (patch: Partial<UserSettings>) => setDraft(prev => ({ ...prev, ...patch }));
 
   const save = async () => {
     setSaving(true);
-    // Only send changed fields
-    const changed:Record<string,unknown> = {};
+    const changed: Record<string, unknown> = {};
     for (const k of Object.keys(draft)) {
-      if (JSON.stringify((draft as Record<string,unknown>)[k]) !== JSON.stringify((settings as Record<string,unknown>)[k])) {
-        changed[k] = (draft as Record<string,unknown>)[k];
+      if (JSON.stringify((draft as Record<string, unknown>)[k]) !== JSON.stringify((settings as Record<string, unknown>)[k])) {
+        changed[k] = (draft as Record<string, unknown>)[k];
       }
     }
     if (!Object.keys(changed).length) { closeDrawer(); setSaving(false); return; }
     const res = await updateSettings(changed);
     if (res) {
       setSettings(draft);
-      setToast({msg:"Configuration saved",ok:true});
+      setToast({ msg: "Configuration saved", ok: true });
     } else {
-      setToast({msg:"Failed to save — please try again",ok:false});
+      setToast({ msg: "Failed to save — please try again", ok: false });
     }
-    setTimeout(()=>setToast(null),2800);
+    setTimeout(() => setToast(null), 2800);
     setSaving(false);
     if (res) closeDrawer();
   };
 
-  const activeCtrl = active ? CONTROLS.find(c=>c.id===active) : null;
+  const activeCtrl = active ? CONTROLS.find(c => c.id === active) : null;
 
   return (
-    <div style={{ padding:"28px 32px", minHeight:"100vh", background:"#080d16" }}>
-      <div style={{ marginBottom:28 }}>
-        <h1 style={{ fontSize:22, fontWeight:800, color:"#e6edf3", margin:0 }}>Controls</h1>
-        <p style={{ fontSize:13, color:"#64748b", marginTop:6 }}>
+    <div style={{ padding: "28px 32px", minHeight: "100vh", background: "#080d16" }}>
+      <div style={{ marginBottom: 28 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: "#e6edf3", margin: 0 }}>Controls</h1>
+        <p style={{ fontSize: 13, color: "#64748b", marginTop: 6 }}>
           Configure security policies and protection controls for your organisation.
         </p>
       </div>
 
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(280px,1fr))", gap:18 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px,1fr))", gap: 18 }}>
         {CONTROLS.map(ctrl => (
-          <ControlCard key={ctrl.id} ctrl={ctrl} settings={settings} onClick={()=>openDrawer(ctrl.id)}/>
+          <ControlCard key={ctrl.id} ctrl={ctrl} settings={settings} onClick={() => openDrawer(ctrl.id)} />
         ))}
       </div>
 
       {active && activeCtrl && (
-        <ConfigDrawer ctrl={activeCtrl} settings={draft} groups={groups}
-          isEnterprise={isEnterprise} onChange={handleChange}
-          onClose={closeDrawer} onSave={save} saving={saving}/>
+        <ConfigDrawer
+          ctrl={activeCtrl} settings={draft} groups={groups}
+          onChange={handleChange} onClose={closeDrawer} onSave={save}
+          saving={saving} onGroupCreated={handleGroupCreated}
+        />
       )}
 
       {toast && (
-        <div style={{ position:"fixed", bottom:28, right:28, background: toast.ok?"#1e3a1e":"#2a1818", border:`1px solid ${toast.ok?"#22c55e44":"#ef444444"}`, borderRadius:10, padding:"12px 18px", color: toast.ok?"#86efac":"#fca5a5", fontSize:13, zIndex:100, boxShadow:"0 8px 24px rgba(0,0,0,.5)", animation:"fdIn .2s ease" }}>
-          {toast.ok?"✓":"✗"} {toast.msg}
+        <div style={{ position: "fixed", bottom: 28, right: 28, background: toast.ok ? "#1e3a1e" : "#2a1818", border: `1px solid ${toast.ok ? "#22c55e44" : "#ef444444"}`, borderRadius: 10, padding: "12px 18px", color: toast.ok ? "#86efac" : "#fca5a5", fontSize: 13, zIndex: 100, boxShadow: "0 8px 24px rgba(0,0,0,.5)", animation: "fdIn .2s ease" }}>
+          {toast.ok ? "✓" : "✗"} {toast.msg}
         </div>
       )}
     </div>

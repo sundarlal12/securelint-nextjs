@@ -205,9 +205,33 @@ export async function fetchGroups() {
   return apiFetch("/api/admin/groups");
 }
 
-export async function upsertGroups(groups: { id: string; name: string }[]) {
+export async function createGroup(group_name: string) {
   return apiFetch("/api/admin/groups", {
+    method: "POST",
+    body: JSON.stringify({ group_name }),
+  });
+}
+
+export async function renameGroup(group_id: string, group_name: string) {
+  return apiFetch(`/api/admin/groups/${group_id}`, {
     method: "PUT",
-    body: JSON.stringify({ groups }),
+    body: JSON.stringify({ group_name }),
+  });
+}
+
+export async function deleteGroup(group_id: string) {
+  return apiFetch(`/api/admin/groups/${group_id}`, { method: "DELETE" });
+}
+
+export async function addGroupMembers(group_id: string, user_ids: string[]) {
+  return apiFetch(`/api/admin/groups/${group_id}/members`, {
+    method: "POST",
+    body: JSON.stringify({ user_ids }),
+  });
+}
+
+export async function removeGroupMember(group_id: string, user_id: string) {
+  return apiFetch(`/api/admin/groups/${group_id}/members/${user_id}`, {
+    method: "DELETE",
   });
 }
