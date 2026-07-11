@@ -187,3 +187,27 @@ export async function sendReport(body: Record<string, unknown>) {
     body: JSON.stringify(body),
   });
 }
+
+/* ── Controls ────────────────────────────────────────────────────────────── */
+export async function fetchControls() {
+  return apiFetch("/api/admin/controls");
+}
+
+export async function upsertControl(control_id: string, config: Record<string, unknown>) {
+  return apiFetch("/api/admin/controls", {
+    method: "PUT",
+    body: JSON.stringify({ control_id, config }),
+  });
+}
+
+/* ── Groups ──────────────────────────────────────────────────────────────── */
+export async function fetchGroups() {
+  return apiFetch("/api/admin/groups");
+}
+
+export async function upsertGroups(groups: { id: string; name: string }[]) {
+  return apiFetch("/api/admin/groups", {
+    method: "PUT",
+    body: JSON.stringify({ groups }),
+  });
+}

@@ -13,6 +13,7 @@ import {
   Settings,
   ChevronDown,
   FileWarning,
+  SlidersHorizontal,
 } from "lucide-react";
 
 const navItems = [
@@ -44,6 +45,7 @@ const navItems = [
     ],
   },
   // { label: "Compliance", href: "/dashboard/compliance", Icon: ClipboardCheck },
+  { label: "Controls", href: "/dashboard/controls", Icon: SlidersHorizontal },
   { label: "Settings", href: "/dashboard/settings", Icon: Settings },
 ];
 
