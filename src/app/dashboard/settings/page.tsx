@@ -1,7 +1,12 @@
 "use client";
-import { useState, useEffect, useRef, KeyboardEvent } from "react";
+import { useState, useEffect, useRef, KeyboardEvent, useCallback } from "react";
 import { LazyCard } from "@/components/dashboard/CardLoader";
-import { fetchSettings, updateSettings } from "@/lib/adminApi";
+import {
+  fetchSettings, updateSettings,
+  fetchGroups, fetchTeam,
+  createGroup, renameGroup, deleteGroup,
+  addGroupMembers, removeGroupMember,
+} from "@/lib/adminApi";
 
 const cs: React.CSSProperties = { background: "#0d1117", border: "1px solid #21262d", borderRadius: 14 };
 
@@ -166,12 +171,313 @@ function TagInput({
   );
 }
 
+/* ── Types for Groups tab ────────────────────────────────────────────────── */
+type GroupDef = {
+  id: string; group_name: string; org_id?: string;
+  member_count?: number;
+  members?: { user_id: string; email: string; role: string }[];
+};
+type TeamMember = { user_id: string; email: string; role?: string };
+
+/* ── Groups management tab ───────────────────────────────────────────────── */
+function GroupsTab() {
+  const [groups,      setGroups]      = useState<GroupDef[]>([]);
+  const [team,        setTeam]        = useState<TeamMember[]>([]);
+  const [selGroup,    setSelGroup]    = useState<GroupDef | null>(null);
+  const [loading,     setLoading]     = useState(true);
+  const [newName,     setNewName]     = useState("");
+  const [creating,    setCreating]    = useState(false);
+  const [renaming,    setRenaming]    = useState<string | null>(null);
+  const [renameVal,   setRenameVal]   = useState("");
+  const [deleting,    setDeleting]    = useState<string | null>(null);
+  const [addSearch,   setAddSearch]   = useState("");
+  const [toast,       setToast]       = useState("");
+
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    const [gd, td] = await Promise.all([
+      fetchGroups() as Promise<{ groups?: GroupDef[] } | null>,
+      fetchTeam()   as Promise<{ team?: TeamMember[] } | null>,
+    ]);
+    if (gd?.groups) setGroups(gd.groups);
+    if (td?.team)   setTeam(td.team);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
+
+  /* refresh selected group after mutations */
+  const refreshSelected = (updatedGroups: GroupDef[]) => {
+    if (selGroup) {
+      const found = updatedGroups.find(g => g.id === selGroup.id);
+      setSelGroup(found ?? null);
+    }
+  };
+
+  /* Create group */
+  const handleCreate = async () => {
+    const name = newName.trim();
+    if (!name) return;
+    setCreating(true);
+    const res = await createGroup(name) as { group?: GroupDef } | null;
+    if (res?.group) {
+      const next = [...groups, { ...res.group, member_count: 0, members: [] }];
+      setGroups(next);
+      setNewName("");
+      showToast(`Group "${name}" created`);
+    }
+    setCreating(false);
+  };
+
+  /* Rename group */
+  const handleRename = async (id: string) => {
+    const name = renameVal.trim();
+    if (!name) { setRenaming(null); return; }
+    const res = await renameGroup(id, name) as { group_name?: string } | null;
+    if (res) {
+      const next = groups.map(g => g.id === id ? { ...g, group_name: name } : g);
+      setGroups(next);
+      refreshSelected(next);
+      showToast("Group renamed");
+    }
+    setRenaming(null);
+  };
+
+  /* Delete group */
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this group? Members won't be deleted from the org.")) return;
+    setDeleting(id);
+    await deleteGroup(id);
+    const next = groups.filter(g => g.id !== id);
+    setGroups(next);
+    if (selGroup?.id === id) setSelGroup(null);
+    showToast("Group deleted");
+    setDeleting(null);
+  };
+
+  /* Add member */
+  const handleAddMember = async (userId: string) => {
+    if (!selGroup) return;
+    const res = await addGroupMembers(selGroup.id, [userId]) as { added?: string[] } | null;
+    if (res?.added?.length) {
+      const member = team.find(m => m.user_id === userId);
+      const newMember = { user_id: userId, email: member?.email ?? "", role: member?.role ?? "member" };
+      const next = groups.map(g =>
+        g.id === selGroup.id
+          ? { ...g, members: [...(g.members ?? []), newMember], member_count: (g.member_count ?? 0) + 1 }
+          : g
+      );
+      setGroups(next);
+      refreshSelected(next);
+      setAddSearch("");
+      showToast(`Added ${member?.email ?? userId}`);
+    }
+  };
+
+  /* Remove member */
+  const handleRemoveMember = async (userId: string) => {
+    if (!selGroup) return;
+    await removeGroupMember(selGroup.id, userId);
+    const next = groups.map(g =>
+      g.id === selGroup.id
+        ? { ...g, members: (g.members ?? []).filter(m => m.user_id !== userId), member_count: Math.max(0, (g.member_count ?? 1) - 1) }
+        : g
+    );
+    setGroups(next);
+    refreshSelected(next);
+    showToast("Member removed");
+  };
+
+  /* Members not yet in selected group */
+  const groupMemberIds = new Set((selGroup?.members ?? []).map(m => m.user_id));
+  const addableMembers = team.filter(m =>
+    !groupMemberIds.has(m.user_id) &&
+    (addSearch === "" || (m.email ?? "").toLowerCase().includes(addSearch.toLowerCase()))
+  );
+
+  const cs2: React.CSSProperties = { background: "#0d1117", border: "1px solid #21262d", borderRadius: 12 };
+
+  return (
+    <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+      {/* Left: Groups list */}
+      <div style={{ width: 260, flexShrink: 0 }}>
+        <div style={{ ...cs2, overflow: "hidden" }}>
+          {/* Create new group */}
+          <div style={{ padding: "14px 16px", borderBottom: "1px solid #21262d" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#8b949e", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>New Group</div>
+            <div style={{ display: "flex", gap: 6 }}>
+              <input value={newName} onChange={e => setNewName(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleCreate()}
+                placeholder="Group name…"
+                style={{ flex: 1, padding: "8px 10px", background: "#161b22", border: "1px solid #30363d", borderRadius: 7, color: "#e6edf3", fontSize: 12, outline: "none" }} />
+              <button onClick={handleCreate} disabled={creating || !newName.trim()}
+                style={{ padding: "8px 12px", background: "#39d353", border: "none", borderRadius: 7, color: "#0d1117", fontSize: 12, fontWeight: 700, cursor: creating ? "wait" : "pointer", opacity: !newName.trim() ? 0.5 : 1 }}>
+                {creating ? "…" : "+ Add"}
+              </button>
+            </div>
+          </div>
+
+          {/* Groups list */}
+          <div style={{ maxHeight: 520, overflowY: "auto" }}>
+            {loading && <div style={{ padding: 16, fontSize: 12, color: "#8b949e" }}>Loading…</div>}
+            {!loading && groups.length === 0 && (
+              <div style={{ padding: 16, fontSize: 12, color: "#8b949e", textAlign: "center" }}>
+                No groups yet. Create one above.
+              </div>
+            )}
+            {groups.map(g => (
+              <div key={g.id}
+                onClick={() => setSelGroup(g)}
+                style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 16px", borderBottom: "1px solid #21262d", cursor: "pointer", background: selGroup?.id === g.id ? "#161b22" : "transparent", borderLeft: selGroup?.id === g.id ? "3px solid #39d353" : "3px solid transparent", transition: ".15s" }}>
+
+                {renaming === g.id ? (
+                  <input autoFocus value={renameVal} onChange={e => setRenameVal(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter") handleRename(g.id); if (e.key === "Escape") setRenaming(null); }}
+                    onBlur={() => handleRename(g.id)}
+                    onClick={e => e.stopPropagation()}
+                    style={{ flex: 1, padding: "3px 6px", background: "#0d1117", border: "1px solid #39d353", borderRadius: 5, color: "#e6edf3", fontSize: 12, outline: "none" }} />
+                ) : (
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#e6edf3", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{g.group_name}</div>
+                    <div style={{ fontSize: 10, color: "#8b949e", marginTop: 1 }}>{g.member_count ?? 0} member{(g.member_count ?? 0) !== 1 ? "s" : ""}</div>
+                  </div>
+                )}
+
+                {renaming !== g.id && (
+                  <div style={{ display: "flex", gap: 4, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                    {/* rename */}
+                    <button title="Rename" onClick={() => { setRenaming(g.id); setRenameVal(g.group_name); }}
+                      style={{ padding: "3px 6px", background: "none", border: "none", cursor: "pointer", color: "#8b949e", borderRadius: 4, fontSize: 12 }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "#e6edf3")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "#8b949e")}>✎</button>
+                    {/* delete */}
+                    <button title="Delete" onClick={() => handleDelete(g.id)} disabled={deleting === g.id}
+                      style={{ padding: "3px 6px", background: "none", border: "none", cursor: "pointer", color: "#8b949e", borderRadius: 4, fontSize: 12 }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "#f87171")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "#8b949e")}>🗑</button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Right: Group members panel */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {!selGroup ? (
+          <div style={{ ...cs2, padding: "40px 20px", textAlign: "center" }}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" style={{ margin: "0 auto 12px" }}>
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="#30363d" strokeWidth="1.5" strokeLinecap="round"/>
+              <circle cx="9" cy="7" r="4" stroke="#30363d" strokeWidth="1.5"/>
+              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="#30363d" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            <div style={{ fontSize: 14, color: "#8b949e" }}>Select a group to manage its members</div>
+          </div>
+        ) : (
+          <div style={{ ...cs2, overflow: "hidden" }}>
+            {/* Header */}
+            <div style={{ padding: "16px 20px", borderBottom: "1px solid #21262d", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#e6edf3" }}>{selGroup.group_name}</div>
+                <div style={{ fontSize: 11, color: "#8b949e", marginTop: 2 }}>{selGroup.member_count ?? 0} member{(selGroup.member_count ?? 0) !== 1 ? "s" : ""}</div>
+              </div>
+              <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#1f4a3c", border: "1px solid #39d35333", color: "#39d353" }}>Enterprise Group</span>
+            </div>
+
+            {/* Add member search */}
+            <div style={{ padding: "14px 20px", borderBottom: "1px solid #21262d" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#8b949e", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>Add Members</div>
+              <input value={addSearch} onChange={e => setAddSearch(e.target.value)}
+                placeholder="Search employees by email…"
+                style={{ width: "100%", padding: "9px 12px", background: "#161b22", border: "1px solid #30363d", borderRadius: 8, color: "#e6edf3", fontSize: 12, outline: "none", boxSizing: "border-box" }} />
+              {addSearch && addableMembers.length > 0 && (
+                <div style={{ marginTop: 6, border: "1px solid #30363d", borderRadius: 8, overflow: "hidden", maxHeight: 180, overflowY: "auto" }}>
+                  {addableMembers.slice(0, 10).map(m => (
+                    <div key={m.user_id}
+                      onClick={() => handleAddMember(m.user_id)}
+                      style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "9px 12px", borderBottom: "1px solid #21262d", cursor: "pointer", transition: ".1s" }}
+                      onMouseEnter={e => (e.currentTarget.style.background = "#161b22")}
+                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                      <div>
+                        <div style={{ fontSize: 12, color: "#e6edf3" }}>{m.email}</div>
+                        <div style={{ fontSize: 10, color: "#8b949e", marginTop: 1, textTransform: "capitalize" }}>{m.role ?? "member"}</div>
+                      </div>
+                      <button style={{ padding: "4px 12px", background: "#1f4a3c", border: "1px solid #39d35333", borderRadius: 6, color: "#39d353", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>+ Add</button>
+                    </div>
+                  ))}
+                  {addableMembers.length > 10 && <div style={{ padding: "8px 12px", fontSize: 11, color: "#8b949e" }}>+{addableMembers.length - 10} more — refine search</div>}
+                </div>
+              )}
+              {addSearch && addableMembers.length === 0 && (
+                <div style={{ marginTop: 6, padding: "8px 12px", fontSize: 12, color: "#8b949e" }}>No matching employees not already in this group.</div>
+              )}
+            </div>
+
+            {/* Members list */}
+            <div style={{ maxHeight: 440, overflowY: "auto" }}>
+              {(!selGroup.members || selGroup.members.length === 0) ? (
+                <div style={{ padding: "20px", fontSize: 12, color: "#8b949e", textAlign: "center" }}>
+                  No members yet — search above to add employees.
+                </div>
+              ) : (
+                <>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", padding: "8px 20px", background: "#161b22", borderBottom: "1px solid #21262d" }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "#8b949e", textTransform: "uppercase", letterSpacing: 0.5 }}>Employee</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "#8b949e", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center", minWidth: 60 }}>Role</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "#8b949e", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "right", minWidth: 60 }}>Remove</span>
+                  </div>
+                  {selGroup.members.map(m => (
+                    <div key={m.user_id} style={{ display: "grid", gridTemplateColumns: "1fr auto auto", alignItems: "center", padding: "12px 20px", borderBottom: "1px solid #21262d", gap: 8 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                        {/* Avatar initials */}
+                        <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#1f4a3c", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#39d353", flexShrink: 0 }}>
+                          {(m.email ?? "?")[0].toUpperCase()}
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 12, color: "#e6edf3", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.email}</div>
+                          <div style={{ fontSize: 10, color: "#8b949e", marginTop: 1 }}>{m.user_id.slice(0, 8)}…</div>
+                        </div>
+                      </div>
+                      <span style={{ fontSize: 10, fontWeight: 600, textTransform: "capitalize", color: m.role === "admin" || m.role === "owner" ? "#39d353" : "#8b949e", background: "#161b22", border: "1px solid #30363d", borderRadius: 20, padding: "2px 8px", textAlign: "center", whiteSpace: "nowrap" }}>
+                        {m.role ?? "member"}
+                      </span>
+                      <button onClick={() => handleRemoveMember(m.user_id)} title="Remove from group"
+                        style={{ padding: "4px 10px", background: "none", border: "1px solid #30363d", borderRadius: 6, cursor: "pointer", color: "#8b949e", fontSize: 11, whiteSpace: "nowrap" }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#dc2626"; (e.currentTarget as HTMLButtonElement).style.color = "#f87171"; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#30363d"; (e.currentTarget as HTMLButtonElement).style.color = "#8b949e"; }}>
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Toast */}
+      {toast && (
+        <div style={{ position: "fixed", bottom: 24, right: 24, background: "#1f4a3c", border: "1px solid #39d35355", borderRadius: 10, padding: "11px 18px", color: "#86efac", fontSize: 13, zIndex: 100, boxShadow: "0 8px 24px rgba(0,0,0,.5)" }}>
+          ✓ {toast}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+
 export default function SettingsPage() {
-  const [active, setActive]       = useState<Section>("dashboard");
-  const [t, setT]                 = useState(defaultToggles);
-  const [maskStyle, setMaskStyle] = useState("smart");
-  const [saving, setSaving]       = useState(false);
-  const [loaded, setLoaded]       = useState(false);
+  const [mainTab, setMainTab]         = useState<"settings" | "groups">("settings");
+  const [active, setActive]           = useState<Section>("dashboard");
+  const [t, setT]                     = useState(defaultToggles);
+  const [maskStyle, setMaskStyle]     = useState("smart");
+  const [saving, setSaving]           = useState(false);
+  const [loaded, setLoaded]           = useState(false);
 
   // ── Array fields ────────────────────────────────────────────────────────────
   const [wafSocialDomains,     setWafSocialDomains]     = useState<string[]>([]);
@@ -221,12 +527,33 @@ export default function SettingsPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 1400 }}>
+      {/* Page header */}
       <div>
         <h2 style={{ fontSize: 24, fontWeight: 800, color: "#e6edf3", letterSpacing: "-0.5px", margin: 0 }}>SETTINGS</h2>
-        <p style={{ fontSize: 14, color: "#8b949e", marginTop: 6 }}>Manage your SecureLint preferences, security policies, and account configuration.</p>
+        <p style={{ fontSize: 14, color: "#8b949e", marginTop: 6 }}>Manage your SecureLint preferences, security policies, and organisation groups.</p>
       </div>
 
-      {!loaded && (
+      {/* ── Main tabs: Settings | Groups ───────────────────────────────────── */}
+      <div style={{ display: "flex", gap: 4, borderBottom: "1px solid #21262d", paddingBottom: 0 }}>
+        {(["settings", "groups"] as const).map(tab => {
+          const labels: Record<string, string> = { settings: "⚙ Settings", groups: "👥 Groups" };
+          const active2 = mainTab === tab;
+          return (
+            <button key={tab} onClick={() => setMainTab(tab)}
+              style={{ padding: "9px 22px", background: "none", border: "none", borderBottom: active2 ? "2px solid #39d353" : "2px solid transparent", color: active2 ? "#e6edf3" : "#8b949e", fontSize: 13, fontWeight: active2 ? 700 : 400, cursor: "pointer", transition: ".15s", marginBottom: -1 }}>
+              {labels[tab]}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── Groups tab ─────────────────────────────────────────────────────── */}
+      {mainTab === "groups" && <GroupsTab />}
+
+      {/* ── Settings tab ───────────────────────────────────────────────────── */}
+      {mainTab === "settings" && <>
+
+      {!loaded && mainTab === "settings" && (
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 20px", borderRadius: 10, background: "#161b22", border: "1px solid #21262d", color: "#8b949e", fontSize: 12 }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ animation: "spin 0.8s linear infinite" }}>
             <circle cx="12" cy="12" r="9" stroke="#21262d" strokeWidth="2.5"/><path d="M12 3a9 9 0 019 9" stroke="#39d353" strokeWidth="2.5" strokeLinecap="round"/>
@@ -427,6 +754,8 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+      </>}
+
     </div>
   );
 }
