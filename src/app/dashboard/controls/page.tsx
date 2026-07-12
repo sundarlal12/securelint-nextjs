@@ -14,8 +14,10 @@ interface UserSettings {
   phish_detection_block?: boolean;
   link_hover_detection?: boolean;
   domain_age_alert?: boolean;
+  phish_site_whitelist?: string[];       // whitelist domains for phishing site detection
   phish_mail_detection?: boolean;
   phish_mail_action?: string;
+  phish_mail_whitelist?: string[];       // whitelist sender domains for phishing mail
   waf_social_domain?: string[];
   email_dlp_enabled?: boolean;
   email_dlp_domain?: string[];
@@ -37,6 +39,8 @@ interface UserSettings {
   global_masking_status?: boolean;
   enterprise_data_collection?: boolean;
   Plans?: string;
+  /** Maps control_id → list of group IDs the control applies to */
+  control_groups?: Record<string, string[]>;
   [key: string]: unknown;
 }
 
@@ -462,8 +466,18 @@ function DrawerContent({ ctrl, settings, groups, onChange, onGroupCreated }: {
   onChange:(patch:Partial<UserSettings>)=>void;
   onGroupCreated:(g:Group)=>void;
 }) {
-  const [selGroups, setSelGroups] = useState<string[]>([]);
+  // Initialise selGroups from saved control_groups so it reflects the current value
+  const [selGroups, setSelGroups] = useState<string[]>(
+    () => settings.control_groups?.[ctrl.id] ?? []
+  );
   const set = (patch:Partial<UserSettings>) => onChange(patch);
+
+  // Propagate group changes up so they are included in the save payload
+  const handleGroupChange = (ids: string[]) => {
+    setSelGroups(ids);
+    const existing = settings.control_groups ?? {};
+    onChange({ control_groups: { ...existing, [ctrl.id]: ids } });
+  };
 
   switch (ctrl.id) {
 
@@ -480,11 +494,12 @@ function DrawerContent({ ctrl, settings, groups, onChange, onGroupCreated }: {
           onChange={v=>set({phish_detection_alert:v==="WARN", phish_detection_block:v==="BLOCK"})}/>
 
         <Sec label="Apply to groups" info="Leave empty to apply to all employees"/>
-        <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups} onGroupCreated={onGroupCreated}/>
+        <GroupPicker groups={groups} selected={selGroups} onChange={handleGroupChange} onGroupCreated={onGroupCreated}/>
 
         <Sec label="Whitelist domains" info="Visits to these domains will never be flagged"/>
         <DomainTable label="Domains" placeholder="example.com" wildcardNote
-          initValues={[]} onCommit={()=>{}}/>
+          initValues={settings.phish_site_whitelist ?? []}
+          onCommit={v=>set({phish_site_whitelist:v})}/>
       </>
     );
 
@@ -499,11 +514,12 @@ function DrawerContent({ ctrl, settings, groups, onChange, onGroupCreated }: {
           onChange={v=>set({phish_mail_action:v.toLowerCase()})}/>
 
         <Sec label="Apply to groups"/>
-        <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups} onGroupCreated={onGroupCreated}/>
+        <GroupPicker groups={groups} selected={selGroups} onChange={handleGroupChange} onGroupCreated={onGroupCreated}/>
 
         <Sec label="Whitelist sender domains" info="Emails from these domains will not be flagged"/>
         <DomainTable label="Domains" placeholder="trusted-partner.com" wildcardNote
-          initValues={[]} onCommit={()=>{}}/>
+          initValues={settings.phish_mail_whitelist ?? []}
+          onCommit={v=>set({phish_mail_whitelist:v})}/>
       </>
     );
 
@@ -518,7 +534,7 @@ function DrawerContent({ ctrl, settings, groups, onChange, onGroupCreated }: {
             onChange={()=>{}}/>
 
           <Sec label="Apply to groups"/>
-          <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups} onGroupCreated={onGroupCreated}/>
+          <GroupPicker groups={groups} selected={selGroups} onChange={handleGroupChange} onGroupCreated={onGroupCreated}/>
 
           <Sec label={ctrl.id==="waf_domain"?"Blocked domains":"Blocked URLs / domains"} info="Supports wildcards e.g. *.example.com"/>
           <DomainTable label="Domains" placeholder="example.com" wildcardNote
@@ -571,7 +587,7 @@ function DrawerContent({ ctrl, settings, groups, onChange, onGroupCreated }: {
             onChange={v=>set({blacklist_extension:{...bl,action:v.toLowerCase()},blacklist_extension_status:v.toLowerCase()})}/>
 
           <Sec label="Apply to groups"/>
-          <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups} onGroupCreated={onGroupCreated}/>
+          <GroupPicker groups={groups} selected={selGroups} onChange={handleGroupChange} onGroupCreated={onGroupCreated}/>
 
           <Sec label="Blocked extension IDs" info="Add Chrome Web Store extension IDs from your IT policy"/>
           <DomainTable label="Extension ID" placeholder="mdanidgdpmkimeiiojknlnekblgmpdll"
@@ -594,7 +610,7 @@ function DrawerContent({ ctrl, settings, groups, onChange, onGroupCreated }: {
             onChange={v=>set({email_dlp_action:v.toLowerCase()})}/>
 
           <Sec label="Apply to groups"/>
-          <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups} onGroupCreated={onGroupCreated}/>
+          <GroupPicker groups={groups} selected={selGroups} onChange={handleGroupChange} onGroupCreated={onGroupCreated}/>
 
           <Sec label="Allowed external domains" info="Emails to these domains will not be flagged"/>
           <DomainTable label="Domains" placeholder="partner.com" wildcardNote
@@ -626,7 +642,7 @@ function DrawerContent({ ctrl, settings, groups, onChange, onGroupCreated }: {
           <ActionDropdown choices={["DETECT","MASK"]} value={"MASK" as ActionValue} onChange={()=>{}}/>
 
           <Sec label="Apply to groups"/>
-          <GroupPicker groups={groups} selected={selGroups} onChange={setSelGroups} onGroupCreated={onGroupCreated}/>
+          <GroupPicker groups={groups} selected={selGroups} onChange={handleGroupChange} onGroupCreated={onGroupCreated}/>
 
           <Sec label="Behaviour"/>
           {([
