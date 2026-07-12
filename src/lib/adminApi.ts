@@ -241,3 +241,31 @@ export async function removeGroupMember(group_id: string, user_id: string) {
     method: "DELETE",
   });
 }
+
+/* ── Enterprise Group Policy ─────────────────────────────────────────────── */
+
+/** List all group policies for the org (returns {policies: [...]}). */
+export async function fetchAllGroupPolicies() {
+  return apiFetch("/api/admin/groups/policies");
+}
+
+/** Fetch the policy settings for a single group. */
+export async function fetchGroupPolicy(group_id: string) {
+  return apiFetch(`/api/admin/groups/${group_id}/policy`);
+}
+
+/**
+ * Create or update (deep-merge) the policy for a group.
+ * Pass only the fields you want to set; they are merged with the existing policy.
+ */
+export async function upsertGroupPolicy(group_id: string, settings: Record<string, unknown>) {
+  return apiFetch(`/api/admin/groups/${group_id}/policy`, {
+    method: "PUT",
+    body: JSON.stringify(settings),
+  });
+}
+
+/** Clear the policy for a group (removes the row entirely). */
+export async function deleteGroupPolicy(group_id: string) {
+  return apiFetch(`/api/admin/groups/${group_id}/policy`, { method: "DELETE" });
+}

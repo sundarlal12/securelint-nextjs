@@ -1,6 +1,9 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { fetchSettings, updateSettings, fetchGroups, createGroup } from "@/lib/adminApi";
+import {
+  fetchSettings, updateSettings, fetchGroups, createGroup,
+  upsertGroupPolicy,
+} from "@/lib/adminApi";
 
 /* ─────────────────────────────────────────────────────────────────────────
    Types
@@ -108,6 +111,20 @@ const banners = {
     ))}
     <rect x="58" y="16" width="130" height="64" rx="4" stroke="#a78bfa44" fill="none"/>
   </Svg>,
+};
+
+/**
+ * Maps each control ID to the user_settings field names it owns.
+ * Used to extract only the relevant fields when writing group policies.
+ */
+const CONTROL_FIELDS_MAP: Record<string, (keyof UserSettings)[]> = {
+  phishing_site:       ["phish_detection","phish_detection_alert","phish_detection_block","link_hover_detection","domain_age_alert","phish_site_whitelist"],
+  phishing_mail:       ["phish_mail_detection","phish_mail_action","phish_mail_whitelist"],
+  waf_domain:          ["waf_social_domain"],
+  session_theft:       ["session_marker","session_domains"],
+  malicious_extension: ["blacklist_extension","blacklist_extension_status"],
+  email_dlp:           ["email_dlp_enabled","email_dlp_domain","email_dlp_action"],
+  secret_masking:      ["global_masking_status","masking_style","mask_console","auto_mask_textareas","auto_mask_inputs","auto_mask_editor","overlay_input","overlay_textarea","overlay_editor","block_network_secrets","block_form_submission","site_exclusions","site_exclusions_status"],
 };
 
 const CONTROLS: ControlDef[] = [
@@ -795,24 +812,59 @@ export default function ControlsPage() {
   const handleChange = (patch: Partial<UserSettings>) => setDraft(prev => ({ ...prev, ...patch }));
 
   const save = async () => {
+    if (!active) return;
     setSaving(true);
+
+    // ── 1. Diff draft vs last-saved settings ───────────────────────────────
     const changed: Record<string, unknown> = {};
     for (const k of Object.keys(draft)) {
-      if (JSON.stringify((draft as Record<string, unknown>)[k]) !== JSON.stringify((settings as Record<string, unknown>)[k])) {
+      if (
+        JSON.stringify((draft as Record<string, unknown>)[k]) !==
+        JSON.stringify((settings as Record<string, unknown>)[k])
+      ) {
         changed[k] = (draft as Record<string, unknown>)[k];
       }
     }
-    if (!Object.keys(changed).length) { closeDrawer(); setSaving(false); return; }
-    const res = await updateSettings(changed);
-    if (res) {
+
+    // ── 2. Save to admin's user_settings (org-wide reference / display) ────
+    let settingsSaved = true;
+    if (Object.keys(changed).length) {
+      const res = await updateSettings(changed);
+      settingsSaved = !!res;
+    }
+
+    // ── 3. Write control fields to enterprise_group_policy for each group ──
+    // Extract only the fields owned by this control
+    const ctrlFields = CONTROL_FIELDS_MAP[active] ?? [];
+    const ctrlSettings: Record<string, unknown> = {};
+    for (const field of ctrlFields) {
+      const val = (draft as Record<string, unknown>)[field];
+      if (val !== undefined) ctrlSettings[field] = val;
+    }
+
+    let policySaved = true;
+    if (Object.keys(ctrlSettings).length) {
+      // Which groups to apply: selected groups, or ALL groups if none selected
+      const selectedGroups: string[] = draft.control_groups?.[active] ?? [];
+      const targetGroupIds = selectedGroups.length > 0
+        ? selectedGroups
+        : groups.map(g => g.id);
+
+      const policyResults = await Promise.all(
+        targetGroupIds.map(gid => upsertGroupPolicy(gid, ctrlSettings))
+      );
+      policySaved = policyResults.every(r => r !== null);
+    }
+
+    if (settingsSaved && policySaved) {
       setSettings(draft);
       setToast({ msg: "Configuration saved", ok: true });
+      closeDrawer();
     } else {
       setToast({ msg: "Failed to save — please try again", ok: false });
     }
     setTimeout(() => setToast(null), 2800);
     setSaving(false);
-    if (res) closeDrawer();
   };
 
   const activeCtrl = active ? CONTROLS.find(c => c.id === active) : null;
