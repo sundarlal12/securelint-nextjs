@@ -18,6 +18,8 @@ interface UserSettings {
   phish_mail_detection?: boolean;
   phish_mail_action?: string;
   phish_mail_whitelist?: string[];       // whitelist sender domains for phishing mail
+  session_marker?: string;
+  session_domains?: string[];
   waf_social_domain?: string[];
   email_dlp_enabled?: boolean;
   email_dlp_domain?: string[];
@@ -126,20 +128,12 @@ const CONTROLS: ControlDef[] = [
     statusLabel:s=>s.phish_mail_detection?(s.phish_mail_action?.toUpperCase()||"Detect"):"Disabled",
   },
   {
-    id:"waf_domain",title:"WAF Domain Blocking",
-    shortDesc:"Block access to social-engineering and malicious domains.",
-    longDesc:"Maintain a custom blocklist of domains. When an employee navigates to a blocked domain the extension warns or blocks the page per your policy.",
+    id:"waf_domain",title:"Domain & URL Blocking",
+    shortDesc:"Block access to specific domains, URLs, or social-engineering sites.",
+    longDesc:"Maintain a custom blocklist of domains and URLs. Supports wildcards (e.g. *.example.com). When an employee navigates to a blocked address the extension warns or blocks the page per your policy.",
     tag:"Response",tagColor:"#ef4444",bannerEl:banners.waf_domain,
     isEnabled:s=>!!(s.waf_social_domain?.length),
     statusLabel:s=>s.waf_social_domain?.length?`${s.waf_social_domain.length} domain${s.waf_social_domain.length>1?"s":""}`:"Not configured",
-  },
-  {
-    id:"url_blocking",title:"URL Blocking",
-    shortDesc:"Blocklist specific URLs or domain patterns.",
-    longDesc:"Prevent employees from visiting specific URLs. Supports wildcards (e.g. *.example.com). Blocked pages show a policy enforcement message.",
-    tag:"Response",tagColor:"#ef4444",bannerEl:banners.url_blocking,
-    isEnabled:s=>!!(s.waf_social_domain?.length),
-    statusLabel:s=>s.waf_social_domain?.length?`${s.waf_social_domain.length} URL${s.waf_social_domain.length>1?"s":""}`:"Not configured",
   },
   {
     id:"session_theft",title:"Session Theft Detection",
@@ -523,58 +517,56 @@ function DrawerContent({ ctrl, settings, groups, onChange, onGroupCreated }: {
       </>
     );
 
-    case "waf_domain":
-    case "url_blocking": {
+    case "waf_domain": {
       const domains = settings.waf_social_domain ?? [];
       return (
         <>
-          <Sec label="Action"/>
-          <ActionDropdown choices={["DETECT","WARN","BLOCK"]}
-            value={(domains.length?"BLOCK":"OFF") as ActionValue}
+          <Sec label="Action" info="How SecureLint responds when a blocked domain is visited"/>
+          <ActionDropdown choices={["WARN","BLOCK"]}
+            value={domains.length?"BLOCK":"WARN"}
             onChange={()=>{}}/>
 
           <Sec label="Apply to groups"/>
           <GroupPicker groups={groups} selected={selGroups} onChange={handleGroupChange} onGroupCreated={onGroupCreated}/>
 
-          <Sec label={ctrl.id==="waf_domain"?"Blocked domains":"Blocked URLs / domains"} info="Supports wildcards e.g. *.example.com"/>
-          <DomainTable label="Domains" placeholder="example.com" wildcardNote
+          <Sec label="Blocked domains / URLs" info="Supports wildcards e.g. *.example.com"/>
+          <DomainTable label="Domain / URL" placeholder="socialsite.com or *.example.com" wildcardNote
             initValues={domains}
             onCommit={v=>set({waf_social_domain:v})}/>
         </>
       );
     }
 
-    case "session_theft": {
-      type SessionSettings = UserSettings & { session_marker?:string; session_domains?:string[] };
-      const ss = settings as SessionSettings;
-      return (
-        <>
-          <Sec label="Unique marker" info="A random token injected into User Agent strings to detect session theft"/>
-          <p style={{ fontSize:12, color:"#64748b", lineHeight:1.5, marginBottom:12 }}>
-            Add a unique marker to the User Agent string with the browser extension. Using app logs that contain session IDs and UA strings, you can discover session theft.
-          </p>
-          <div style={{ display:"flex", gap:8, alignItems:"stretch" }}>
-            <button onClick={() => {
-              const rand = Array.from(crypto.getRandomValues(new Uint8Array(5))).map(b=>b.toString(16).padStart(2,"0")).join("").toUpperCase();
-              set({session_marker:`SL-${rand}`} as Partial<UserSettings>);
-            }} style={{ padding:"10px 14px", background:"#0d1525", border:"1px solid #2d3748", borderRadius:8, color:"#c9d1d9", fontSize:13, cursor:"pointer", whiteSpace:"nowrap" }}>
-              Generate new marker
-            </button>
-            <div style={{ flex:1, padding:"10px 12px", background:"#0d1525", border:"1px solid #ef444466", borderRadius:8, fontFamily:"monospace", fontSize:13, color:"#f87171" }}>
-              {ss.session_marker||"SL-XXXXXXXXXX"}
-            </div>
+    case "session_theft": return (
+      <>
+        <Sec label="Unique marker" info="A random token injected into User Agent strings to detect session theft"/>
+        <p style={{ fontSize:12, color:"#64748b", lineHeight:1.5, marginBottom:12 }}>
+          Add a unique marker to the User Agent string with the browser extension. Using app logs that contain session IDs and UA strings, you can discover session theft.
+        </p>
+        <div style={{ display:"flex", gap:8, alignItems:"stretch" }}>
+          <button onClick={() => {
+            const rand = Array.from(crypto.getRandomValues(new Uint8Array(5))).map(b=>b.toString(16).padStart(2,"0")).join("").toUpperCase();
+            set({ session_marker: `SL-${rand}` });
+          }} style={{ padding:"10px 14px", background:"#0d1525", border:"1px solid #2d3748", borderRadius:8, color:"#c9d1d9", fontSize:13, cursor:"pointer", whiteSpace:"nowrap" }}>
+            Generate new marker
+          </button>
+          <div style={{ flex:1, padding:"10px 12px", background:"#0d1525", border:"1px solid #ef444466", borderRadius:8, fontFamily:"monospace", fontSize:13, color:"#f87171" }}>
+            {settings.session_marker || "SL-XXXXXXXXXX"}
           </div>
+        </div>
 
-          <Sec label="Manually add app domains"/>
-          <p style={{ fontSize:12, color:"#64748b", lineHeight:1.5, marginBottom:10 }}>
-            The extension will inject the marker on these domains to help your team analyse the logs in the target app. This can identify sessions with and without the marker.
-          </p>
-          <DomainTable label="Domains" placeholder="example.okta.com" wildcardNote
-            initValues={ss.session_domains||[]}
-            onCommit={v=>set({session_domains:v} as Partial<UserSettings>)}/>
-        </>
-      );
-    }
+        <Sec label="Apply to groups"/>
+        <GroupPicker groups={groups} selected={selGroups} onChange={handleGroupChange} onGroupCreated={onGroupCreated}/>
+
+        <Sec label="App domains" info="The marker will be injected on these domains"/>
+        <p style={{ fontSize:12, color:"#64748b", lineHeight:1.5, marginBottom:10 }}>
+          The extension injects the marker on these domains. Cross-reference session IDs in your app logs to detect sessions without the marker.
+        </p>
+        <DomainTable label="Domains" placeholder="example.okta.com" wildcardNote
+          initValues={settings.session_domains ?? []}
+          onCommit={v=>set({ session_domains: v })}/>
+      </>
+    );
 
     case "malicious_extension": {
       const bl = settings.blacklist_extension ?? {};
