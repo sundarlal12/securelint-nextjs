@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   fetchSettings, updateSettings, fetchGroups, createGroup,
-  upsertGroupPolicy,
+  upsertGroupPolicyBatch,
 } from "@/lib/adminApi";
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -833,8 +833,7 @@ export default function ControlsPage() {
       settingsSaved = !!res;
     }
 
-    // ── 3. Write control fields to enterprise_group_policy for each group ──
-    // Extract only the fields owned by this control
+    // ── 3. Write control fields to enterprise_group_policy (batch, one call) ──
     const ctrlFields = CONTROL_FIELDS_MAP[active] ?? [];
     const ctrlSettings: Record<string, unknown> = {};
     for (const field of ctrlFields) {
@@ -844,16 +843,10 @@ export default function ControlsPage() {
 
     let policySaved = true;
     if (Object.keys(ctrlSettings).length) {
-      // Which groups to apply: selected groups, or ALL groups if none selected
+      // Selected groups, or empty array = "apply to ALL groups" (handled by backend)
       const selectedGroups: string[] = draft.control_groups?.[active] ?? [];
-      const targetGroupIds = selectedGroups.length > 0
-        ? selectedGroups
-        : groups.map(g => g.id);
-
-      const policyResults = await Promise.all(
-        targetGroupIds.map(gid => upsertGroupPolicy(gid, ctrlSettings))
-      );
-      policySaved = policyResults.every(r => r !== null);
+      const res = await upsertGroupPolicyBatch(selectedGroups, ctrlSettings);
+      policySaved = res !== null;
     }
 
     if (settingsSaved && policySaved) {

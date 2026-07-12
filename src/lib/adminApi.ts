@@ -255,13 +255,26 @@ export async function fetchGroupPolicy(group_id: string) {
 }
 
 /**
- * Create or update (deep-merge) the policy for a group.
- * Pass only the fields you want to set; they are merged with the existing policy.
+ * Create or update (deep-merge) the policy for a single group.
  */
 export async function upsertGroupPolicy(group_id: string, settings: Record<string, unknown>) {
   return apiFetch(`/api/admin/groups/${group_id}/policy`, {
     method: "PUT",
     body: JSON.stringify(settings),
+  });
+}
+
+/**
+ * Batch-upsert the same settings into multiple groups in a single API call.
+ * Pass group_ids=[] to apply to ALL groups in the org.
+ */
+export async function upsertGroupPolicyBatch(
+  group_ids: string[],
+  settings: Record<string, unknown>,
+) {
+  return apiFetch("/api/admin/groups/policy/batch", {
+    method: "PUT",
+    body: JSON.stringify({ group_ids, settings }),
   });
 }
 
