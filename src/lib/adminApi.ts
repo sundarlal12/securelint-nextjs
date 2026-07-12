@@ -25,9 +25,15 @@ function xhrRequest(url: string, method = "GET", body?: string): Promise<ApiResu
       xhr.setRequestHeader("Authorization", `Bearer ${getToken()}`);
       xhr.setRequestHeader("x-org-id", getOrgId());
       xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try { resolve(JSON.parse(xhr.responseText) as ApiResult); } catch { resolve(null); }
-        } else {
+        try {
+          const parsed = JSON.parse(xhr.responseText) as ApiResult;
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(parsed);
+          } else {
+            // Return parsed error body (has .error and .message) so callers can surface it
+            resolve(parsed ?? null);
+          }
+        } catch {
           resolve(null);
         }
       };

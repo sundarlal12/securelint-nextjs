@@ -177,7 +177,7 @@ type GroupDef = {
   member_count?: number;
   members?: { user_id: string; email: string; role: string }[];
 };
-type TeamMember = { user_id: string; email: string; role?: string };
+type TeamMember = { user_id: string; email: string | null; role?: string };
 
 /* ── Groups management tab ───────────────────────────────────────────────── */
 function GroupsTab() {
@@ -191,9 +191,13 @@ function GroupsTab() {
   const [renameVal,   setRenameVal]   = useState("");
   const [deleting,    setDeleting]    = useState<string | null>(null);
   const [addSearch,   setAddSearch]   = useState("");
-  const [toast,       setToast]       = useState("");
+  const [toast,       setToast]       = useState<{ msg: string; ok: boolean } | null>(null);
+  const [adding,      setAdding]      = useState<string | null>(null);
 
-  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
+  const showToast = (msg: string, ok = true) => {
+    setToast({ msg, ok });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -227,6 +231,8 @@ function GroupsTab() {
       setGroups(next);
       setNewName("");
       showToast(`Group "${name}" created`);
+    } else {
+      showToast("Failed to create group — please try again", false);
     }
     setCreating(false);
   };
@@ -241,6 +247,8 @@ function GroupsTab() {
       setGroups(next);
       refreshSelected(next);
       showToast("Group renamed");
+    } else {
+      showToast("Failed to rename group", false);
     }
     setRenaming(null);
   };
@@ -249,20 +257,27 @@ function GroupsTab() {
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this group? Members won't be deleted from the org.")) return;
     setDeleting(id);
-    await deleteGroup(id);
-    const next = groups.filter(g => g.id !== id);
-    setGroups(next);
-    if (selGroup?.id === id) setSelGroup(null);
-    showToast("Group deleted");
+    const res = await deleteGroup(id) as { error?: number } | null;
+    if (res !== null) {
+      const next = groups.filter(g => g.id !== id);
+      setGroups(next);
+      if (selGroup?.id === id) setSelGroup(null);
+      showToast("Group deleted");
+    } else {
+      showToast("Failed to delete group", false);
+    }
     setDeleting(null);
   };
 
   /* Add member */
   const handleAddMember = async (userId: string) => {
     if (!selGroup) return;
-    const res = await addGroupMembers(selGroup.id, [userId]) as { added?: string[] } | null;
-    if (res?.added?.length) {
+    setAdding(userId);
+    const res = await addGroupMembers(selGroup.id, [userId]) as { added?: string[]; error?: number; message?: string } | null;
+    setAdding(null);
+    if (res !== null && res.error === 0) {
       const member = team.find(m => m.user_id === userId);
+      const label = member?.email || userId.slice(0, 8) + "…";
       const newMember = { user_id: userId, email: member?.email ?? "", role: member?.role ?? "member" };
       const next = groups.map(g =>
         g.id === selGroup.id
@@ -272,29 +287,38 @@ function GroupsTab() {
       setGroups(next);
       refreshSelected(next);
       setAddSearch("");
-      showToast(`Added ${member?.email ?? userId}`);
+      showToast(`Added ${label}`);
+    } else {
+      const reason = res?.message ?? "Server error — check if the user belongs to this organisation";
+      showToast(`Could not add member: ${reason}`, false);
     }
   };
 
   /* Remove member */
   const handleRemoveMember = async (userId: string) => {
     if (!selGroup) return;
-    await removeGroupMember(selGroup.id, userId);
-    const next = groups.map(g =>
-      g.id === selGroup.id
-        ? { ...g, members: (g.members ?? []).filter(m => m.user_id !== userId), member_count: Math.max(0, (g.member_count ?? 1) - 1) }
-        : g
-    );
-    setGroups(next);
-    refreshSelected(next);
-    showToast("Member removed");
+    const res = await removeGroupMember(selGroup.id, userId) as { error?: number } | null;
+    if (res !== null) {
+      const next = groups.map(g =>
+        g.id === selGroup.id
+          ? { ...g, members: (g.members ?? []).filter(m => m.user_id !== userId), member_count: Math.max(0, (g.member_count ?? 1) - 1) }
+          : g
+      );
+      setGroups(next);
+      refreshSelected(next);
+      showToast("Member removed");
+    } else {
+      showToast("Failed to remove member", false);
+    }
   };
 
-  /* Members not yet in selected group */
+  /* Members not yet in selected group — search by email or user_id prefix */
   const groupMemberIds = new Set((selGroup?.members ?? []).map(m => m.user_id));
   const addableMembers = team.filter(m =>
     !groupMemberIds.has(m.user_id) &&
-    (addSearch === "" || (m.email ?? "").toLowerCase().includes(addSearch.toLowerCase()))
+    (addSearch === "" ||
+      (m.email ?? "").toLowerCase().includes(addSearch.toLowerCase()) ||
+      m.user_id.startsWith(addSearch))
   );
 
   const cs2: React.CSSProperties = { background: "#0d1117", border: "1px solid #21262d", borderRadius: 12 };
@@ -402,10 +426,14 @@ function GroupsTab() {
                       onMouseEnter={e => (e.currentTarget.style.background = "#161b22")}
                       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                       <div>
-                        <div style={{ fontSize: 12, color: "#e6edf3" }}>{m.email}</div>
+                        <div style={{ fontSize: 12, color: "#e6edf3" }}>{m.email || <span style={{ color: "#8b949e", fontStyle: "italic" }}>{m.user_id.slice(0, 12)}… (no email)</span>}</div>
                         <div style={{ fontSize: 10, color: "#8b949e", marginTop: 1, textTransform: "capitalize" }}>{m.role ?? "member"}</div>
                       </div>
-                      <button style={{ padding: "4px 12px", background: "#1f4a3c", border: "1px solid #39d35333", borderRadius: 6, color: "#39d353", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>+ Add</button>
+                      <button
+                        disabled={adding === m.user_id}
+                        style={{ padding: "4px 12px", background: "#1f4a3c", border: "1px solid #39d35333", borderRadius: 6, color: "#39d353", fontSize: 11, fontWeight: 700, cursor: adding === m.user_id ? "wait" : "pointer", opacity: adding === m.user_id ? 0.6 : 1 }}>
+                        {adding === m.user_id ? "…" : "+ Add"}
+                      </button>
                     </div>
                   ))}
                   {addableMembers.length > 10 && <div style={{ padding: "8px 12px", fontSize: 11, color: "#8b949e" }}>+{addableMembers.length - 10} more — refine search</div>}
@@ -461,8 +489,16 @@ function GroupsTab() {
 
       {/* Toast */}
       {toast && (
-        <div style={{ position: "fixed", bottom: 24, right: 24, background: "#1f4a3c", border: "1px solid #39d35355", borderRadius: 10, padding: "11px 18px", color: "#86efac", fontSize: 13, zIndex: 100, boxShadow: "0 8px 24px rgba(0,0,0,.5)" }}>
-          ✓ {toast}
+        <div style={{
+          position: "fixed", bottom: 24, right: 24, maxWidth: 380,
+          background: toast.ok ? "#1f4a3c" : "#2a1818",
+          border: `1px solid ${toast.ok ? "#39d35355" : "#ef444455"}`,
+          borderRadius: 10, padding: "11px 18px",
+          color: toast.ok ? "#86efac" : "#fca5a5",
+          fontSize: 13, zIndex: 100, boxShadow: "0 8px 24px rgba(0,0,0,.5)",
+          lineHeight: 1.5,
+        }}>
+          {toast.ok ? "✓" : "✗"} {toast.msg}
         </div>
       )}
     </div>
