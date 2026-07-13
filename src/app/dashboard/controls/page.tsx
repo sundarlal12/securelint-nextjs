@@ -595,8 +595,16 @@ function DrawerContent({ ctrl, settings, groups, onChange, onGroupCreated }: {
     );
 
     case "malicious_extension": {
-      const bl = settings.blacklist_extension ?? {};
-      const extIds:string[] = Array.isArray(bl.ids)?bl.ids:[];
+      // Normalize: strip any numeric/stale keys left by old double-encode bug.
+      // Valid shape is { ids: string[], action: string }
+      const _rawBl = settings.blacklist_extension ?? {};
+      const _blIds: string[] = Array.isArray(_rawBl.ids)
+        ? _rawBl.ids
+        : Object.entries(_rawBl)
+            .filter(([k]) => /^\d+$/.test(k))
+            .map(([, v]) => v as string);
+      const bl = { ids: _blIds, action: _rawBl.action ?? "detect" };
+      const extIds: string[] = bl.ids;
       return (
         <>
           <Sec label="Action" info="How SecureLint responds when a blacklisted extension is detected"/>
@@ -862,9 +870,15 @@ export default function ControlsPage() {
     }
 
     if (settingsSaved && policySaved) {
-      setSettings(draft);
       setToast({ msg: "Configuration saved", ok: true });
       closeDrawer();
+      // Re-fetch fresh settings from API so the card grid reflects the saved state
+      fetchSettings().then((d: Record<string, unknown> | null) => {
+        if (!d) return;
+        const s = (d.settings ?? d) as UserSettings;
+        setSettings(s);
+        setDraft(s);
+      });
     } else {
       setToast({ msg: "Failed to save — please try again", ok: false });
     }
