@@ -477,17 +477,26 @@ function DrawerContent({ ctrl, settings, groups, onChange, onGroupCreated }: {
   onChange:(patch:Partial<UserSettings>)=>void;
   onGroupCreated:(g:Group)=>void;
 }) {
-  // Initialise selGroups from saved control_groups so it reflects the current value
+  // Safely parse control_groups — the API may return it as a JSON string if
+  // the DB row still holds a legacy double-encoded value.
+  const safeControlGroups = (() => {
+    let cg = settings.control_groups as unknown;
+    if (typeof cg === "string") {
+      try { cg = JSON.parse(cg as string); } catch { cg = {}; }
+    }
+    return (cg && typeof cg === "object" && !Array.isArray(cg))
+      ? (cg as Record<string, string[]>)
+      : {} as Record<string, string[]>;
+  })();
+
   const [selGroups, setSelGroups] = useState<string[]>(
-    () => settings.control_groups?.[ctrl.id] ?? []
+    () => safeControlGroups[ctrl.id] ?? []
   );
   const set = (patch:Partial<UserSettings>) => onChange(patch);
 
-  // Propagate group changes up so they are included in the save payload
   const handleGroupChange = (ids: string[]) => {
     setSelGroups(ids);
-    const existing = settings.control_groups ?? {};
-    onChange({ control_groups: { ...existing, [ctrl.id]: ids } });
+    onChange({ control_groups: { ...safeControlGroups, [ctrl.id]: ids } });
   };
 
   switch (ctrl.id) {
@@ -844,7 +853,10 @@ export default function ControlsPage() {
     let policySaved = true;
     if (Object.keys(ctrlSettings).length) {
       // Selected groups, or empty array = "apply to ALL groups" (handled by backend)
-      const selectedGroups: string[] = draft.control_groups?.[active] ?? [];
+      let _cg = draft.control_groups as unknown;
+      if (typeof _cg === "string") { try { _cg = JSON.parse(_cg as string); } catch { _cg = {}; } }
+      const _cgsafe = (_cg && typeof _cg === "object" && !Array.isArray(_cg)) ? (_cg as Record<string, string[]>) : {} as Record<string, string[]>;
+      const selectedGroups: string[] = _cgsafe[active] ?? [];
       const res = await upsertGroupPolicyBatch(selectedGroups, ctrlSettings);
       policySaved = res !== null;
     }
