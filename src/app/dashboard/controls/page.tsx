@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
-  fetchSettings, updateSettings, fetchGroups, createGroup,
-  upsertGroupPolicyBatch, fetchGroupPolicy,
+  fetchSettings, fetchGroups, createGroup,
+  upsertGroupPolicyBatch, fetchGroupPolicy, fetchAllGroupPolicies,
 } from "@/lib/adminApi";
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -767,10 +767,12 @@ function ConfigDrawer({ ctrl, settings, groups, onChange, onClose, onSave, savin
 /* ─────────────────────────────────────────────────────────────────────────
    Control card
 ───────────────────────────────────────────────────────────────────────── */
-function ControlCard({ ctrl, settings, onClick }: { ctrl:ControlDef; settings:UserSettings; onClick:()=>void }) {
-  const enabled = ctrl.isEnabled(settings);
-  const modeLabel = ctrl.statusLabel(settings);
-  const dotColor = enabled?"#22c55e":"#4a5568";
+function ControlCard({ ctrl, settings, groupCount, onClick }: {
+  ctrl:ControlDef; settings:UserSettings; groupCount:number; onClick:()=>void;
+}) {
+  const configured = groupCount > 0;
+  const modeLabel  = ctrl.statusLabel(settings);
+  const dotColor   = configured ? "#22c55e" : "#4a5568";
   return (
     <div onClick={onClick}
       style={{ background:"#0b1120", border:"1px solid #1e2d45", borderRadius:12, overflow:"hidden", cursor:"pointer", transition:"border-color .2s, box-shadow .2s" }}
@@ -784,7 +786,9 @@ function ControlCard({ ctrl, settings, onClick }: { ctrl:ControlDef; settings:Us
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:8 }}>
           <span style={{ width:7, height:7, borderRadius:"50%", background:dotColor, flexShrink:0 }}/>
-          <span style={{ fontSize:11, fontWeight:600, color:dotColor, textTransform:"capitalize" }}>Mode: {modeLabel}</span>
+          <span style={{ fontSize:11, fontWeight:600, color:dotColor, textTransform:"capitalize" }}>
+            {configured ? `Mode: ${modeLabel} · ${groupCount} group${groupCount>1?"s":""}` : "Not configured"}
+          </span>
         </div>
         <div style={{ fontSize:11, color:"#64748b", lineHeight:1.5 }}>{ctrl.shortDesc}</div>
         <div style={{ marginTop:10 }}>
@@ -800,25 +804,66 @@ function ControlCard({ ctrl, settings, onClick }: { ctrl:ControlDef; settings:Us
 /* ─────────────────────────────────────────────────────────────────────────
    Main page
 ───────────────────────────────────────────────────────────────────────── */
+/** Derive control→group[] mapping from all group policies in the org. */
+function deriveControlGroups(
+  policies: { group_id: string; settings: Record<string, unknown> }[],
+): Record<string, string[]> {
+  const result: Record<string, string[]> = {};
+  for (const pol of policies) {
+    for (const [ctrlId, fields] of Object.entries(CONTROL_FIELDS_MAP)) {
+      if (fields.some(f => f in pol.settings)) {
+        if (!result[ctrlId]) result[ctrlId] = [];
+        if (!result[ctrlId].includes(pol.group_id)) result[ctrlId].push(pol.group_id);
+      }
+    }
+  }
+  return result;
+}
+
+/** Merge a group policy's settings for a specific control into a base draft. */
+function mergeControlPolicy(
+  base: Record<string, unknown>,
+  policy: Record<string, unknown>,
+  ctrlId: string,
+): Record<string, unknown> {
+  const merged = { ...base };
+  for (const field of CONTROL_FIELDS_MAP[ctrlId] ?? []) {
+    if (field in policy) merged[field] = policy[field];
+  }
+  return merged;
+}
+
 export default function ControlsPage() {
-  const [settings,  setSettings]  = useState<UserSettings>({});
-  const [draft,     setDraft]     = useState<UserSettings>({});
-  const [groups,    setGroups]    = useState<Group[]>([]);
-  const [active,    setActive]    = useState<string | null>(null);
-  const [saving,    setSaving]    = useState(false);
-  const [toast,     setToast]     = useState<{ msg: string; ok: boolean } | null>(null);
+  // `settings` used only for card grid display (isEnabled / statusLabel).
+  // Control fields shown in drawers come from the group policy, not admin's settings.
+  const [settings,       setSettings]       = useState<UserSettings>({});
+  const [draft,          setDraft]          = useState<UserSettings>({});
+  const [groups,         setGroups]         = useState<Group[]>([]);
+  // controlGroups derived from enterprise_group_policy — never written to admin/settings
+  const [controlGroups,  setControlGroups]  = useState<Record<string, string[]>>({});
+  const [active,         setActive]         = useState<string | null>(null);
+  const [saving,         setSaving]         = useState(false);
+  const [toast,          setToast]          = useState<{ msg: string; ok: boolean } | null>(null);
+
+  const loadPolicies = useCallback(() => {
+    return (fetchAllGroupPolicies() as Promise<Record<string, unknown> | null>).then(d => {
+      const rows = (d?.policies ?? []) as { group_id: string; settings: Record<string, unknown> }[];
+      setControlGroups(deriveControlGroups(rows));
+    });
+  }, []);
 
   useEffect(() => {
+    // Fetch admin's settings for card grid display only (no writes back)
     fetchSettings().then((d: Record<string, unknown> | null) => {
       if (!d) return;
       const s = (d.settings ?? d) as UserSettings;
       setSettings(s);
-      setDraft(s);
     });
     fetchGroups().then((d: Record<string, unknown> | null) => {
       if (Array.isArray(d?.groups)) setGroups(d.groups as Group[]);
     });
-  }, []);
+    loadPolicies();
+  }, [loadPolicies]);
 
   const handleGroupCreated = useCallback((g: Group) => {
     setGroups(prev => [...prev, g]);
@@ -826,36 +871,24 @@ export default function ControlsPage() {
 
   /**
    * Open the drawer for a control.
-   * Starts with a copy of admin's settings (for non-control fields like display prefs),
-   * then overlays the CURRENT group policy values for this control's fields so the
-   * drawer shows what's actually configured for employees — not the admin's own defaults.
+   * Pre-loads the first group's policy for this control so the drawer shows
+   * what's actually configured for employees, not admin's own defaults.
    */
   const openDrawer = async (id: string) => {
     setActive(id);
-    const base: Record<string, unknown> = { ...settings as Record<string, unknown> };
+    const base: Record<string, unknown> = {};  // start empty — not admin's settings
 
-    // Determine which group's policy to preview
-    let _cg = (settings as Record<string, unknown>).control_groups;
-    if (typeof _cg === "string") { try { _cg = JSON.parse(_cg); } catch { _cg = {}; } }
-    const cg = (_cg && typeof _cg === "object" && !Array.isArray(_cg))
-      ? (_cg as Record<string, string[]>)
-      : {} as Record<string, string[]>;
-    const firstGroup = (cg[id] ?? [])[0];
-
+    const firstGroup = (controlGroups[id] ?? [])[0];
     if (firstGroup) {
-      // Load the group's current policy and apply this control's fields
       const policyRes = await fetchGroupPolicy(firstGroup) as Record<string, unknown> | null;
       const policy = policyRes?.policy;
       if (policy && typeof policy === "object" && !Array.isArray(policy)) {
-        const ctrlFields = CONTROL_FIELDS_MAP[id] ?? [];
-        for (const field of ctrlFields) {
-          if (field in (policy as Record<string, unknown>)) {
-            base[field] = (policy as Record<string, unknown>)[field];
-          }
-        }
+        Object.assign(base, mergeControlPolicy({}, policy as Record<string, unknown>, id));
       }
     }
 
+    // Carry the current group selection into the draft so GroupPicker reflects it
+    base.control_groups = { ...controlGroups, [id]: controlGroups[id] ?? [] };
     setDraft(base as UserSettings);
   };
 
@@ -866,18 +899,16 @@ export default function ControlsPage() {
     if (!active) return;
     setSaving(true);
 
-    // ── 1. Collect ALL fields for this control from draft ──────────────────
-    // We always write the full set (not just a diff) so the group policy is
-    // authoritative and never left with stale admin-default falsy values.
+    // ── 1. All fields for this control from draft ──────────────────────────
     const ctrlFields = CONTROL_FIELDS_MAP[active] ?? [];
     const ctrlSettings: Record<string, unknown> = {};
     for (const field of ctrlFields) {
       const val = (draft as Record<string, unknown>)[field];
-      // Include every field — even false / null (the group policy must be complete)
       if (val !== undefined) ctrlSettings[field] = val;
     }
 
-    // ── 2. Which groups to apply this control to ───────────────────────────
+    // ── 2. Resolve selected groups from local controlGroups state ──────────
+    // (draft.control_groups is maintained in DrawerContent via handleGroupChange)
     let _cg = draft.control_groups as unknown;
     if (typeof _cg === "string") { try { _cg = JSON.parse(_cg as string); } catch { _cg = {}; } }
     const _cgsafe = (_cg && typeof _cg === "object" && !Array.isArray(_cg))
@@ -885,30 +916,20 @@ export default function ControlsPage() {
       : {} as Record<string, string[]>;
     const selectedGroups: string[] = _cgsafe[active] ?? [];
 
-    // ── 3. Write to enterprise_group_policy (batch — one API call) ─────────
+    // ── 3. Write to enterprise_group_policy ONLY (no admin/settings write) ─
     let policySaved = false;
     if (Object.keys(ctrlSettings).length) {
       const res = await upsertGroupPolicyBatch(selectedGroups, ctrlSettings);
       policySaved = res !== null;
     } else {
-      policySaved = true; // nothing to save → treat as success
+      policySaved = true;
     }
-
-    // ── 4. Update only control_groups in admin's user_settings ────────────
-    // We track which groups each control applies to here — the actual control
-    // settings live in enterprise_group_policy, not in admin's user_settings.
-    const newCg = { ..._cgsafe, [active]: selectedGroups };
-    await updateSettings({ control_groups: newCg });
 
     if (policySaved) {
       setToast({ msg: "Configuration saved", ok: true });
       closeDrawer();
-      // Reload admin settings so card grid isEnabled / statusLabel stay correct
-      fetchSettings().then((d: Record<string, unknown> | null) => {
-        if (!d) return;
-        const s = (d.settings ?? d) as UserSettings;
-        setSettings(s);
-      });
+      // Update local controlGroups state from fresh policies (no admin/settings call)
+      loadPolicies();
     } else {
       setToast({ msg: "Failed to save — please try again", ok: false });
     }
@@ -928,9 +949,15 @@ export default function ControlsPage() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px,1fr))", gap: 18 }}>
-        {CONTROLS.map(ctrl => (
-          <ControlCard key={ctrl.id} ctrl={ctrl} settings={settings} onClick={() => openDrawer(ctrl.id)} />
-        ))}
+        {CONTROLS.map(ctrl => {
+          // Show configured-group count from group policies (authoritative source)
+          const groupCount = (controlGroups[ctrl.id] ?? []).length;
+          return (
+            <ControlCard key={ctrl.id} ctrl={ctrl} settings={settings}
+              groupCount={groupCount}
+              onClick={() => openDrawer(ctrl.id)} />
+          );
+        })}
       </div>
 
       {active && activeCtrl && (
