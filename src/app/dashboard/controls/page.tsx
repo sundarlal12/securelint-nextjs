@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   fetchSettings, updateSettings, fetchGroups, createGroup,
-  upsertGroupPolicyBatch,
+  upsertGroupPolicyBatch, fetchGroupPolicy,
 } from "@/lib/adminApi";
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -824,7 +824,41 @@ export default function ControlsPage() {
     setGroups(prev => [...prev, g]);
   }, []);
 
-  const openDrawer  = (id: string) => { setActive(id); setDraft({ ...settings }); };
+  /**
+   * Open the drawer for a control.
+   * Starts with a copy of admin's settings (for non-control fields like display prefs),
+   * then overlays the CURRENT group policy values for this control's fields so the
+   * drawer shows what's actually configured for employees — not the admin's own defaults.
+   */
+  const openDrawer = async (id: string) => {
+    setActive(id);
+    const base: Record<string, unknown> = { ...settings as Record<string, unknown> };
+
+    // Determine which group's policy to preview
+    let _cg = (settings as Record<string, unknown>).control_groups;
+    if (typeof _cg === "string") { try { _cg = JSON.parse(_cg); } catch { _cg = {}; } }
+    const cg = (_cg && typeof _cg === "object" && !Array.isArray(_cg))
+      ? (_cg as Record<string, string[]>)
+      : {} as Record<string, string[]>;
+    const firstGroup = (cg[id] ?? [])[0];
+
+    if (firstGroup) {
+      // Load the group's current policy and apply this control's fields
+      const policyRes = await fetchGroupPolicy(firstGroup) as Record<string, unknown> | null;
+      const policy = policyRes?.policy;
+      if (policy && typeof policy === "object" && !Array.isArray(policy)) {
+        const ctrlFields = CONTROL_FIELDS_MAP[id] ?? [];
+        for (const field of ctrlFields) {
+          if (field in (policy as Record<string, unknown>)) {
+            base[field] = (policy as Record<string, unknown>)[field];
+          }
+        }
+      }
+    }
+
+    setDraft(base as UserSettings);
+  };
+
   const closeDrawer = () => setActive(null);
   const handleChange = (patch: Partial<UserSettings>) => setDraft(prev => ({ ...prev, ...patch }));
 
@@ -832,52 +866,48 @@ export default function ControlsPage() {
     if (!active) return;
     setSaving(true);
 
-    // ── 1. Diff draft vs last-saved settings ───────────────────────────────
-    const changed: Record<string, unknown> = {};
-    for (const k of Object.keys(draft)) {
-      if (
-        JSON.stringify((draft as Record<string, unknown>)[k]) !==
-        JSON.stringify((settings as Record<string, unknown>)[k])
-      ) {
-        changed[k] = (draft as Record<string, unknown>)[k];
-      }
-    }
-
-    // ── 2. Save to admin's user_settings (org-wide reference / display) ────
-    let settingsSaved = true;
-    if (Object.keys(changed).length) {
-      const res = await updateSettings(changed);
-      settingsSaved = !!res;
-    }
-
-    // ── 3. Write control fields to enterprise_group_policy (batch, one call) ──
+    // ── 1. Collect ALL fields for this control from draft ──────────────────
+    // We always write the full set (not just a diff) so the group policy is
+    // authoritative and never left with stale admin-default falsy values.
     const ctrlFields = CONTROL_FIELDS_MAP[active] ?? [];
     const ctrlSettings: Record<string, unknown> = {};
     for (const field of ctrlFields) {
       const val = (draft as Record<string, unknown>)[field];
+      // Include every field — even false / null (the group policy must be complete)
       if (val !== undefined) ctrlSettings[field] = val;
     }
 
-    let policySaved = true;
+    // ── 2. Which groups to apply this control to ───────────────────────────
+    let _cg = draft.control_groups as unknown;
+    if (typeof _cg === "string") { try { _cg = JSON.parse(_cg as string); } catch { _cg = {}; } }
+    const _cgsafe = (_cg && typeof _cg === "object" && !Array.isArray(_cg))
+      ? (_cg as Record<string, string[]>)
+      : {} as Record<string, string[]>;
+    const selectedGroups: string[] = _cgsafe[active] ?? [];
+
+    // ── 3. Write to enterprise_group_policy (batch — one API call) ─────────
+    let policySaved = false;
     if (Object.keys(ctrlSettings).length) {
-      // Selected groups, or empty array = "apply to ALL groups" (handled by backend)
-      let _cg = draft.control_groups as unknown;
-      if (typeof _cg === "string") { try { _cg = JSON.parse(_cg as string); } catch { _cg = {}; } }
-      const _cgsafe = (_cg && typeof _cg === "object" && !Array.isArray(_cg)) ? (_cg as Record<string, string[]>) : {} as Record<string, string[]>;
-      const selectedGroups: string[] = _cgsafe[active] ?? [];
       const res = await upsertGroupPolicyBatch(selectedGroups, ctrlSettings);
       policySaved = res !== null;
+    } else {
+      policySaved = true; // nothing to save → treat as success
     }
 
-    if (settingsSaved && policySaved) {
+    // ── 4. Update only control_groups in admin's user_settings ────────────
+    // We track which groups each control applies to here — the actual control
+    // settings live in enterprise_group_policy, not in admin's user_settings.
+    const newCg = { ..._cgsafe, [active]: selectedGroups };
+    await updateSettings({ control_groups: newCg });
+
+    if (policySaved) {
       setToast({ msg: "Configuration saved", ok: true });
       closeDrawer();
-      // Re-fetch fresh settings from API so the card grid reflects the saved state
+      // Reload admin settings so card grid isEnabled / statusLabel stay correct
       fetchSettings().then((d: Record<string, unknown> | null) => {
         if (!d) return;
         const s = (d.settings ?? d) as UserSettings;
         setSettings(s);
-        setDraft(s);
       });
     } else {
       setToast({ msg: "Failed to save — please try again", ok: false });
