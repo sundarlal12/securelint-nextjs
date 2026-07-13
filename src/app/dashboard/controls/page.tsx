@@ -43,6 +43,10 @@ interface UserSettings {
   site_exclusions_status?: boolean;
   global_masking_status?: boolean;
   enterprise_data_collection?: boolean;
+  enterprise_email_domains?: string[];
+  extension_scrape_data?: boolean;
+  password_breach_data?: boolean;
+  blur_web?: boolean;
   Plans?: string;
   /** Maps control_id → list of group IDs the control applies to */
   control_groups?: Record<string, string[]>;
@@ -111,6 +115,17 @@ const banners = {
     ))}
     <rect x="58" y="16" width="130" height="64" rx="4" stroke="#a78bfa44" fill="none"/>
   </Svg>,
+  enterprise_data: <Svg color="#34d399">
+    {[60,120,180,240].map((x,i)=><circle key={i} cx={x} cy={45} r={12+i%3*4} stroke="#34d39933" strokeWidth="1.5" fill="#34d39910"/>)}
+    <path d="M100 45h120M130 32h60M130 58h60" stroke="#34d399" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="4 3"/>
+  </Svg>,
+  blur_secrets: <Svg color="#fb923c">
+    {["████████","██████████","███████"].map((t,i)=>(
+      <text key={i} x="90" y={28+i*22} fill="#fb923c55" fontSize="13" fontFamily="monospace">{t}</text>
+    ))}
+    <rect x="82" y="14" width="160" height="62" rx="5" stroke="#fb923c44" fill="none"/>
+    <circle cx="240" cy="16" r="6" fill="#fb923c55"/>
+  </Svg>,
 };
 
 /**
@@ -125,6 +140,8 @@ const CONTROL_FIELDS_MAP: Record<string, (keyof UserSettings)[]> = {
   malicious_extension: ["blacklist_extension","blacklist_extension_status"],
   email_dlp:           ["email_dlp_enabled","email_dlp_domain","email_dlp_action"],
   secret_masking:      ["global_masking_status","masking_style","mask_console","auto_mask_textareas","auto_mask_inputs","auto_mask_editor","overlay_input","overlay_textarea","overlay_editor","block_network_secrets","block_form_submission","site_exclusions","site_exclusions_status"],
+  enterprise_data:     ["enterprise_data_collection","enterprise_email_domains","extension_scrape_data","password_breach_data"],
+  blur_secrets:        ["blur_web"],
 };
 
 const CONTROLS: ControlDef[] = [
@@ -182,6 +199,22 @@ const CONTROLS: ControlDef[] = [
     tag:"Masking",tagColor:"#a78bfa",bannerEl:banners.secret_masking,
     isEnabled:s=>!!(s.global_masking_status),
     statusLabel:s=>s.global_masking_status?(s.masking_style||"blur"):"Disabled",
+  },
+  {
+    id:"enterprise_data",title:"Enterprise Data Collection",
+    shortDesc:"Control what telemetry and data the extension collects for your org.",
+    longDesc:"Configure which data points the SecureLint extension reports to your organisation dashboard — extension scraping, password breach checks, email domain collection, and anonymous telemetry. Fine-grained control per group.",
+    tag:"Enterprise",tagColor:"#34d399",bannerEl:banners.enterprise_data,
+    isEnabled:s=>!!(s.enterprise_data_collection||s.extension_scrape_data||s.password_breach_data),
+    statusLabel:s=>(s.enterprise_data_collection||s.extension_scrape_data||s.password_breach_data)?"Active":"Disabled",
+  },
+  {
+    id:"blur_secrets",title:"Blur Secrets in Meeting Mode",
+    shortDesc:"Auto-blur browser content when screen sharing is detected.",
+    longDesc:"When the SecureLint extension detects screen sharing or a web-based video meeting, it automatically blurs sensitive browser content — preventing accidental exposure of secrets, tokens, and PII to other meeting participants.",
+    tag:"Privacy",tagColor:"#fb923c",bannerEl:banners.blur_secrets,
+    isEnabled:s=>!!(s.blur_web),
+    statusLabel:s=>s.blur_web?"Enabled":"Disabled",
   },
 ];
 
@@ -697,6 +730,54 @@ function DrawerContent({ ctrl, settings, groups, onChange, onGroupCreated }: {
         </>
       );
     }
+
+    case "enterprise_data": return (
+      <>
+        <Sec label="Status"/>
+        <ToggleRow label="Enterprise telemetry"
+          sub="Send anonymous detection events to your org dashboard"
+          value={!!settings.enterprise_data_collection}
+          onChange={v=>set({enterprise_data_collection:v})}/>
+        <ToggleRow label="Extension scraping data"
+          sub="Collect installed-extension inventory from managed browsers"
+          value={!!settings.extension_scrape_data}
+          onChange={v=>set({extension_scrape_data:v})}/>
+        <ToggleRow label="Password breach checks"
+          sub="Check whether employee passwords appear in known breach databases"
+          value={!!settings.password_breach_data}
+          onChange={v=>set({password_breach_data:v})}/>
+
+        <Sec label="Apply to groups" info="Leave empty to apply to all employees"/>
+        <GroupPicker groups={groups} selected={selGroups} onChange={handleGroupChange} onGroupCreated={onGroupCreated}/>
+
+        <Sec label="Allowed email domains" info="Domains recognised as internal — used for email DLP classification"/>
+        <DomainTable label="Domain" placeholder="yourcompany.com"
+          initValues={settings.enterprise_email_domains ?? []}
+          onCommit={v=>set({enterprise_email_domains:v})}/>
+      </>
+    );
+
+    case "blur_secrets": return (
+      <>
+        <Sec label="Status"/>
+        <ToggleRow label="Blur secrets in meeting mode"
+          sub="Auto-blur browser content when screen sharing or a video meeting is detected"
+          value={!!settings.blur_web}
+          onChange={v=>set({blur_web:v})}/>
+
+        <Sec label="Apply to groups" info="Leave empty to apply to all employees"/>
+        <GroupPicker groups={groups} selected={selGroups} onChange={handleGroupChange} onGroupCreated={onGroupCreated}/>
+
+        <div style={{ marginTop:12, padding:"12px 14px", background:"#1a2540", borderRadius:8, border:"1px solid #2d3748" }}>
+          <p style={{ fontSize:12, color:"#94a3b8", margin:0, lineHeight:1.6 }}>
+            When enabled, the SecureLint extension detects active screen-sharing sessions
+            (Google Meet, Zoom, Teams web) and applies a blur overlay across browser tabs
+            that may contain secrets, tokens, or PII — protecting sensitive content from
+            accidental exposure during meetings.
+          </p>
+        </div>
+      </>
+    );
 
     default: return null;
   }
