@@ -27,8 +27,9 @@ interface UserSettings {
   email_dlp_enabled?: boolean;
   email_dlp_domain?: string[];
   email_dlp_action?: string;
-  blacklist_extension?: { ids?: string[]; action?: string };
+  blacklist_extension?: string[];
   blacklist_extension_status?: string;
+  enable_detection?: boolean;
   masking_style?: string;
   mask_console?: boolean;
   auto_mask_textareas?: boolean;
@@ -139,7 +140,7 @@ const CONTROL_FIELDS_MAP: Record<string, (keyof UserSettings)[]> = {
   session_theft:       ["session_marker","session_domains"],
   malicious_extension: ["blacklist_extension","blacklist_extension_status"],
   email_dlp:           ["email_dlp_enabled","email_dlp_domain","email_dlp_action"],
-  secret_masking:      ["global_masking_status","masking_style","mask_console","auto_mask_textareas","auto_mask_inputs","auto_mask_editor","overlay_input","overlay_textarea","overlay_editor","block_network_secrets","block_form_submission","site_exclusions","site_exclusions_status"],
+  secret_masking:      ["enable_detection","global_masking_status","masking_style","mask_console","auto_mask_textareas","auto_mask_inputs","auto_mask_editor","overlay_input","overlay_textarea","overlay_editor","block_network_secrets","block_form_submission","site_exclusions","site_exclusions_status"],
   enterprise_data:     ["enterprise_data_collection","enterprise_email_domains","extension_scrape_data","password_breach_data"],
   blur_secrets:        ["blur_web"],
 };
@@ -628,22 +629,25 @@ function DrawerContent({ ctrl, settings, groups, onChange, onGroupCreated }: {
     );
 
     case "malicious_extension": {
-      // Normalize: strip any numeric/stale keys left by old double-encode bug.
-      // Valid shape is { ids: string[], action: string }
-      const _rawBl = settings.blacklist_extension ?? {};
-      const _blIds: string[] = Array.isArray(_rawBl.ids)
-        ? _rawBl.ids
-        : Object.entries(_rawBl)
-            .filter(([k]) => /^\d+$/.test(k))
-            .map(([, v]) => v as string);
-      const bl = { ids: _blIds, action: _rawBl.action ?? "detect" };
-      const extIds: string[] = bl.ids;
+      // Valid shape is a plain array of extension IDs; the action lives
+      // solely in blacklist_extension_status (no nested {ids, action} object).
+      const _rawBl = settings.blacklist_extension ?? [];
+      const extIds: string[] = Array.isArray(_rawBl)
+        ? _rawBl
+        // Normalize legacy shapes: strip numeric/stale keys from the old
+        // {ids, action} object / double-encode bug.
+        : Array.isArray((_rawBl as { ids?: string[] }).ids)
+          ? (_rawBl as { ids: string[] }).ids
+          : Object.entries(_rawBl as Record<string, unknown>)
+              .filter(([k]) => /^\d+$/.test(k))
+              .map(([, v]) => v as string);
+      const action = settings.blacklist_extension_status || "detect";
       return (
         <>
           <Sec label="Action" info="How SecureLint responds when a blacklisted extension is detected"/>
           <ActionDropdown choices={["DETECT","WARN","BLOCK"]}
-            value={(bl.action?.toUpperCase() as ActionValue)||"BLOCK"}
-            onChange={v=>set({blacklist_extension:{...bl,action:v.toLowerCase()},blacklist_extension_status:v.toLowerCase()})}/>
+            value={(action.toUpperCase() as ActionValue)||"BLOCK"}
+            onChange={v=>set({blacklist_extension_status:v.toLowerCase()})}/>
 
           <Sec label="Apply to groups"/>
           <GroupPicker groups={groups} selected={selGroups} onChange={handleGroupChange} onGroupCreated={onGroupCreated}/>
@@ -651,7 +655,7 @@ function DrawerContent({ ctrl, settings, groups, onChange, onGroupCreated }: {
           <Sec label="Blocked extension IDs" info="Add Chrome Web Store extension IDs from your IT policy"/>
           <DomainTable label="Extension ID" placeholder="mdanidgdpmkimeiiojknlnekblgmpdll"
             initValues={extIds}
-            onCommit={v=>set({blacklist_extension:{...bl,ids:v}})}/>
+            onCommit={v=>set({blacklist_extension:v})}/>
         </>
       );
     }
@@ -685,6 +689,7 @@ function DrawerContent({ ctrl, settings, groups, onChange, onGroupCreated }: {
       return (
         <>
           <Sec label="Status"/>
+          <ToggleRow label="Enable secret detection" sub="Master toggle for all detection features" value={!!settings.enable_detection} onChange={v=>set({enable_detection:v})}/>
           <ToggleRow label="Global masking enabled" value={!!settings.global_masking_status} onChange={v=>set({global_masking_status:v})}/>
 
           <Sec label="Masking style"/>
