@@ -130,6 +130,21 @@ const banners = {
 };
 
 /**
+ * CDN banner images per control. Falls back to the hand-drawn SVG banner
+ * above for any control without an image (e.g. secret_masking).
+ */
+const bannerImages: Record<string, string> = {
+  phishing_site:       "https://ik.imagekit.io/securelint/securelint_dashboard/phishing-site.png",
+  phishing_mail:       "https://ik.imagekit.io/securelint/securelint_dashboard/phishing-email.png",
+  waf_domain:          "https://ik.imagekit.io/securelint/securelint_dashboard/waf-domain.png",
+  session_theft:       "https://ik.imagekit.io/securelint/securelint_dashboard/session-theft.png",
+  malicious_extension: "https://ik.imagekit.io/securelint/securelint_dashboard/malicious-extension.png",
+  email_dlp:           "https://ik.imagekit.io/securelint/securelint_dashboard/email-dlp.png",
+  enterprise_data:     "https://ik.imagekit.io/securelint/securelint_dashboard/data-collection1.jpg",
+  blur_secrets:        "https://ik.imagekit.io/securelint/securelint_dashboard/blur-secret-meeting-mode.jpg",
+};
+
+/**
  * Maps each control ID to the user_settings field names it owns.
  * Used to extract only the relevant fields when writing group policies.
  */
@@ -859,12 +874,18 @@ function ControlCard({ ctrl, settings, groupCount, onClick }: {
   const configured = groupCount > 0;
   const modeLabel  = ctrl.statusLabel(settings);
   const dotColor   = configured ? "#22c55e" : "#4a5568";
+  const bannerImg  = bannerImages[ctrl.id];
   return (
-    <div onClick={onClick}
+    <div onClick={onClick} className="sl-ctrl-card"
       style={{ background:"#0b1120", border:"1px solid #1e2d45", borderRadius:12, overflow:"hidden", cursor:"pointer", transition:"border-color .2s, box-shadow .2s" }}
       onMouseEnter={e=>{ (e.currentTarget as HTMLDivElement).style.borderColor="#3d4f6a"; (e.currentTarget as HTMLDivElement).style.boxShadow="0 4px 24px rgba(0,0,0,.5)"; }}
       onMouseLeave={e=>{ (e.currentTarget as HTMLDivElement).style.borderColor="#1e2d45"; (e.currentTarget as HTMLDivElement).style.boxShadow="none"; }}>
-      <div style={{ height:90, overflow:"hidden" }}>{ctrl.bannerEl}</div>
+      <div className="sl-ctrl-banner" style={{ height:90, overflow:"hidden", background:"#0a1628" }}>
+        {bannerImg
+          ? <img src={bannerImg} alt={ctrl.title} loading="lazy"
+              style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+          : ctrl.bannerEl}
+      </div>
       <div style={{ padding:"14px 16px" }}>
         <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:6 }}>
           <div style={{ fontSize:14, fontWeight:700, color:"#e6edf3", flex:1, paddingRight:8 }}>{ctrl.title}</div>
@@ -1027,6 +1048,10 @@ export default function ControlsPage() {
 
   return (
     <div style={{ padding: "28px 32px", minHeight: "100vh", background: "#080d16" }}>
+      <style>{`
+        .sl-ctrl-banner img { transform: scale(1); transition: transform .45s cubic-bezier(.4,0,.2,1); }
+        .sl-ctrl-card:hover .sl-ctrl-banner img { transform: scale(1.15); }
+      `}</style>
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: "#e6edf3", margin: 0 }}>Controls</h1>
         <p style={{ fontSize: 13, color: "#64748b", marginTop: 6 }}>
