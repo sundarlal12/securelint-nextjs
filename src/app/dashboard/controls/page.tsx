@@ -881,10 +881,18 @@ function ControlCard({ ctrl, settings, groupCount, onClick }: {
       style={{ background:"#0b1120", border:"1px solid #1e2d45", borderRadius:12, overflow:"hidden", cursor:"pointer", transition:"border-color .2s, box-shadow .2s" }}
       onMouseEnter={e=>{ (e.currentTarget as HTMLDivElement).style.borderColor="#3d4f6a"; (e.currentTarget as HTMLDivElement).style.boxShadow="0 4px 24px rgba(0,0,0,.5)"; }}
       onMouseLeave={e=>{ (e.currentTarget as HTMLDivElement).style.borderColor="#1e2d45"; (e.currentTarget as HTMLDivElement).style.boxShadow="none"; }}>
-      <div className="sl-ctrl-banner" style={{ height:90, overflow:"hidden", background:"#0b1120" }}>
+      <div className="sl-ctrl-banner" style={{ height:90, overflow:"hidden", background:"#0b1120", position:"relative" }}>
         {bannerImg
-          ? <img src={bannerImg} alt={ctrl.title} loading="lazy"
-              style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+          ? <>
+              <img src={bannerImg} alt={ctrl.title} loading="lazy"
+                style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", filter:"brightness(.88) saturate(1.05)" }}/>
+              {/* Darken any bright/white areas baked into the source image (e.g. browser-chrome
+                  mockups) so they blend into the dark card instead of flashing white. */}
+              <div style={{
+                position:"absolute", inset:0, pointerEvents:"none",
+                background:"linear-gradient(180deg, rgba(11,17,32,.85) 0%, rgba(11,17,32,.05) 28%, rgba(11,17,32,.05) 72%, rgba(11,17,32,.75) 100%), linear-gradient(90deg, rgba(11,17,32,.55) 0%, rgba(11,17,32,0) 15%, rgba(11,17,32,0) 85%, rgba(11,17,32,.55) 100%)",
+              }}/>
+            </>
           : ctrl.bannerEl}
       </div>
       <div style={{ padding:"14px 16px" }}>
