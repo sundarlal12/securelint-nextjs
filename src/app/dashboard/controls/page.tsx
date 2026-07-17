@@ -142,6 +142,7 @@ const bannerImages: Record<string, string> = {
   email_dlp:           "https://ik.imagekit.io/securelint/securelint_dashboard/email-dlp.png",
   enterprise_data:     "https://ik.imagekit.io/securelint/securelint_dashboard/data-collection1.jpg",
   blur_secrets:        "https://ik.imagekit.io/securelint/securelint_dashboard/blur-secret-meeting-mode.jpg",
+  secret_masking:      "https://ik.imagekit.io/securelint/securelint_dashboard/secret-masking.jpg",
 };
 
 /**
@@ -880,7 +881,7 @@ function ControlCard({ ctrl, settings, groupCount, onClick }: {
       style={{ background:"#0b1120", border:"1px solid #1e2d45", borderRadius:12, overflow:"hidden", cursor:"pointer", transition:"border-color .2s, box-shadow .2s" }}
       onMouseEnter={e=>{ (e.currentTarget as HTMLDivElement).style.borderColor="#3d4f6a"; (e.currentTarget as HTMLDivElement).style.boxShadow="0 4px 24px rgba(0,0,0,.5)"; }}
       onMouseLeave={e=>{ (e.currentTarget as HTMLDivElement).style.borderColor="#1e2d45"; (e.currentTarget as HTMLDivElement).style.boxShadow="none"; }}>
-      <div className="sl-ctrl-banner" style={{ height:90, overflow:"hidden", background:"#0a1628" }}>
+      <div className="sl-ctrl-banner" style={{ height:90, overflow:"hidden", background:"#0b1120" }}>
         {bannerImg
           ? <img src={bannerImg} alt={ctrl.title} loading="lazy"
               style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
