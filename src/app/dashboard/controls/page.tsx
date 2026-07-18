@@ -885,12 +885,14 @@ function ControlCard({ ctrl, settings, groupCount, onClick }: {
         {bannerImg
           ? <>
               <img src={bannerImg} alt={ctrl.title} loading="lazy"
-                style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", filter:"brightness(.88) saturate(1.05)" }}/>
-              {/* Darken any bright/white areas baked into the source image (e.g. browser-chrome
-                  mockups) so they blend into the dark card instead of flashing white. */}
+                style={{ width:"108%", height:"108%", marginLeft:"-4%", marginTop:"-4%", objectFit:"cover", display:"block", filter:"brightness(.88) saturate(1.05)" }}/>
+              {/* Darken any bright/white bezel baked into the source image (e.g. browser-chrome
+                  mockups) so it fully disappears into the card instead of showing as a light
+                  edge line. Image is scaled up slightly and the edges are pushed to solid
+                  opacity so no residual light border survives. */}
               <div style={{
                 position:"absolute", inset:0, pointerEvents:"none",
-                background:"linear-gradient(180deg, rgba(11,17,32,.85) 0%, rgba(11,17,32,.05) 28%, rgba(11,17,32,.05) 72%, rgba(11,17,32,.75) 100%), linear-gradient(90deg, rgba(11,17,32,.55) 0%, rgba(11,17,32,0) 15%, rgba(11,17,32,0) 85%, rgba(11,17,32,.55) 100%)",
+                background:"linear-gradient(180deg, #0b1120 0%, rgba(11,17,32,0) 22%, rgba(11,17,32,0) 78%, #0b1120 100%), linear-gradient(90deg, #0b1120 0%, rgba(11,17,32,0) 12%, rgba(11,17,32,0) 88%, #0b1120 100%)",
               }}/>
             </>
           : ctrl.bannerEl}
