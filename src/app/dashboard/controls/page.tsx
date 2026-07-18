@@ -885,15 +885,15 @@ function ControlCard({ ctrl, settings, groupCount, onClick }: {
         {bannerImg
           ? <>
               <img src={bannerImg} alt={ctrl.title} loading="lazy"
-                style={{ width:"116%", height:"116%", marginLeft:"-8%", marginTop:"-6%", objectFit:"cover", display:"block", filter:"brightness(.9) saturate(1.05)" }}/>
-              {/* Darken any bright/white bezel baked into the source image (e.g. browser-chrome
-                  mockups / scrollbar thumbs) so it fully disappears into the card instead of
-                  showing as a light edge. Image is scaled up and the edges pushed to solid
-                  card-background opacity — right/left zones widened since that's where these
-                  mockup images tend to place UI chrome (scrollbars, window controls). */}
+                style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", filter:"brightness(.9) saturate(1.05)" }}/>
+              {/* Several of the source mockup PNGs have a real white browser-chrome bezel baked
+                  into the pixels (measured: up to ~20% of height on top, ~18% on bottom, ~3% on
+                  each side) that object-fit:cover doesn't reliably crop away at every card width.
+                  Paint over those exact zones with solid card-background colour (generous safety
+                  margin included) so the bezel is always fully hidden, at every viewport size. */}
               <div style={{
                 position:"absolute", inset:0, pointerEvents:"none",
-                background:"linear-gradient(180deg, #0b1120 0%, rgba(11,17,32,0) 20%, rgba(11,17,32,0) 80%, #0b1120 100%), linear-gradient(90deg, #0b1120 0%, rgba(11,17,32,0) 10%, rgba(11,17,32,0) 74%, #0b1120 100%)",
+                background:"linear-gradient(180deg, #0b1120 0%, rgba(11,17,32,0) 25%, rgba(11,17,32,0) 77%, #0b1120 100%), linear-gradient(90deg, #0b1120 0%, rgba(11,17,32,0) 6%, rgba(11,17,32,0) 94%, #0b1120 100%)",
               }}/>
             </>
           : ctrl.bannerEl}
