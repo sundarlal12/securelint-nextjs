@@ -71,7 +71,7 @@ interface ControlDef {
 
 /* ── Banners ────────────────────────────────────────────────────────────── */
 const Svg = ({ children, color }: { children: React.ReactNode; color: string }) => (
-  <svg width="100%" height="90" viewBox="0 0 320 90" preserveAspectRatio="xMidYMid slice">
+  <svg width="100%" height="100%" viewBox="0 0 320 90" preserveAspectRatio="xMidYMid slice">
     <rect width="320" height="90" fill="#0a1628"/>
     {children}
     <rect width="320" height="90" fill={`${color}08`}/>
@@ -881,18 +881,19 @@ function ControlCard({ ctrl, settings, groupCount, onClick }: {
       style={{ background:"#0b1120", border:"1px solid #1e2d45", borderRadius:12, overflow:"hidden", cursor:"pointer", transition:"border-color .2s, box-shadow .2s" }}
       onMouseEnter={e=>{ (e.currentTarget as HTMLDivElement).style.borderColor="#3d4f6a"; (e.currentTarget as HTMLDivElement).style.boxShadow="0 4px 24px rgba(0,0,0,.5)"; }}
       onMouseLeave={e=>{ (e.currentTarget as HTMLDivElement).style.borderColor="#1e2d45"; (e.currentTarget as HTMLDivElement).style.boxShadow="none"; }}>
-      <div className="sl-ctrl-banner" style={{ height:90, overflow:"hidden", background:"#0b1120", position:"relative" }}>
+      <div className="sl-ctrl-banner" style={{ height:150, overflow:"hidden", background:"#0b1120", position:"relative" }}>
         {bannerImg
           ? <>
               <img src={bannerImg} alt={ctrl.title} loading="lazy"
-                style={{ width:"108%", height:"108%", marginLeft:"-4%", marginTop:"-4%", objectFit:"cover", display:"block", filter:"brightness(.88) saturate(1.05)" }}/>
+                style={{ width:"116%", height:"116%", marginLeft:"-8%", marginTop:"-6%", objectFit:"cover", display:"block", filter:"brightness(.9) saturate(1.05)" }}/>
               {/* Darken any bright/white bezel baked into the source image (e.g. browser-chrome
-                  mockups) so it fully disappears into the card instead of showing as a light
-                  edge line. Image is scaled up slightly and the edges are pushed to solid
-                  opacity so no residual light border survives. */}
+                  mockups / scrollbar thumbs) so it fully disappears into the card instead of
+                  showing as a light edge. Image is scaled up and the edges pushed to solid
+                  card-background opacity — right/left zones widened since that's where these
+                  mockup images tend to place UI chrome (scrollbars, window controls). */}
               <div style={{
                 position:"absolute", inset:0, pointerEvents:"none",
-                background:"linear-gradient(180deg, #0b1120 0%, rgba(11,17,32,0) 22%, rgba(11,17,32,0) 78%, #0b1120 100%), linear-gradient(90deg, #0b1120 0%, rgba(11,17,32,0) 12%, rgba(11,17,32,0) 88%, #0b1120 100%)",
+                background:"linear-gradient(180deg, #0b1120 0%, rgba(11,17,32,0) 20%, rgba(11,17,32,0) 80%, #0b1120 100%), linear-gradient(90deg, #0b1120 0%, rgba(11,17,32,0) 10%, rgba(11,17,32,0) 74%, #0b1120 100%)",
               }}/>
             </>
           : ctrl.bannerEl}
@@ -1070,7 +1071,7 @@ export default function ControlsPage() {
         </p>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px,1fr))", gap: 18 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px,1fr))", gap: 20 }}>
         {CONTROLS.map(ctrl => {
           // Show configured-group count from group policies (authoritative source)
           const groupCount = (controlGroups[ctrl.id] ?? []).length;
