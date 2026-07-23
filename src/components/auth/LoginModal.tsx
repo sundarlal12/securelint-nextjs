@@ -146,10 +146,8 @@ export default function LoginModal({ isOpen, onClose, defaultTab = "login" }: Pr
         return;
       }
 
-      const planId = (data.plan_id || "").toLowerCase();
-      const dest = planId === "enterprise" ? "/dashboard" : "/user/dashboard";
       setGoogleMsg({ text: data.is_new_user ? "Account created! Redirecting…" : "Signed in! Redirecting…", error: false });
-      setTimeout(() => { window.location.href = dest; }, 800);
+      setTimeout(() => { window.location.href = "/user/dashboard"; }, 800);
     } catch (err: unknown) {
       setGoogleMsg({ text: err instanceof Error ? err.message : "Google sign-in failed", error: true });
     } finally {
@@ -265,11 +263,9 @@ export default function LoginModal({ isOpen, onClose, defaultTab = "login" }: Pr
         return;
       }
 
-      // Default redirect: enterprise → admin dashboard, everyone else → user dashboard
-      const planId = (data.plan_id || "").toLowerCase();
-      const dest = planId === "enterprise" ? "/dashboard" : "/user/dashboard";
+      // Always land on /user/dashboard regardless of plan.
       setLoginMsg({ text: "Logged in! Redirecting…", error: false });
-      setTimeout(() => { window.location.href = dest; }, 800);
+      setTimeout(() => { window.location.href = "/user/dashboard"; }, 800);
     } catch (err: unknown) {
       setLoginMsg({ text: err instanceof Error ? err.message : "Login failed", error: true });
     } finally {

@@ -22,15 +22,10 @@ export function SiteHeader() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTab, setModalTab] = useState<"login" | "signup">("login");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [dashboardHref, setDashboardHref] = useState("/user/dashboard");
 
   useEffect(() => {
     const token = localStorage.getItem("user_token");
-    if (token) {
-      setIsLoggedIn(true);
-      const planId = localStorage.getItem("user_plan_id") || "";
-      setDashboardHref(planId === "enterprise" ? "/dashboard" : "/user/dashboard");
-    }
+    if (token) setIsLoggedIn(true);
   }, []);
 
   // If the page was opened by the extension (popup passes ?ext_id=...),
@@ -108,7 +103,7 @@ export function SiteHeader() {
 
           <div className={s.actions}>
             {isLoggedIn ? (
-              <Link href={dashboardHref} className={s.loginBtn}>
+              <Link href="/user/dashboard" className={s.loginBtn}>
                 Dashboard
               </Link>
             ) : (
@@ -146,7 +141,7 @@ export function SiteHeader() {
           <div className={s.mobileDivider} />
           <div className={s.mobileRow}>
             {isLoggedIn ? (
-              <Link href={dashboardHref} className={s.loginBtn} onClick={() => setMenuOpen(false)}>
+              <Link href="/user/dashboard" className={s.loginBtn} onClick={() => setMenuOpen(false)}>
                 Dashboard
               </Link>
             ) : (
