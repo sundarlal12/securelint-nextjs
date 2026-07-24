@@ -881,21 +881,22 @@ function ControlCard({ ctrl, settings, groupCount, onClick }: {
       style={{ background:"#ffffff", border:"1px solid #e9e9ec", borderRadius:14, overflow:"hidden", cursor:"pointer", transition:"border-color .2s, box-shadow .2s" }}
       onMouseEnter={e=>{ (e.currentTarget as HTMLDivElement).style.borderColor="#dcdce0"; (e.currentTarget as HTMLDivElement).style.boxShadow="0 8px 24px rgba(16,17,20,0.10)"; }}
       onMouseLeave={e=>{ (e.currentTarget as HTMLDivElement).style.borderColor="#e9e9ec"; (e.currentTarget as HTMLDivElement).style.boxShadow="none"; }}>
-      <div className="sl-ctrl-banner" style={{ height:150, overflow:"hidden", background:"#ffffff", position:"relative" }}>
+      {/* Several source mockups have a white browser-chrome bezel baked into the
+          pixels (~20% of height top, ~18% bottom, ~3% each side). Crop it away by
+          oversizing the image inside an overflow-hidden frame, rather than
+          fading it out — gradient overlays leave a visible haze on a light card
+          and read as a rendering artefact rather than a deliberate edge. */}
+      <div className="sl-ctrl-banner" style={{ height:150, overflow:"hidden", background:"#f4f4f5", position:"relative" }}>
         {bannerImg
-          ? <>
-              <img src={bannerImg} alt={ctrl.title} loading="lazy"
-                style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", filter:"saturate(1.02)" }}/>
-              {/* Several of the source mockup PNGs have a real white browser-chrome bezel baked
-                  into the pixels (measured: up to ~20% of height on top, ~18% on bottom, ~3% on
-                  each side) that object-fit:cover doesn't reliably crop away at every card width.
-                  Paint over those exact zones with solid card-background colour (generous safety
-                  margin included) so the bezel is always fully hidden, at every viewport size. */}
-              <div style={{
-                position:"absolute", inset:0, pointerEvents:"none",
-                background:"linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,0) 25%, rgba(255,255,255,0) 77%, #ffffff 100%), linear-gradient(90deg, #ffffff 0%, rgba(255,255,255,0) 6%, rgba(255,255,255,0) 94%, #ffffff 100%)",
+          ? <img src={bannerImg} alt={ctrl.title} loading="lazy"
+              style={{
+                position:"absolute", left:"-6%", top:"-26%",
+                width:"112%", height:"156%",
+                // Tailwind preflight sets `img { max-width: 100% }`, which would
+                // clamp the 112% back to the frame and reopen a gap on the right.
+                maxWidth:"none",
+                objectFit:"cover", display:"block",
               }}/>
-            </>
           : ctrl.bannerEl}
       </div>
       <div style={{ padding:"14px 16px" }}>
