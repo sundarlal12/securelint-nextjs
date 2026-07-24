@@ -1,10 +1,11 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Search, Bell, ChevronDown, Menu } from "lucide-react";
 import { fetchProfile } from "@/lib/adminApi";
 import { T, STATUS, TONE } from "@/lib/dashboardTheme";
+import { searchDashboard } from "@/lib/dashboardSearch";
 
 interface TopBarProps {
   title: string;
@@ -58,6 +59,53 @@ export default function TopBar({ title, onMenuClick }: TopBarProps) {
   const [open, setOpen] = useState<OpenDrop>(null);
   const dropRef = useRef<HTMLDivElement>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+
+  // ── Search ────────────────────────────────────────────────────────────────
+  const searchRef = useRef<HTMLInputElement>(null);
+  const searchBoxRef = useRef<HTMLDivElement>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  const results = useMemo(() => searchDashboard(search), [search]);
+
+  // The highlight is stored together with the query it belongs to, so a new
+  // query derives back to row 0 during render. Resetting it from an effect
+  // would leave one frame where Enter could fire a stale row.
+  const [cursorState, setCursorState] = useState({ query: "", index: 0 });
+  const cursor = cursorState.query === search ? cursorState.index : 0;
+  const setCursor = (i: number) => setCursorState({ query: search, index: i });
+
+  // Dismissal is handled by a focus-out check on the container rather than a
+  // document listener: it also covers leaving by Tab, and keeps the state
+  // change in an event handler.
+
+  // ⌘K / Ctrl+K focuses search from anywhere; Escape returns focus to the page.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        searchRef.current?.focus();
+        searchRef.current?.select();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  function goTo(href: string) {
+    setSearchOpen(false);
+    setSearch("");
+    searchRef.current?.blur();
+    router.push(href);
+  }
+
+  function onSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Escape") { setSearchOpen(false); searchRef.current?.blur(); return; }
+    if (!results.length) return;
+    if (e.key === "ArrowDown") { e.preventDefault(); setCursor((cursor + 1) % results.length); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setCursor((cursor - 1 + results.length) % results.length); }
+    else if (e.key === "Enter") { e.preventDefault(); goTo(results[cursor].href); }
+  }
 
   useEffect(() => {
     fetchProfile()
@@ -123,12 +171,100 @@ export default function TopBar({ title, onMenuClick }: TopBarProps) {
       <h1 style={{ color: textPrimary, fontSize: 18, fontWeight: 650, letterSpacing: "-0.022em", flexShrink: 0, margin: 0 }}>{title}</h1>
 
       <div style={{ flex: 1, display: "flex", justifyContent: "center", minWidth: 0, padding: "0 12px" }}>
-        <div style={{ position: "relative", width: "100%", maxWidth: 420 }}>
+        <div
+          ref={searchBoxRef}
+          onBlur={(e) => {
+            // Only close when focus actually leaves the search box — clicking a
+            // result moves focus within it and must not dismiss first.
+            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setSearchOpen(false);
+          }}
+          style={{ position: "relative", width: "100%", maxWidth: 460 }}
+        >
           <Search size={15} strokeWidth={2} color={textDim} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
-          <input type="text" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)}
-            style={{ width: "100%", background: inputBg, border: `1px solid ${borderClr}`, borderRadius: 10, padding: "9px 16px 9px 38px", fontSize: 13, color: textPrimary, outline: "none", fontFamily: "inherit" }}
-            onFocus={e => { e.currentTarget.style.borderColor = T.text; e.currentTarget.style.background = T.surface; }}
-            onBlur={e => { e.currentTarget.style.borderColor = borderClr; e.currentTarget.style.background = inputBg; }} />
+          <input
+            ref={searchRef}
+            type="text"
+            placeholder="Search pages, controls and settings…"
+            value={search}
+            onChange={e => { setSearch(e.target.value); setSearchOpen(true); }}
+            onFocus={e => { setSearchOpen(true); e.currentTarget.style.borderColor = T.text; e.currentTarget.style.background = T.surface; }}
+            onBlur={e => { e.currentTarget.style.borderColor = borderClr; e.currentTarget.style.background = inputBg; }}
+            onKeyDown={onSearchKeyDown}
+            role="combobox"
+            aria-expanded={searchOpen && !!search}
+            aria-controls="dash-search-results"
+            aria-autocomplete="list"
+            style={{ width: "100%", background: inputBg, border: `1px solid ${borderClr}`, borderRadius: 10, padding: "9px 62px 9px 38px", fontSize: 13, color: textPrimary, outline: "none", fontFamily: "inherit" }}
+          />
+          {/* Shortcut hint, hidden once the field is in use. */}
+          {!search && (
+            <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", display: "flex", gap: 3, pointerEvents: "none" }}>
+              {["⌘", "K"].map(k => (
+                <kbd key={k} style={{
+                  fontSize: 10, fontFamily: "inherit", color: textDim, background: T.surface,
+                  border: `1px solid ${T.border}`, borderRadius: 4, padding: "1px 5px", lineHeight: 1.5,
+                }}>{k}</kbd>
+              ))}
+            </span>
+          )}
+
+          {searchOpen && search.trim() && (
+            <div id="dash-search-results" role="listbox" style={{
+              position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0, zIndex: 60,
+              background: dropBg, border: `1px solid ${dropBorder}`, borderRadius: 14,
+              boxShadow: T.shadowLg, overflow: "hidden", maxHeight: 420, overflowY: "auto",
+            }} className="dash-scroll">
+              {results.length === 0 ? (
+                <div style={{ padding: "22px 18px", textAlign: "center" }}>
+                  <div style={{ fontSize: 13, color: textPrimary, fontWeight: 550 }}>
+                    No matches for “{search.trim()}”
+                  </div>
+                  <div style={{ fontSize: 11.5, color: textDim, marginTop: 4 }}>
+                    Try a page name, a control, or a term like “api key” or “phishing”.
+                  </div>
+                </div>
+              ) : (
+                results.map((r, i) => {
+                  const active = i === cursor;
+                  // Group heading only when the group changes.
+                  const showGroup = i === 0 || results[i - 1].group !== r.group;
+                  return (
+                    <div key={r.id}>
+                      {showGroup && (
+                        <div style={{
+                          padding: "9px 14px 5px", fontSize: 10, fontWeight: 600, color: textDim,
+                          textTransform: "uppercase", letterSpacing: "0.07em",
+                          borderTop: i === 0 ? "none" : `1px solid ${dropBorder}`,
+                        }}>{r.group}</div>
+                      )}
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={active}
+                        onMouseEnter={() => setCursor(i)}
+                        onClick={() => goTo(r.href)}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 10, width: "100%",
+                          padding: "9px 14px", border: "none", cursor: "pointer", textAlign: "left",
+                          background: active ? hoverBg : "transparent", fontFamily: "inherit",
+                        }}
+                      >
+                        <span style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{ display: "block", fontSize: 13, fontWeight: 550, color: textPrimary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {r.title}
+                          </span>
+                          <span style={{ display: "block", fontSize: 11.5, color: textDim, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {r.description}
+                          </span>
+                        </span>
+                        {active && <span style={{ fontSize: 11, color: textDim, flexShrink: 0 }}>↵</span>}
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
         </div>
       </div>
 
