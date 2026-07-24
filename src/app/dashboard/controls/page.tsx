@@ -989,6 +989,8 @@ export default function ControlsPage() {
     setGroups(prev => [...prev, g]);
   }, []);
 
+  const deepLinked = useRef(false);
+
   /**
    * Open the drawer for a control.
    * Pre-loads the first group's policy for this control so the drawer shows
@@ -1014,6 +1016,28 @@ export default function ControlsPage() {
 
   const closeDrawer = () => setActive(null);
   const handleChange = (patch: Partial<UserSettings>) => setDraft(prev => ({ ...prev, ...patch }));
+
+  /**
+   * Deep link: /dashboard/controls?control=<id> opens that control's drawer, so
+   * a search result lands on the specific control rather than on the grid.
+   *
+   * Reads location directly rather than useSearchParams, which would require a
+   * Suspense boundary and breaks this project's `output: "export"` build.
+   * Declared after openDrawer so the reference is initialised, and gated on
+   * controlGroups because openDrawer preloads the first group's policy.
+   */
+  /* eslint-disable react-hooks/set-state-in-effect --
+     openDrawer sets state, but the trigger is the URL — an external system only
+     readable after mount under `output: "export"`. Guarded to run at most once. */
+  useEffect(() => {
+    if (deepLinked.current) return;
+    const id = new URLSearchParams(window.location.search).get("control");
+    if (!id || !CONTROLS.some(c => c.id === id)) return;
+    deepLinked.current = true;
+    openDrawer(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [controlGroups]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const save = async () => {
     if (!active) return;

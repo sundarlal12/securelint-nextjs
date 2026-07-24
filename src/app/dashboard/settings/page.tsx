@@ -510,6 +510,28 @@ function GroupsTab() {
 export default function SettingsPage() {
   const [mainTab, setMainTab]         = useState<"settings" | "groups">("settings");
   const [active, setActive]           = useState<Section>("dashboard");
+
+  /**
+   * Deep link: ?section=<id> selects a settings section and ?tab=groups opens
+   * the Groups tab, so search results land on the right panel.
+   *
+   * Read from location rather than useSearchParams, which would require a
+   * Suspense boundary and breaks the `output: "export"` build. Initial state
+   * stays server-safe; this only adjusts it after mount.
+   */
+  /* eslint-disable react-hooks/set-state-in-effect --
+     Reading the URL is the "synchronise from an external system" case: the
+     query string is not React state and is only available after mount, since
+     this page is prerendered by `output: "export"` where `window` is absent.
+     Doing it in a lazy useState initialiser instead would diverge from the
+     prerendered HTML and cause a hydration mismatch. Runs once. */
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("tab") === "groups") setMainTab("groups");
+    const section = params.get("section");
+    if (section && sections.some(s => s.id === section)) setActive(section as Section);
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
   const [t, setT]                     = useState(defaultToggles);
   const [maskStyle, setMaskStyle]     = useState("smart");
   const [saving, setSaving]           = useState(false);
