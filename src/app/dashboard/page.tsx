@@ -4,11 +4,11 @@ import LiveSecretDetection, { LiveSecret } from "@/components/dashboard/cards/Li
 import AiSecurityAssistant from "@/components/dashboard/cards/AiSecurityAssistant";
 import BrowserProtectionCard, { BrowserProtectionSettings } from "@/components/dashboard/cards/BrowserProtectionCard";
 import ComplianceCard from "@/components/dashboard/cards/ComplianceCard";
-import { StatTile, Gauge, Sparkline, RangeTabs, DonutStat, ProgressRows } from "@/components/dashboard/charts";
+import { RangeTabs, DonutStat, ProgressRows } from "@/components/dashboard/charts";
 import { TrendChart, PairedBars } from "@/components/dashboard/charts/TrendChart";
 import { fetchDashboard, fetchCharts, fetchSettings } from "@/lib/adminApi";
 import { SlidersHorizontal, Download } from "lucide-react";
-import { T, CHART, STATUS, cardStyle } from "@/lib/dashboardTheme";
+import { T, CHART, cardStyle } from "@/lib/dashboardTheme";
 
 const RANGES = [
   { key: "today", label: "Today" },
@@ -45,7 +45,8 @@ export default function DashboardPage() {
   const [range,        setRange]        = useState<RangeKey>("month");
 
   useEffect(() => {
-    setLoading(true);
+    // `loading` already initialises to true and this effect runs once, so
+    // there is nothing to reset here.
     Promise.all([
       fetchDashboard().then(setDashData).catch(() => setDashData(null)),
       fetchCharts().then(setChartsData).catch(() => setChartsData(null)),
@@ -157,44 +158,6 @@ export default function DashboardPage() {
             Export report
           </button>
         </div>
-      </div>
-
-      {/* Headline tiles — each figure paired with its own shape of history */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatTile
-          label="Security posture"
-          value={String(postureScore)}
-          unit="/ 100"
-          delta={String(Math.max(1, Math.round(postureScore / 12)))}
-          deltaDirection="up"
-          visual={<Gauge value={postureScore} accent={postureScore >= 80 ? STATUS.green : postureScore >= 60 ? STATUS.amber : STATUS.red} />}
-          href="/dashboard/compliance"
-        />
-        <StatTile
-          label="Threats blocked"
-          value={loading ? "—" : blocked.toLocaleString()}
-          delta="20%"
-          deltaDirection="up"
-          visual={<Sparkline data={week.detected} stroke={CHART[1]} />}
-          href="/dashboard/live-threats"
-        />
-        <StatTile
-          label="Secrets masked"
-          value={loading ? "—" : masked.toLocaleString()}
-          delta="12%"
-          deltaDirection="up"
-          visual={<Sparkline data={trend.resolved} stroke={CHART[0]} />}
-          href="/dashboard/secret-scanner"
-        />
-        <StatTile
-          label="Critical incidents"
-          value={loading ? "—" : critical.toLocaleString()}
-          delta={critical > 0 ? String(critical) : "0"}
-          deltaDirection={critical > 0 ? "down" : "up"}
-          deltaLabel="Awaiting review"
-          visual={<Sparkline data={week.detected.map((v) => Math.max(0, v - 3))} stroke={CHART[3]} />}
-          href="/dashboard/incident-reports"
-        />
       </div>
 
       {/* Trend + weekday comparison */}
