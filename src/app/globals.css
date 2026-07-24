@@ -36,15 +36,49 @@ html[data-startupbar-injected="1"] {
   --blue: #2563eb;
   --radius: 0.625rem;
 
-  /* Dashboard dark theme */
-  --dash-bg: #0d1117;
-  --dash-card: #161b22;
-  --dash-card-2: #1c2333;
-  --dash-border: #21262d;
-  --dash-text: #e6edf3;
-  --dash-muted: #8b949e;
-  --dash-green: #39d353;
-  --dash-cyan: #2dd4bf;
+  /* ── Dashboard theme — monochrome surfaces, colour reserved for data ──────
+     Structure (canvas/card/border/text) is strictly black-and-white so that
+     the only saturated pixels on screen belong to charts and status. */
+  --dash-bg: #f7f7f8;          /* app canvas            */
+  --dash-surface: #ffffff;     /* card / panel          */
+  --dash-inset: #fafafa;       /* inputs, wells, tiles  */
+  --dash-hover: #f4f4f5;       /* row hover / active    */
+  --dash-card: #ffffff;
+  --dash-card-2: #fafafa;
+  --dash-border: #e9e9ec;      /* hairline              */
+  --dash-border-strong: #dcdce0;
+  --dash-text: #0a0a0a;        /* headings, numerals    */
+  --dash-text-2: #52525b;      /* body                  */
+  --dash-muted: #8e8e93;       /* labels, captions      */
+  --dash-shadow: 0 1px 2px rgba(16, 17, 20, 0.04);
+  --dash-shadow-lg: 0 16px 48px rgba(16, 17, 20, 0.12);
+  --dash-radius: 14px;
+
+  /* Categorical chart palette — the colourful layer.
+     Ordered by first-use so adjacent series never collide in hue. */
+  --dash-c1: #2563eb;  /* blue    */
+  --dash-c2: #16a34a;  /* green   */
+  --dash-c3: #f59e0b;  /* amber   */
+  --dash-c4: #dc2626;  /* red     */
+  --dash-c5: #7c3aed;  /* violet  */
+  --dash-c6: #0d9488;  /* teal    */
+
+  /* Status — same hues, used for severity + state */
+  --dash-green: #16a34a;
+  --dash-cyan: #0d9488;
+  --dash-red: #dc2626;
+  --dash-orange: #ea580c;
+  --dash-amber: #d97706;
+  --dash-blue: #2563eb;
+  --dash-violet: #7c3aed;
+
+  /* Tinted backfills for badges — light wash of each status hue */
+  --dash-green-bg: #f0fdf4;   --dash-green-bd: #bbf7d0;
+  --dash-red-bg: #fef2f2;     --dash-red-bd: #fecaca;
+  --dash-orange-bg: #fff7ed;  --dash-orange-bd: #fed7aa;
+  --dash-amber-bg: #fffbeb;   --dash-amber-bd: #fde68a;
+  --dash-blue-bg: #eff6ff;    --dash-blue-bd: #bfdbfe;
+  --dash-violet-bg: #f5f3ff;  --dash-violet-bd: #ddd6fe;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -749,22 +783,90 @@ a { color: inherit; }
   50% { opacity: 0.8; transform: scale(1.05); }
 }
 
-/* Dashboard card title */
+/* ── Dashboard typography ────────────────────────────────────────────────────
+   Card titles read as sentence-case headings, not uppercase eyebrows — the
+   weight and near-black ink carry the hierarchy instead of letterspacing. */
 .card-title {
-  font-size: 13px !important;
-  font-weight: 900 !important;
-  color: #ffffff !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.12em !important;
+  font-size: 15px !important;
+  font-weight: 650 !important;
+  color: var(--dash-text) !important;
+  text-transform: none !important;
+  letter-spacing: -0.014em !important;
   font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Dashboard scrollbar */
-.dash-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-.dash-scroll::-webkit-scrollbar-track { background: #0d1117; }
-.dash-scroll::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
-.dash-scroll::-webkit-scrollbar-thumb:hover { background: #484f58; }
+/* Small uppercase label above a metric or chart section */
+.dash-eyebrow {
+  font-size: 11px;
+  font-weight: 560;
+  color: var(--dash-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Big tabular numeral — the hero figure on a stat tile */
+.dash-figure {
+  font-size: 30px;
+  font-weight: 680;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--dash-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Dashboard surfaces ──────────────────────────────────────────────────── */
+.dash-card {
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-border);
+  border-radius: var(--dash-radius);
+  box-shadow: var(--dash-shadow);
+}
+
+/* Black pill button — the single high-contrast affordance per view */
+.dash-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--dash-text);
+  color: #ffffff;
+  border: 1px solid var(--dash-text);
+  border-radius: 10px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 560;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.dash-btn-primary:hover { opacity: 0.86; }
+
+.dash-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--dash-surface);
+  color: var(--dash-text);
+  border: 1px solid var(--dash-border-strong);
+  border-radius: 10px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 560;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.dash-btn-ghost:hover { background: var(--dash-hover); }
+
+/* Dashboard scrollbar — hairline, no chrome of its own */
+.dash-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.dash-scroll::-webkit-scrollbar-track { background: transparent; }
+.dash-scroll::-webkit-scrollbar-thumb { background: #dcdce0; border-radius: 4px; }
+.dash-scroll::-webkit-scrollbar-thumb:hover { background: #c4c4c9; }
+
+/* Recharts: keep grid + axes recessive so the coloured series carry the eye */
+.dash-chart .recharts-cartesian-grid line { stroke: #efeff1; }
+.dash-chart .recharts-cartesian-axis-line,
+.dash-chart .recharts-cartesian-axis-tick-line { stroke: transparent; }
+.dash-chart .recharts-text { fill: var(--dash-muted); }
 
 @theme inline {
   --font-heading: var(--font-sans);

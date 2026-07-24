@@ -70,8 +70,8 @@ export function CardLoader() {
           width: 36,
           height: 36,
           borderRadius: "50%",
-          border: "2px solid #e5e7eb",      // track
-          borderTopColor: "#0d9488",          // teal — matches logo background
+          border: "2px solid #eeeef0",      // track
+          borderTopColor: "#0a0a0a",          // near-black, matching dashboard ink
           animation: "cardLoaderSpin 0.75s cubic-bezier(0.4,0,0.2,1) infinite",
         }}
       />
@@ -96,9 +96,15 @@ export function LazyCard({
   if (!ready) return <CardLoader />;
 
   return (
+    // Inherits the card's flex column so children can still use `flex: 1` and
+    // `marginTop: auto` — a plain block wrapper would swallow both.
     <div
       style={{
         animation: "cardFadeUp 0.35s ease both",
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        minHeight: 0,
       }}
     >
       {children}

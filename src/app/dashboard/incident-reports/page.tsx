@@ -20,19 +20,19 @@ const defaultTrendData = [
   { w: "W4", v: 41 }, { w: "W5", v: 38 }, { w: "W6", v: 47 },
 ];
 
-const cardStyle: React.CSSProperties = { background: "#0d1117", border: "1px solid #21262d", borderRadius: 14 };
+const cardStyle: React.CSSProperties = { background: "#ffffff", border: "1px solid #e9e9ec", borderRadius: 14 };
 
 function ShieldIcon() {
-  return <svg width="28" height="28" viewBox="0 0 28 28"><path d="M14 3L5 8v7c0 6.5 4 10.5 9 12 5-1.5 9-5.5 9-12V8z" fill="none" stroke="#39d353" strokeWidth="1.5"/><path d="M11 14l2.5 2.5L18 12" fill="none" stroke="#39d353" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+  return <svg width="28" height="28" viewBox="0 0 28 28"><path d="M14 3L5 8v7c0 6.5 4 10.5 9 12 5-1.5 9-5.5 9-12V8z" fill="none" stroke="#16a34a" strokeWidth="1.5"/><path d="M11 14l2.5 2.5L18 12" fill="none" stroke="#16a34a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
 }
 function HookIcon() {
-  return <svg width="28" height="28" viewBox="0 0 28 28"><path d="M14 5v10c0 3-2 5-5 5s-5-2-5-5" fill="none" stroke="#39d353" strokeWidth="1.5" strokeLinecap="round"/><path d="M14 5l-3-2M14 5l3-2" fill="none" stroke="#39d353" strokeWidth="1.5" strokeLinecap="round"/></svg>;
+  return <svg width="28" height="28" viewBox="0 0 28 28"><path d="M14 5v10c0 3-2 5-5 5s-5-2-5-5" fill="none" stroke="#16a34a" strokeWidth="1.5" strokeLinecap="round"/><path d="M14 5l-3-2M14 5l3-2" fill="none" stroke="#16a34a" strokeWidth="1.5" strokeLinecap="round"/></svg>;
 }
 function EnvIcon() {
-  return <svg width="28" height="28" viewBox="0 0 28 28"><rect x="4" y="7" width="20" height="14" rx="2" fill="none" stroke="#39d353" strokeWidth="1.5"/><path d="M4 11l10 5 10-5" fill="none" stroke="#39d353" strokeWidth="1.5"/></svg>;
+  return <svg width="28" height="28" viewBox="0 0 28 28"><rect x="4" y="7" width="20" height="14" rx="2" fill="none" stroke="#16a34a" strokeWidth="1.5"/><path d="M4 11l10 5 10-5" fill="none" stroke="#16a34a" strokeWidth="1.5"/></svg>;
 }
 function ExtensionIcon() {
-  return <svg width="28" height="28" viewBox="0 0 28 28"><rect x="4" y="4" width="20" height="20" rx="3" fill="none" stroke="#39d353" strokeWidth="1.5"/><path d="M10 11h8M10 14h8M10 17h5" stroke="#39d353" strokeWidth="1.5" strokeLinecap="round"/><circle cx="19" cy="17" r="3" fill="none" stroke="#39d353" strokeWidth="1.3"/></svg>;
+  return <svg width="28" height="28" viewBox="0 0 28 28"><rect x="4" y="4" width="20" height="20" rx="3" fill="none" stroke="#16a34a" strokeWidth="1.5"/><path d="M10 11h8M10 14h8M10 17h5" stroke="#16a34a" strokeWidth="1.5" strokeLinecap="round"/><circle cx="19" cy="17" r="3" fill="none" stroke="#16a34a" strokeWidth="1.3"/></svg>;
 }
 
 export default function IncidentReportsPage() {
@@ -87,24 +87,24 @@ export default function IncidentReportsPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 1400 }}>
       <div style={{ marginBottom: 4 }}>
-        <h2 style={{ fontSize: 24, fontWeight: 800, color: "#e6edf3", letterSpacing: "-0.5px", margin: 0 }}>INCIDENT REPORTS</h2>
-        <p style={{ fontSize: 14, color: "#8b949e", marginTop: 6 }}>Review and investigate detected incidents and policy violations across your organization.</p>
+        <h2 style={{ fontSize: 24, fontWeight: 660, color: "#0a0a0a", letterSpacing: "-0.028em", margin: 0 }}>Incident Reports</h2>
+        <p style={{ fontSize: 14, color: "#52525b", marginTop: 6 }}>Review and investigate detected incidents and policy violations across your organization.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {reports.map((r, i) => (
           <Link key={i} href={r.href} style={{ textDecoration: "none" }}>
             <div style={{ ...cardStyle, padding: "24px 28px", cursor: "pointer", transition: "border-color 0.2s" }}
-              onMouseEnter={(e) => e.currentTarget.style.borderColor = "#39d353"}
-              onMouseLeave={(e) => e.currentTarget.style.borderColor = "#21262d"}>
+              onMouseEnter={(e) => e.currentTarget.style.borderColor = "#16a34a"}
+              onMouseLeave={(e) => e.currentTarget.style.borderColor = "#e9e9ec"}>
               <LazyCard delay={200 + i * 150}>
                 <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-                  <div style={{ width: 52, height: 52, borderRadius: 14, background: "#0a1a14", border: "1px solid #39d35322", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <div style={{ width: 52, height: 52, borderRadius: 14, background: "#f1faf6", border: "1px solid #16a34a22", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     <r.Icon />
                   </div>
                   <div>
-                    <div style={{ fontSize: 36, fontWeight: 800, color: "#2dd4bf", lineHeight: 1 }}>{r.count}</div>
-                    <div style={{ fontSize: 12, color: "#8b949e", marginTop: 4, whiteSpace: "pre-line", lineHeight: 1.4 }}>{r.sub}</div>
+                    <div style={{ fontSize: 36, fontWeight: 680, color: "#0a0a0a", letterSpacing: "-0.03em", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{r.count}</div>
+                    <div style={{ fontSize: 12, color: "#52525b", marginTop: 4, whiteSpace: "pre-line", lineHeight: 1.4 }}>{r.sub}</div>
                   </div>
                 </div>
               </LazyCard>
@@ -119,18 +119,18 @@ export default function IncidentReportsPage() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
               <span className="card-title">Weekly Incident Breakdown</span>
               <div style={{ display: "flex", gap: 12 }}>
-                {[{ label: "Secrets", color: "#2dd4bf" }, { label: "Phishing", color: "#dc2626" }, { label: "DLP", color: "#2563eb" }, { label: "Ext", color: "#7c3aed" }].map(l => (
+                {[{ label: "Secrets", color: "#0d9488" }, { label: "Phishing", color: "#dc2626" }, { label: "DLP", color: "#2563eb" }, { label: "Ext", color: "#7c3aed" }].map(l => (
                   <div key={l.label} style={{ display: "flex", alignItems: "center", gap: 4 }}>
                     <span style={{ width: 8, height: 8, borderRadius: 2, background: l.color }} />
-                    <span style={{ fontSize: 10, color: "#8b949e" }}>{l.label}</span>
+                    <span style={{ fontSize: 10, color: "#52525b" }}>{l.label}</span>
                   </div>
                 ))}
               </div>
             </div>
             <ResponsiveContainer width="100%" height={140}>
               <BarChart data={weeklyData} margin={{ top: 4, right: 4, left: -10, bottom: 0 }}>
-                <XAxis dataKey="day" tick={{ fill: "#6b7280", fontSize: 10 }} axisLine={false} tickLine={false} />
-                <Bar dataKey="secrets"  fill="#2dd4bf" radius={[2, 2, 0, 0]} barSize={8} />
+                <XAxis dataKey="day" tick={{ fill: "#71717a", fontSize: 10 }} axisLine={false} tickLine={false} />
+                <Bar dataKey="secrets"  fill="#0d9488" radius={[2, 2, 0, 0]} barSize={8} />
                 <Bar dataKey="phishing" fill="#dc2626" radius={[2, 2, 0, 0]} barSize={8} />
                 <Bar dataKey="dlp"      fill="#2563eb" radius={[2, 2, 0, 0]} barSize={8} />
                 <Bar dataKey="ext"      fill="#7c3aed" radius={[2, 2, 0, 0]} barSize={8} />
@@ -146,9 +146,9 @@ export default function IncidentReportsPage() {
             </div>
             <ResponsiveContainer width="100%" height={140}>
               <AreaChart data={trendData} margin={{ top: 4, right: 4, left: -10, bottom: 0 }}>
-                <defs><linearGradient id="irt" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#2dd4bf" stopOpacity={0.3}/><stop offset="95%" stopColor="#2dd4bf" stopOpacity={0}/></linearGradient></defs>
-                <XAxis dataKey="w" tick={{ fill: "#6b7280", fontSize: 10 }} axisLine={false} tickLine={false} />
-                <Area type="monotone" dataKey="v" stroke="#2dd4bf" strokeWidth={2} fill="url(#irt)" dot={{ r: 3, fill: "#2dd4bf", strokeWidth: 0 }} />
+                <defs><linearGradient id="irt" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#0d9488" stopOpacity={0.3}/><stop offset="95%" stopColor="#0d9488" stopOpacity={0}/></linearGradient></defs>
+                <XAxis dataKey="w" tick={{ fill: "#71717a", fontSize: 10 }} axisLine={false} tickLine={false} />
+                <Area type="monotone" dataKey="v" stroke="#0d9488" strokeWidth={2} fill="url(#irt)" dot={{ r: 3, fill: "#0d9488", strokeWidth: 0 }} />
               </AreaChart>
             </ResponsiveContainer>
           </LazyCard>
@@ -159,11 +159,11 @@ export default function IncidentReportsPage() {
         {reports.map((r, i) => (
           <Link key={i} href={r.href} style={{ textDecoration: "none" }}>
             <div style={{ ...cardStyle, padding: "20px 22px", cursor: "pointer", transition: "border-color 0.2s" }}
-              onMouseEnter={(e) => e.currentTarget.style.borderColor = "#39d353"}
-              onMouseLeave={(e) => e.currentTarget.style.borderColor = "#21262d"}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#e6edf3", marginBottom: 6 }}>{r.title}</div>
-              <p style={{ fontSize: 12, color: "#8b949e", lineHeight: 1.6, margin: 0, marginBottom: 12 }}>{r.desc}</p>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#2dd4bf", fontWeight: 600 }}>
+              onMouseEnter={(e) => e.currentTarget.style.borderColor = "#16a34a"}
+              onMouseLeave={(e) => e.currentTarget.style.borderColor = "#e9e9ec"}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#0a0a0a", marginBottom: 6 }}>{r.title}</div>
+              <p style={{ fontSize: 12, color: "#52525b", lineHeight: 1.6, margin: 0, marginBottom: 12 }}>{r.desc}</p>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#0d9488", fontWeight: 600 }}>
                 View Report →
               </div>
             </div>

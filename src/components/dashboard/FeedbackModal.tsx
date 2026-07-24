@@ -5,9 +5,9 @@ import { showToast } from "@/components/dashboard/Toast";
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://securelint-api.vercel.app";
 
 const BLUE   = "#2563eb";
-const BORDER = "#e2e8f0";
-const TEXT   = "#0f172a";
-const MUTED  = "#64748b";
+const BORDER = "#18181b";
+const TEXT   = "#f1f3fa";
+const MUTED  = "#52525b";
 
 const INP: React.CSSProperties = {
   width: "100%", padding: "12px 16px", borderRadius: 8,
@@ -91,20 +91,20 @@ export default function FeedbackModal({ email, fullName, onClose }: Props) {
       ref={overlayRef}
       onClick={e => { if (e.target === overlayRef.current) onClose(); }}
       style={{
-        position: "fixed", inset: 0, background: "rgba(15,23,42,.55)",
+        position: "fixed", inset: 0, background: "rgba(16,17,20,0.32)",
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: 16, zIndex: 10000,
         backdropFilter: "blur(2px)",
       }}>
       <style>{`
         @keyframes fb-in { from { opacity:0; transform:scale(.95) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
-        .fb-inp:focus { border-color: ${BLUE} !important; box-shadow: 0 0 0 3px rgba(37,99,235,.15) !important; }
+        .fb-inp:focus { border-color: ${BLUE} !important; box-shadow: 0 0 0 3px rgba(37,99,235,0.12) !important; }
       `}</style>
 
       {/* ── Modal card ── */}
       <div style={{
         background: "#fff", borderRadius: 20, width: "100%", maxWidth: 640,
-        boxShadow: "0 20px 60px rgba(0,0,0,.18), 0 4px 12px rgba(0,0,0,.08)",
+        boxShadow: "0 24px 64px rgba(16,17,20,0.16), 0 4px 12px rgba(16,17,20,0.06)",
         overflow: "hidden", animation: "fb-in .22s ease",
         display: "flex", flexDirection: "column",
       }}>
@@ -112,9 +112,9 @@ export default function FeedbackModal({ email, fullName, onClose }: Props) {
         {/* Header */}
         <div style={{ padding: "36px 40px 16px", position: "relative" }}>
           <button onClick={onClose}
-            style={{ position:"absolute", top:20, right:20, background:"none", border:"none", cursor:"pointer", color:"#94a3b8", padding:4, borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center" }}
+            style={{ position:"absolute", top:20, right:20, background:"none", border:"none", cursor:"pointer", color:"#8e8e93", padding:4, borderRadius:6, display:"flex", alignItems:"center", justifyContent:"center" }}
             onMouseEnter={e => (e.currentTarget.style.color = "#475569")}
-            onMouseLeave={e => (e.currentTarget.style.color = "#94a3b8")}
+            onMouseLeave={e => (e.currentTarget.style.color = "#8e8e93")}
             aria-label="Close">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
               <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -131,7 +131,7 @@ export default function FeedbackModal({ email, fullName, onClose }: Props) {
         {/* Body */}
         <div style={{ padding: "8px 40px 4px" }}>
           {error && (
-            <div style={{ padding: "10px 14px", borderRadius: 8, background: "#fef2f2", border: "1px solid #fca5a5", color: "#dc2626", fontSize: 13, marginBottom: 16 }}>
+            <div style={{ padding: "10px 14px", borderRadius: 8, background: "#fef2f2", border: "1px solid #b91c1c", color: "#dc2626", fontSize: 13, marginBottom: 16 }}>
               {error}
             </div>
           )}
@@ -177,7 +177,7 @@ export default function FeedbackModal({ email, fullName, onClose }: Props) {
             Cancel
           </button>
           <button onClick={handleSend} disabled={sending}
-            style={{ padding: "10px 28px", borderRadius: 8, background: sending ? "#93c5fd" : BLUE, color: "#fff", fontSize: 15, fontWeight: 700, border: "none", cursor: sending ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8 }}
+            style={{ padding: "10px 28px", borderRadius: 8, background: sending ? "#2563eb" : BLUE, color: "#fff", fontSize: 15, fontWeight: 700, border: "none", cursor: sending ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 8 }}
             onMouseEnter={e => { if (!sending) e.currentTarget.style.background = "#1d4ed8"; }}
             onMouseLeave={e => { if (!sending) e.currentTarget.style.background = BLUE; }}>
             {sending && <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>}

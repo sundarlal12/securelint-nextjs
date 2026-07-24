@@ -149,7 +149,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={cn(inter.variable, jetbrainsMono.variable, "font-sans", geist.variable)}>
+    // suppressHydrationWarning on <html>/<body> only: browser extensions (and our
+    // own StartupBarLoader anti-FOUC script) stamp attributes like
+    // data-datablur-loaded and style="visibility:visible" onto these two
+    // elements before React hydrates, which React otherwise reports as a
+    // mismatch. It suppresses one level deep, so real mismatches inside the app
+    // still surface.
+    <html lang="en" suppressHydrationWarning className={cn(inter.variable, jetbrainsMono.variable, "font-sans", geist.variable)}>
       <head>
         {/* Google Tag Manager — loads as early as possible for maximum coverage */}
         <Script
@@ -166,7 +172,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         {/* StartupBar — blocked on /dashboard/* and /user/dashboard/* */}
         <StartupBarLoader />
       </head>
-      <body className={`${inter.className} antialiased overflow-x-hidden`}>
+      <body suppressHydrationWarning className={`${inter.className} antialiased overflow-x-hidden`}>
         {/* Google Tag Manager (noscript) — fallback for browsers with JS disabled */}
         <noscript>
           <iframe

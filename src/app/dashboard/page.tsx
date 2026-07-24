@@ -7,6 +7,8 @@ import BrowserProtectionCard, { BrowserProtectionSettings } from "@/components/d
 import EnterpriseMetrics from "@/components/dashboard/cards/EnterpriseMetrics";
 import ComplianceCard from "@/components/dashboard/cards/ComplianceCard";
 import { fetchDashboard, fetchCharts, fetchSettings } from "@/lib/adminApi";
+import { SlidersHorizontal, Download } from "lucide-react";
+import { T } from "@/lib/dashboardTheme";
 
 export default function DashboardPage() {
   const [dashData,    setDashData]    = useState<Record<string, unknown> | null>(null);
@@ -31,8 +33,32 @@ export default function DashboardPage() {
   const recentSecrets = (dashData?.recent_secrets ?? []) as LiveSecret[];
   const threatAn      = chartsData?.threat_analytics as Record<string, unknown> | undefined;
 
+  const today = new Date().toLocaleDateString(undefined, {
+    weekday: "long", day: "numeric", month: "long", year: "numeric",
+  });
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 1400 }}>
+      {/* Page header — title left, actions right, per the reference layouts */}
+      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: 24, fontWeight: 660, letterSpacing: "-0.028em", color: T.text }}>
+            Security Overview
+          </h2>
+          <p style={{ margin: "5px 0 0", fontSize: 13, color: T.muted }}>{today}</p>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+          <button type="button" className="dash-btn-ghost">
+            <SlidersHorizontal size={14} strokeWidth={2} />
+            Filter
+          </button>
+          <button type="button" className="dash-btn-primary">
+            <Download size={14} strokeWidth={2} />
+            Export report
+          </button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         <LiveSecretDetection
           incidents={recentSecrets}

@@ -42,10 +42,10 @@ export default function LiveThreatsPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 1400 }}>
       <div style={{ marginBottom: 4 }}>
-        <h2 style={{ fontSize: 24, fontWeight: 800, color: "#e6edf3", letterSpacing: "-0.5px", margin: 0 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 660, color: "#0a0a0a", letterSpacing: "-0.028em", margin: 0 }}>
           LIVE THREATS
         </h2>
-        <p style={{ fontSize: 14, color: "#8b949e", marginTop: 6 }}>
+        <p style={{ fontSize: 14, color: "#52525b", marginTop: 6 }}>
           Real-time enterprise threat monitoring and AI-powered incident detection.
         </p>
       </div>
