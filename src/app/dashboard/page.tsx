@@ -3,7 +3,6 @@ import { useState, useEffect, useMemo } from "react";
 import LiveSecretDetection, { LiveSecret } from "@/components/dashboard/cards/LiveSecretDetection";
 import AiSecurityAssistant from "@/components/dashboard/cards/AiSecurityAssistant";
 import BrowserProtectionCard, { BrowserProtectionSettings } from "@/components/dashboard/cards/BrowserProtectionCard";
-import ComplianceCard from "@/components/dashboard/cards/ComplianceCard";
 import { RangeTabs, DonutStat, ProgressRows } from "@/components/dashboard/charts";
 import { TrendChart, PairedBars } from "@/components/dashboard/charts/TrendChart";
 import {
@@ -283,10 +282,6 @@ export default function DashboardPage() {
         <LiveSecretDetection incidents={recentSecrets} loading={loading} />
         <BrowserProtectionCard settings={settingsData ?? undefined} loading={loading} />
         <AiSecurityAssistant />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <ComplianceCard />
       </div>
     </div>
   );
