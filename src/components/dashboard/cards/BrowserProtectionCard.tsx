@@ -1,6 +1,7 @@
 "use client";
 import { LazyCard } from "@/components/dashboard/CardLoader";
 import { T, STATUS, TONE, cardStyle, skeleton } from "@/lib/dashboardTheme";
+import { EmptyState } from "@/components/dashboard/charts/Skeletons";
 
 export interface BrowserProtectionSettings {
   enable_detection?:          boolean;
@@ -91,13 +92,15 @@ const card: React.CSSProperties = {
 export default function BrowserProtectionCard({ settings, loading }: Props = {}) {
   const hasSettings = !loading && settings !== undefined;
 
-  // Only show features that are explicitly enabled; fall back to first 4 if no settings yet
+  // Only features the org has actually switched on. Previously this fell back
+  // to listing the first four regardless, each with an "on" dot — which showed
+  // protections as active when they were not.
   const enabled = hasSettings
     ? FEATURES.filter((f) => settings?.[f.key] === true)
     : [];
 
   // Cap at 4 rows always
-  const visible = (enabled.length > 0 ? enabled : (hasSettings ? FEATURES : [])).slice(0, 4);
+  const visible = enabled.slice(0, 4);
 
   return (
     <div style={card}>
@@ -126,6 +129,12 @@ export default function BrowserProtectionCard({ settings, loading }: Props = {})
                 </div>
               </div>
             ))
+          : visible.length === 0
+          ? <EmptyState
+              height={200}
+              message={hasSettings ? "No protections enabled" : "Settings unavailable"}
+              hint={hasSettings ? "Turn on browser protections in Settings to see them here." : undefined}
+            />
           : visible.map((feat, i) => (
               <div key={feat.key} style={{
                 display: "flex", alignItems: "center", gap: 12,

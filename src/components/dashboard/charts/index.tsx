@@ -214,27 +214,28 @@ export function DonutStat({
   const r = size / 2 - 12;
   const c = size / 2;
   const circumference = 2 * Math.PI * r;
-  let offset = 0;
+
+  // Resolve each arc's dash length and starting offset up front, so rendering
+  // stays a pure map over precomputed geometry.
+  const arcs = slices.reduce<{ dash: number; offset: number }[]>((acc, s) => {
+    const prev = acc[acc.length - 1];
+    const start = prev ? prev.offset + prev.dash : 0;
+    return [...acc, { dash: (s.value / total) * circumference, offset: start }];
+  }, []);
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 22, flexWrap: "wrap" }}>
       <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
         <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
-          {slices.map((s) => {
-            const frac = s.value / total;
-            const dash = frac * circumference;
-            const el = (
-              <circle
-                key={s.label}
-                cx={c} cy={c} r={r}
-                fill="none" stroke={s.color} strokeWidth={18}
-                strokeDasharray={`${dash} ${circumference - dash}`}
-                strokeDashoffset={-offset}
-              />
-            );
-            offset += dash;
-            return el;
-          })}
+          {slices.map((s, i) => (
+            <circle
+              key={s.label}
+              cx={c} cy={c} r={r}
+              fill="none" stroke={s.color} strokeWidth={18}
+              strokeDasharray={`${arcs[i].dash} ${circumference - arcs[i].dash}`}
+              strokeDashoffset={-arcs[i].offset}
+            />
+          ))}
         </svg>
         <div style={{
           position: "absolute", inset: 0, display: "flex", flexDirection: "column",

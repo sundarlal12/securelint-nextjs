@@ -2,6 +2,7 @@
 import { LazyCard } from "@/components/dashboard/CardLoader";
 import { SecretBrandIcon } from "@/lib/secretIcons";
 import { T, STATUS, severityTone } from "@/lib/dashboardTheme";
+import { EmptyState } from "@/components/dashboard/charts/Skeletons";
 
 export interface LiveSecret {
   id?: number | string;
@@ -46,21 +47,11 @@ function SkRow() {
   );
 }
 
-// ── Fallback placeholder rows shown when no real data yet ────────────────────
-const PLACEHOLDER: LiveSecret[] = [
-  { secret_type: "GITHUB_TOKEN",  severity: "critical", action: "masked",  timestamp: new Date(Date.now() - 5  * 60_000).toISOString(), user_email: "employee@org.com" },
-  { secret_type: "AWS_ACCESS_KEY", severity: "high",    action: "blocked", timestamp: new Date(Date.now() - 18 * 60_000).toISOString(), user_email: "dev@org.com" },
-  { secret_type: "STRIPE_KEY",    severity: "high",     action: "masked",  timestamp: new Date(Date.now() - 47 * 60_000).toISOString(), user_email: "finance@org.com" },
-  { secret_type: "JWT_TOKEN",     severity: "medium",   action: "flagged", timestamp: new Date(Date.now() - 92 * 60_000).toISOString(), user_email: "backend@org.com" },
-  { secret_type: "SLACK_WEBHOOK", severity: "medium",   action: "masked",  timestamp: new Date(Date.now() - 130 * 60_000).toISOString(), user_email: "ops@org.com" },
-];
-
 export default function LiveSecretDetection({ incidents, loading }: Props) {
-  const rows: LiveSecret[] = (!loading && incidents && incidents.length > 0)
-    ? incidents.slice(0, 5)
-    : (loading ? [] : PLACEHOLDER);
-
-  const isReal = !loading && incidents && incidents.length > 0;
+  // No invented rows: the panel either lists real detections, shimmers while
+  // they load, or states plainly that there are none.
+  const rows: LiveSecret[] = !loading && incidents?.length ? incidents.slice(0, 5) : [];
+  const isReal = rows.length > 0;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", borderRadius: T.radius, overflow: "hidden", background: T.surface, border: `1px solid ${T.border}`, boxShadow: T.shadow }}>
@@ -74,7 +65,7 @@ export default function LiveSecretDetection({ incidents, loading }: Props) {
             <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: isReal ? STATUS.green : T.dim, animation: isReal ? "skeleton-pulse 2s ease-in-out infinite" : "none" }} />
               <span style={{ fontSize: 10, color: isReal ? STATUS.green : T.dim, fontWeight: 620, letterSpacing: "0.06em" }}>
-                {isReal ? "LIVE" : "SAMPLE"}
+                {loading ? "LOADING" : isReal ? "LIVE" : "IDLE"}
               </span>
             </span>
           </div>
@@ -85,6 +76,12 @@ export default function LiveSecretDetection({ incidents, loading }: Props) {
         <div style={{ display: "flex", flexDirection: "column" }}>
           {loading
             ? Array.from({ length: 5 }).map((_, i) => <SkRow key={i} />)
+            : rows.length === 0
+            ? <EmptyState
+                height={220}
+                message="No secrets detected"
+                hint="Detections from protected endpoints will appear here in real time."
+              />
             : rows.map((inc, i) => {
                 const sev = severityTone(inc.severity);
                 const secretLabel = inc.secret_type?.replace(/_/g, " ") ?? "Unknown Secret";
