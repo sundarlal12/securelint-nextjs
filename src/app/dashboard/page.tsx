@@ -6,6 +6,10 @@ import BrowserProtectionCard, { BrowserProtectionSettings } from "@/components/d
 import ComplianceCard from "@/components/dashboard/cards/ComplianceCard";
 import { RangeTabs, DonutStat, ProgressRows } from "@/components/dashboard/charts";
 import { TrendChart, PairedBars } from "@/components/dashboard/charts/TrendChart";
+import {
+  Shimmer, TrendSkeleton, BarsSkeleton, DonutSkeleton, RowsSkeleton,
+  FiguresSkeleton, EmptyState,
+} from "@/components/dashboard/charts/Skeletons";
 import { fetchDashboard, fetchCharts, fetchSettings } from "@/lib/adminApi";
 import { SlidersHorizontal, Download } from "lucide-react";
 import { T, CHART, cardStyle } from "@/lib/dashboardTheme";
@@ -63,35 +67,35 @@ export default function DashboardPage() {
 
   const num = (v: unknown, fallback = 0) => (typeof v === "number" ? v : Number(v) || fallback);
 
+  // Every series below returns null when the API gave us nothing. Nothing on
+  // this page invents numbers — a panel either shows real data, a shimmer while
+  // it loads, or an explicit empty state.
+
   // ── Trend series ──────────────────────────────────────────────────────────
   const trend = useMemo(() => {
     const raw = threatAn?.dual_trend as Record<string, unknown>[] | undefined;
-    const rows = raw?.length ? raw : [
-      { m: "Dec", incidents: 28, resolved: 22 },
-      { m: "Jan", incidents: 52, resolved: 44 },
-      { m: "Feb", incidents: 38, resolved: 35 },
-      { m: "Mar", incidents: 72, resolved: 68 },
-      { m: "Apr", incidents: 58, resolved: 55 },
-      { m: "May", incidents: 88, resolved: 80 },
-    ];
+    if (!raw?.length) return null;
     return {
-      labels: rows.map((r, i) => String(r.m ?? MONTHS[i] ?? i + 1)),
-      detected: rows.map((r) => num(r.incidents)),
-      resolved: rows.map((r) => num(r.resolved)),
+      labels: raw.map((r, i) => String(r.m ?? MONTHS[i] ?? i + 1)),
+      detected: raw.map((r) => num(r.incidents)),
+      resolved: raw.map((r) => num(r.resolved)),
     };
   }, [threatAn]);
 
   // ── Weekday activity ──────────────────────────────────────────────────────
   const week = useMemo(() => {
     const raw = threatAn?.week_activity as Record<string, unknown>[] | undefined;
+    if (!raw?.length) return null;
     const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    const detected = days.map((_, i) => num(raw?.[i]?.v, [6, 4, 9, 5, 8, 2, 3][i]));
-    // Resolved trails detected; derive a plausible companion when absent.
-    const resolved = detected.map((v) => Math.max(0, Math.round(v * 0.78)));
-    return { days, detected, resolved };
+    const detected = days.map((_, i) => num(raw[i]?.v));
+    const resolved = days.map((_, i) => num(raw[i]?.resolved));
+    // Only plot the second series if the API actually supplies it.
+    const hasResolved = resolved.some((v) => v > 0);
+    return { days, detected, resolved, hasResolved };
   }, [threatAn]);
 
   // ── Headline figures ──────────────────────────────────────────────────────
+  const hasStats = !!stats;
   const blocked   = num(stats?.threats_blocked);
   const masked    = num(stats?.threats_masked);
   const devices   = num(stats?.total_devices);
@@ -99,39 +103,29 @@ export default function DashboardPage() {
   const totalInc  = num(stats?.total_incidents);
   const members   = num(stats?.team_members);
 
-  // Posture score: share of detections that were neutralised, penalised by any
-  // criticals still awaiting review.
-  const postureScore = useMemo(() => {
-    if (!totalInc) return 92;
-    const handled = Math.min(1, (blocked + masked) / Math.max(1, totalInc));
-    const penalty = Math.min(0.25, critical / Math.max(1, totalInc));
-    return Math.round(Math.max(0, Math.min(1, handled - penalty)) * 100);
-  }, [totalInc, blocked, masked, critical]);
-
   const breakdown = useMemo(() => {
     const t = (dashData?.by_type ?? {}) as Record<string, number>;
-    const entries = Object.entries(t).slice(0, 4);
-    if (entries.length) {
-      return entries.map(([label, value], i) => ({
-        label: label.replace(/_/g, " ").toLowerCase(),
-        value: Number(value) || 0,
-        color: CHART[i % CHART.length],
-      }));
-    }
-    return [
-      { label: "Credential exposure", value: 38, color: CHART[3] },
-      { label: "Phishing attempts",   value: 27, color: CHART[2] },
-      { label: "Data exfiltration",   value: 19, color: CHART[5] },
-      { label: "Malicious extensions", value: 16, color: CHART[4] },
-    ];
+    const entries = Object.entries(t).filter(([, v]) => Number(v) > 0).slice(0, 6);
+    if (!entries.length) return null;
+    return entries.map(([label, value], i) => ({
+      label: label.replace(/_/g, " ").toLowerCase(),
+      value: Number(value) || 0,
+      color: CHART[i % CHART.length],
+    }));
   }, [dashData]);
 
-  const coverage = useMemo(() => ([
-    { label: "Secret detection", value: postureScore, color: CHART[1] },
-    { label: "Phishing defence", value: Math.max(0, postureScore - 7), color: CHART[0] },
-    { label: "Email DLP",        value: Math.max(0, postureScore - 14), color: CHART[5] },
-    { label: "Extension control", value: Math.max(0, postureScore - 21), color: CHART[4] },
-  ]), [postureScore]);
+  // Coverage is a real ratio per control: how many of its detections were
+  // neutralised. Without detections there is no rate to report.
+  const coverage = useMemo(() => {
+    if (!hasStats || !totalInc) return null;
+    const pct = (n: number) => Math.round(Math.min(1, n / totalInc) * 100);
+    return [
+      { label: "Threats blocked",  value: pct(blocked),  color: CHART[1] },
+      { label: "Secrets masked",   value: pct(masked),   color: CHART[0] },
+      { label: "Resolved overall", value: pct(blocked + masked), color: CHART[5] },
+      { label: "Awaiting review",  value: pct(critical), color: CHART[3] },
+    ];
+  }, [hasStats, totalInc, blocked, masked, critical]);
 
   const today = new Date().toLocaleDateString(undefined, {
     weekday: "long", day: "numeric", month: "long", year: "numeric",
@@ -177,69 +171,110 @@ export default function DashboardPage() {
             }
           >
             <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: -4, marginBottom: 10 }}>
-              <span style={{ fontSize: 30, fontWeight: 680, letterSpacing: "-0.032em", color: loading ? T.dim : T.text, fontVariantNumeric: "tabular-nums" }}>
-                {loading ? "—" : totalInc.toLocaleString()}
-              </span>
-              <span style={{ fontSize: 13, color: T.muted }}>total detections</span>
+              {loading ? (
+                <Shimmer width={90} height={30} />
+              ) : (
+                <>
+                  <span style={{ fontSize: 30, fontWeight: 680, letterSpacing: "-0.032em", color: hasStats ? T.text : T.dim, fontVariantNumeric: "tabular-nums" }}>
+                    {hasStats ? totalInc.toLocaleString() : "—"}
+                  </span>
+                  <span style={{ fontSize: 13, color: T.muted }}>total detections</span>
+                </>
+              )}
             </div>
-            <TrendChart
-              series={[
-                { label: "Detected", color: CHART[3], data: trend.detected, area: true },
-                { label: "Resolved", color: CHART[1], data: trend.resolved },
-              ]}
-              xLabels={trend.labels}
-              height={250}
-            />
+
+            {loading ? (
+              <TrendSkeleton height={250} />
+            ) : trend ? (
+              <TrendChart
+                series={[
+                  { label: "Detected", color: CHART[3], data: trend.detected, area: true },
+                  { label: "Resolved", color: CHART[1], data: trend.resolved },
+                ]}
+                xLabels={trend.labels}
+                height={250}
+              />
+            ) : (
+              <EmptyState
+                height={250}
+                message="No detections recorded yet"
+                hint="Once endpoints start reporting, the trend will appear here."
+              />
+            )}
           </Panel>
         </div>
 
-        <Panel title="Weekly activity" right={<span style={{ fontSize: 12, color: T.muted }}>Detected vs resolved</span>}>
-          <PairedBars
-            groups={week.days}
-            series={[
-              { label: "Detected", color: CHART[3], data: week.detected },
-              { label: "Resolved", color: CHART[1], data: week.resolved },
-            ]}
-            height={250}
-          />
+        <Panel title="Weekly activity" right={<span style={{ fontSize: 12, color: T.muted }}>Last 7 days</span>}>
+          {loading ? (
+            <BarsSkeleton height={250} />
+          ) : week ? (
+            <PairedBars
+              groups={week.days}
+              series={[
+                { label: "Detected", color: CHART[3], data: week.detected },
+                ...(week.hasResolved
+                  ? [{ label: "Resolved", color: CHART[1], data: week.resolved }]
+                  : []),
+              ]}
+              height={250}
+            />
+          ) : (
+            <EmptyState height={250} message="No activity this week" />
+          )}
         </Panel>
       </div>
 
       {/* Composition + coverage */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <Panel title="Threat breakdown">
-          <DonutStat
-            slices={breakdown}
-            centerValue={breakdown.reduce((s, x) => s + x.value, 0).toLocaleString()}
-            centerLabel="incidents"
-          />
+          {loading ? (
+            <DonutSkeleton />
+          ) : breakdown ? (
+            <DonutStat
+              slices={breakdown}
+              centerValue={breakdown.reduce((s, x) => s + x.value, 0).toLocaleString()}
+              centerLabel="incidents"
+            />
+          ) : (
+            <EmptyState message="Nothing detected yet" hint="Breakdown appears once incidents are categorised." />
+          )}
         </Panel>
 
-        <Panel title="Protection coverage" right={<span style={{ fontSize: 12, color: T.muted }}>By control</span>}>
-          <ProgressRows rows={coverage} />
+        <Panel title="Protection coverage" right={<span style={{ fontSize: 12, color: T.muted }}>Share of detections</span>}>
+          {loading ? (
+            <RowsSkeleton />
+          ) : coverage ? (
+            <ProgressRows rows={coverage} />
+          ) : (
+            <EmptyState message="No detections to measure" hint="Coverage is the share of detections handled by each control." />
+          )}
         </Panel>
 
         <Panel title="Fleet" right={<span style={{ fontSize: 12, color: T.muted }}>Enrolled</span>}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px 20px" }}>
-            {[
-              { v: devices,  l: "Protected devices", s: "enrolled endpoints" },
-              { v: members,  l: "Team members",      s: "covered by policy" },
-              { v: blocked,  l: "Threats blocked",   s: "all time" },
-              { v: masked,   l: "Secrets masked",    s: "all time" },
-            ].map((m) => (
-              <div key={m.l}>
-                <div style={{
-                  fontSize: 24, fontWeight: 680, letterSpacing: "-0.03em", lineHeight: 1,
-                  color: loading ? T.dim : T.text, fontVariantNumeric: "tabular-nums",
-                }}>
-                  {loading ? "—" : m.v.toLocaleString()}
+          {loading ? (
+            <FiguresSkeleton />
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px 20px" }}>
+              {[
+                { v: devices,  l: "Protected devices", s: "enrolled endpoints" },
+                { v: members,  l: "Team members",      s: "covered by policy" },
+                { v: blocked,  l: "Threats blocked",   s: "all time" },
+                { v: masked,   l: "Secrets masked",    s: "all time" },
+              ].map((m) => (
+                <div key={m.l}>
+                  <div style={{
+                    fontSize: 24, fontWeight: 680, letterSpacing: "-0.03em", lineHeight: 1,
+                    color: hasStats ? T.text : T.dim, fontVariantNumeric: "tabular-nums",
+                  }}>
+                    {hasStats ? m.v.toLocaleString() : "—"}
+                  </div>
+                  <div style={{ fontSize: 11.5, color: T.text2, marginTop: 7, lineHeight: 1.45 }}>
+                    {m.l}<br /><span style={{ color: T.muted }}>{m.s}</span>
+                  </div>
                 </div>
-                <div style={{ fontSize: 11.5, color: T.text2, marginTop: 7, lineHeight: 1.45 }}>
-                  {m.l}<br /><span style={{ color: T.muted }}>{m.s}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </Panel>
       </div>
 

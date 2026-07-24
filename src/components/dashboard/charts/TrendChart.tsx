@@ -134,10 +134,14 @@ export function TrendChart({
         const ends = series
           .map((s, si) => ({ si, s, yy: y(s.data[s.data.length - 1]), v: s.data[s.data.length - 1] }))
           .sort((a, b) => a.yy - b.yy);
-        let prev = -Infinity;
-        return ends.map(({ si, s, yy, v }) => {
-          const py = Math.max(yy, prev + 20);
-          prev = py;
+        // Walk top-down assigning each pill a slot at least 20px below the
+        // previous one, resolved up front so the render stays pure.
+        const placed = ends.reduce<{ py: number }[]>((acc, e) => {
+          const prev = acc[acc.length - 1];
+          return [...acc, { py: Math.max(e.yy, (prev ? prev.py : -Infinity) + 20) }];
+        }, []);
+        return ends.map(({ si, s, v }, ei) => {
+          const py = placed[ei].py;
           const label = formatValue(v);
           const w = Math.max(34, label.length * 8 + 12);
           return (
