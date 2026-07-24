@@ -9,22 +9,22 @@ import { SecretBrandIcon } from "@/lib/secretIcons";
 import { fetchSecretScanner, fetchCharts } from "@/lib/adminApi";
 
 // ── Styles ────────────────────────────────────────────────────────────────────
-const cardStyle: React.CSSProperties = { background: "#0d1117", border: "1px solid #21262d", borderRadius: 14 };
-const subTitle:  React.CSSProperties = { fontSize: 12, color: "#8b949e", marginBottom: 6, fontWeight: 600 };
-const tooltipStyle = { background: "#161b22", border: "1px solid #30363d", borderRadius: 8, color: "#e6edf3", fontSize: 11 };
+const cardStyle: React.CSSProperties = { background: "#ffffff", border: "1px solid #e9e9ec", borderRadius: 14 };
+const subTitle:  React.CSSProperties = { fontSize: 12, color: "#52525b", marginBottom: 6, fontWeight: 600 };
+const tooltipStyle = { background: "#f4f4f5", border: "1px solid #dcdce0", borderRadius: 8, color: "#0a0a0a", fontSize: 11 };
 
 const SEV: Record<string, { color: string; bg: string; border: string }> = {
-  critical: { color: "#ef4444", bg: "#2d0a0a", border: "#7f1d1d" },
-  high:     { color: "#f97316", bg: "#2c1200", border: "#7c2d12" },
-  medium:   { color: "#f59e0b", bg: "#2d1a00", border: "#78350f" },
-  low:      { color: "#4ade80", bg: "#0d2b17", border: "#166534" },
+  critical: { color: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
+  high:     { color: "#ea580c", bg: "#fff7ed", border: "#fed7aa" },
+  medium:   { color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
+  low:      { color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0" },
 };
 
 const ACT: Record<string, { label: string; color: string; bg: string; border: string }> = {
-  blocked: { label: "Blocked",   color: "#ef4444", bg: "#2d0a0a", border: "#7f1d1d" },
-  masked:  { label: "Protected", color: "#4ade80", bg: "#0d2b17", border: "#166534" },
-  allowed: { label: "Safe",      color: "#60a5fa", bg: "#0d1b2e", border: "#1d4ed8" },
-  flagged: { label: "Review",    color: "#f59e0b", bg: "#2d1a00", border: "#78350f" },
+  blocked: { label: "Blocked",   color: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
+  masked:  { label: "Protected", color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0" },
+  allowed: { label: "Safe",      color: "#2563eb", bg: "#f0f4fb", border: "#1d4ed8" },
+  flagged: { label: "Review",    color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -51,7 +51,7 @@ function relTime(ts?: string): string {
 
 // Skeleton helper
 const sk = (w: number | string, h: number, r = 5): React.CSSProperties => ({
-  width: w, height: h, borderRadius: r, background: "#1b222c",
+  width: w, height: h, borderRadius: r, background: "#e9e9ec",
   animation: "sk-pulse 1.4s ease-in-out infinite", display: "inline-block",
 });
 
@@ -60,9 +60,9 @@ function CardHeader({ title, right }: { title: string; right?: React.ReactNode }
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 0 12px" }}>
         <span className="card-title">{title}</span>
-        {right ?? <span style={{ color: "#4a5568", cursor: "pointer", fontSize: 18 }}>···</span>}
+        {right ?? <span style={{ color: "#a1a1aa", cursor: "pointer", fontSize: 18 }}>···</span>}
       </div>
-      <div style={{ height: 1, background: "#21262d", marginBottom: 14 }} />
+      <div style={{ height: 1, background: "#e9e9ec", marginBottom: 14 }} />
     </div>
   );
 }
@@ -72,20 +72,20 @@ function GaugeMeter({ pct = 78 }: { pct?: number }) {
   const r  = (a * Math.PI) / 180;
   const nx = 60 + 40 * Math.cos(r);
   const ny = 60 + 40 * Math.sin(r);
-  const c  = pct >= 80 ? "#4ade80" : pct >= 60 ? "#f59e0b" : "#ef4444";
+  const c  = pct >= 80 ? "#16a34a" : pct >= 60 ? "#d97706" : "#dc2626";
   return (
     <svg viewBox="0 0 120 75" width="100" height="62">
       <defs>
         <linearGradient id="ssGauge" x1="0%" y1="50%" x2="100%" y2="50%">
-          <stop offset="0%" stopColor="#ef4444"/><stop offset="50%" stopColor="#f59e0b"/>
-          <stop offset="100%" stopColor="#4ade80"/>
+          <stop offset="0%" stopColor="#dc2626"/><stop offset="50%" stopColor="#d97706"/>
+          <stop offset="100%" stopColor="#16a34a"/>
         </linearGradient>
       </defs>
       <path d="M12 60 A48 48 0 0 1 108 60" fill="none" stroke="#1a2030" strokeWidth="10" strokeLinecap="round"/>
       <path d="M12 60 A48 48 0 0 1 108 60" fill="none" stroke="url(#ssGauge)" strokeWidth="10" strokeLinecap="round"/>
       <line x1="60" y1="60" x2={nx} y2={ny} stroke={c} strokeWidth="2.5" strokeLinecap="round"/>
-      <circle cx="60" cy="60" r="4" fill="#d1d5db"/><circle cx="60" cy="60" r="2" fill="#0d1117"/>
-      <text x="60" y="73" textAnchor="middle" fill="#8b949e" fontSize="9" fontWeight="600">{pct}%</text>
+      <circle cx="60" cy="60" r="4" fill="#d1d5db"/><circle cx="60" cy="60" r="2" fill="#ffffff"/>
+      <text x="60" y="73" textAnchor="middle" fill="#52525b" fontSize="9" fontWeight="600">{pct}%</text>
     </svg>
   );
 }
@@ -97,17 +97,17 @@ function buildCodeLines(byType: Record<string, number>) {
   const useKeys = keys.length >= 2 ? keys : FALLBACK_KEYS;
   let n = 1;
   const lines: { n: number; text?: string; key?: string; masked?: boolean; color?: string }[] = [
-    { n: n++, text: "const config = { /* enterprise */ };", color: "#6b7280" },
-    { n: n++, text: "// SecureLint scan — detected secrets", color: "#6b7280" },
+    { n: n++, text: "const config = { /* enterprise */ };", color: "#71717a" },
+    { n: n++, text: "// SecureLint scan — detected secrets", color: "#71717a" },
   ];
   useKeys.forEach((k, i) => {
-    lines.push({ n: n++, text: `// ${k.replace(/_/g, " ").toLowerCase()}`, color: "#6b7280" });
+    lines.push({ n: n++, text: `// ${k.replace(/_/g, " ").toLowerCase()}`, color: "#71717a" });
     lines.push({ n: n++, key: `${k}=`, masked: true });
-    if (i < useKeys.length - 1) lines.push({ n: n++, text: "", color: "#6b7280" });
+    if (i < useKeys.length - 1) lines.push({ n: n++, text: "", color: "#71717a" });
   });
-  lines.push({ n: n++, text: "", color: "#6b7280" });
-  lines.push({ n: n++, text: "// AI autosec active", color: "#6b7280" });
-  lines.push({ n: n++, text: "void_secure(access, context);", color: "#c9d1d9" });
+  lines.push({ n: n++, text: "", color: "#71717a" });
+  lines.push({ n: n++, text: "// AI autosec active", color: "#71717a" });
+  lines.push({ n: n++, text: "void_secure(access, context);", color: "#18181b" });
   return lines;
 }
 
@@ -191,11 +191,11 @@ export default function SecretScannerPage() {
   const codeLines = useMemo(() => buildCodeLines(byType), [byType]);
 
   const stats = [
-    { label: "Total Secrets Found", val: String(totalSecrets),        accent: "#ef4444" },
-    { label: "Critical",            val: String(bySev.critical ?? 0), accent: "#ef4444" },
-    { label: "High",                val: String(bySev.high     ?? 0), accent: "#f97316" },
-    { label: "Medium",              val: String(bySev.medium   ?? 0), accent: "#f59e0b" },
-    { label: "Low",                 val: String(bySev.low      ?? 0), accent: "#4ade80" },
+    { label: "Total Secrets Found", val: String(totalSecrets),        accent: "#dc2626" },
+    { label: "Critical",            val: String(bySev.critical ?? 0), accent: "#dc2626" },
+    { label: "High",                val: String(bySev.high     ?? 0), accent: "#ea580c" },
+    { label: "Medium",              val: String(bySev.medium   ?? 0), accent: "#d97706" },
+    { label: "Low",                 val: String(bySev.low      ?? 0), accent: "#16a34a" },
   ];
 
   // ── Chart fallbacks ──────────────────────────────────────────────────────────
@@ -225,18 +225,18 @@ export default function SecretScannerPage() {
       <style>{`
         @keyframes sk-pulse{0%,100%{opacity:.4}50%{opacity:.9}}
         @keyframes codeScanLine{0%{top:0%}50%{top:85%}100%{top:0%}}
-        @keyframes maskPulse{0%,100%{box-shadow:0 0 8px rgba(34,197,94,.15),inset 0 0 6px rgba(34,197,94,.08);opacity:.85}50%{box-shadow:0 0 18px rgba(34,197,94,.35),inset 0 0 12px rgba(34,197,94,.15);opacity:1}}
+        @keyframes maskPulse{0%,100%{box-shadow:0 0 8px rgba(22,163,74,0.14),inset 0 0 6px rgba(22,163,74,0.14);opacity:.85}50%{box-shadow:0 0 18px rgba(22,163,74,0.14),inset 0 0 12px rgba(22,163,74,0.14);opacity:1}}
       `}</style>
 
       {/* Page header */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 4, flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h2 style={{ fontSize: 24, fontWeight: 800, color: "#e6edf3", letterSpacing: "-0.5px", margin: 0 }}>SECRET SCANNER</h2>
-          <p style={{ fontSize: 14, color: "#8b949e", marginTop: 6 }}>Detect exposed secrets, API keys, tokens, and credentials across all employee activity.</p>
+          <h2 style={{ fontSize: 24, fontWeight: 660, color: "#0a0a0a", letterSpacing: "-0.028em", margin: 0 }}>Secret Scanner</h2>
+          <p style={{ fontSize: 14, color: "#52525b", marginTop: 6 }}>Detect exposed secrets, API keys, tokens, and credentials across all employee activity.</p>
         </div>
         <div style={{ display: "flex", gap: 10, flexShrink: 0, marginTop: 4 }}>
-          <button style={{ padding: "8px 20px", background: "#ffffff", color: "#0d1117", fontWeight: 400, fontSize: 13, border: "none", borderRadius: 8, cursor: "pointer" }}>Run Deep Scan</button>
-          <button style={{ padding: "8px 20px", background: "transparent", color: "#e6edf3", fontWeight: 400, fontSize: 13, border: "1px solid #21262d", borderRadius: 8, cursor: "pointer" }}>Export Report</button>
+          <button className="dash-btn-primary">Run Deep Scan</button>
+          <button className="dash-btn-ghost">Export Report</button>
         </div>
       </div>
 
@@ -246,22 +246,22 @@ export default function SecretScannerPage() {
           <LazyCard delay={300}>
             <CardHeader title="Secret Detection Table" right={
               !loading && totalSecrets > 0
-                ? <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 10px", borderRadius: 10, background: "#2d0a0a", color: "#ef4444", border: "1px solid #7f1d1d" }}>{totalSecrets} found</span>
+                ? <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 10px", borderRadius: 10, background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" }}>{totalSecrets} found</span>
                 : undefined
             }/>
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", fontSize: 12, borderCollapse: "collapse", minWidth: 480 }}>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid #21262d" }}>
+                  <tr style={{ borderBottom: "1px solid #e9e9ec" }}>
                     {["Secret Type", "Location", "Severity", "Detected", "Status"].map(h => (
-                      <th key={h} style={{ textAlign: "left", padding: "8px 8px 10px 0", color: "#6e7681", fontWeight: 700, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>{h}</th>
+                      <th key={h} style={{ textAlign: "left", padding: "8px 8px 10px 0", color: "#8e8e93", fontWeight: 700, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {loading
                     ? Array.from({ length: 5 }).map((_, i) => (
-                        <tr key={i} style={{ borderBottom: "1px solid #21262d" }}>
+                        <tr key={i} style={{ borderBottom: "1px solid #e9e9ec" }}>
                           <td style={{ padding: "12px 8px 12px 0" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                               <div style={sk(28, 28, 6)} />
@@ -275,23 +275,23 @@ export default function SecretScannerPage() {
                         </tr>
                       ))
                     : tableRows.length === 0
-                    ? <tr><td colSpan={5} style={{ padding: "32px 0", textAlign: "center", color: "#6e7681" }}>No secrets found</td></tr>
+                    ? <tr><td colSpan={5} style={{ padding: "32px 0", textAlign: "center", color: "#8e8e93" }}>No secrets found</td></tr>
                     : tableRows.map((inc, i) => {
                         const sev = SEV[(String(inc.severity ?? "")).toLowerCase()] ?? SEV.low;
-                        const act = ACT[(String(inc.action ?? "")).toLowerCase()] ?? { label: "Detected", color: "#8b949e", bg: "#161b22", border: "#30363d" };
+                        const act = ACT[(String(inc.action ?? "")).toLowerCase()] ?? { label: "Detected", color: "#52525b", bg: "#f4f4f5", border: "#dcdce0" };
                         return (
-                          <tr key={i} style={{ borderBottom: i < tableRows.length - 1 ? "1px solid #21262d" : "none" }}>
+                          <tr key={i} style={{ borderBottom: i < tableRows.length - 1 ? "1px solid #e9e9ec" : "none" }}>
                             <td style={{ padding: "12px 8px 12px 0" }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <div style={{ width: 28, height: 28, borderRadius: 7, background: "#0d1218", border: "1px solid #252d38", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                                <div style={{ width: 28, height: 28, borderRadius: 7, background: "#fafafa", border: "1px solid #e9e9ec", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                                   <SecretBrandIcon secretType={String(inc.secret_type ?? "")} size={18} />
                                 </div>
-                                <span style={{ color: "#e6edf3", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 160 }}>
+                                <span style={{ color: "#0a0a0a", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 160 }}>
                                   {String(inc.secret_type ?? "").replace(/_/g, " ")}
                                 </span>
                               </div>
                             </td>
-                            <td style={{ padding: "12px 8px 12px 0", color: "#8b949e", fontFamily: "monospace", fontSize: 10, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            <td style={{ padding: "12px 8px 12px 0", color: "#52525b", fontFamily: "monospace", fontSize: 10, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                               {shortUrl(String(inc.tab_url ?? ""))}
                             </td>
                             <td style={{ padding: "12px 8px 12px 0" }}>
@@ -299,7 +299,7 @@ export default function SecretScannerPage() {
                                 {String(inc.severity ?? "—")}
                               </span>
                             </td>
-                            <td style={{ padding: "12px 8px 12px 0", color: "#6e7681", whiteSpace: "nowrap" }}>{relTime(String(inc.timestamp ?? ""))}</td>
+                            <td style={{ padding: "12px 8px 12px 0", color: "#8e8e93", whiteSpace: "nowrap" }}>{relTime(String(inc.timestamp ?? ""))}</td>
                             <td style={{ padding: "12px 0" }}>
                               <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 10px", borderRadius: 20, color: act.color, background: act.bg, border: `1px solid ${act.border}` }}>
                                 {act.label}
@@ -321,28 +321,28 @@ export default function SecretScannerPage() {
             <div style={{ padding: "18px 20px 0" }}>
               <CardHeader title="Code Scanning Preview" />
             </div>
-            <div style={{ background: "#0a0e14", position: "relative" }}>
-              <div style={{ display: "flex", gap: 6, padding: "10px 14px", borderBottom: "1px solid #21262d" }}>
+            <div style={{ background: "#f2f5f9", position: "relative" }}>
+              <div style={{ display: "flex", gap: 6, padding: "10px 14px", borderBottom: "1px solid #e9e9ec" }}>
                 <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ff5f57" }} />
                 <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#febc2e" }} />
                 <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#28c840" }} />
               </div>
               <div style={{ position: "relative", overflow: "hidden" }}>
-                <div style={{ position: "absolute", left: 0, right: 0, height: 2, zIndex: 2, background: "linear-gradient(90deg,transparent 0%,#22c55e 30%,#2dd4bf 50%,#22c55e 70%,transparent 100%)", boxShadow: "0 0 12px rgba(34,197,94,.5)", animation: "codeScanLine 4s ease-in-out infinite" }} />
+                <div style={{ position: "absolute", left: 0, right: 0, height: 2, zIndex: 2, background: "linear-gradient(90deg,transparent 0%,#16a34a 30%,#0d9488 50%,#16a34a 70%,transparent 100%)", boxShadow: "0 0 12px rgba(22,163,74,0.14)", animation: "codeScanLine 4s ease-in-out infinite" }} />
                 <div style={{ padding: "12px 14px", fontFamily: "monospace", fontSize: 11, lineHeight: 1.8, maxHeight: 240, overflowY: "auto" }}>
                   {codeLines.map((line, i) => (
                     <div key={i} style={{ display: "flex", gap: 8 }}>
-                      <span style={{ width: 20, textAlign: "right", color: "#4a5568", flexShrink: 0 }}>{line.n}</span>
-                      <span style={{ color: "#4a5568", flexShrink: 0 }}>│</span>
+                      <span style={{ width: 20, textAlign: "right", color: "#a1a1aa", flexShrink: 0 }}>{line.n}</span>
+                      <span style={{ color: "#a1a1aa", flexShrink: 0 }}>│</span>
                       <span>
                         {line.masked ? (
                           <>
-                            <span style={{ color: "#e6edf3", fontWeight: 600 }}>{line.key}</span>
-                            <span style={{ display: "inline-block", padding: "2px 20px", borderRadius: 4, marginLeft: 2, background: "rgba(34,197,94,.15)", border: "1px solid rgba(34,197,94,.4)", color: "rgba(34,197,94,.6)", fontSize: 10, letterSpacing: 1, animation: "maskPulse 3s ease-in-out infinite" }}>██████████████</span>
-                            <span style={{ marginLeft: 6, color: "#22c55e", fontSize: 12 }}>⇩</span>
+                            <span style={{ color: "#0a0a0a", fontWeight: 600 }}>{line.key}</span>
+                            <span style={{ display: "inline-block", padding: "2px 20px", borderRadius: 4, marginLeft: 2, background: "rgba(22,163,74,0.14)", border: "1px solid rgba(22,163,74,0.14)", color: "rgba(22,163,74,0.14)", fontSize: 10, letterSpacing: 1, animation: "maskPulse 3s ease-in-out infinite" }}>██████████████</span>
+                            <span style={{ marginLeft: 6, color: "#16a34a", fontSize: 12 }}>⇩</span>
                           </>
                         ) : (
-                          <span style={{ color: (line as { color?: string }).color ?? "#8b949e" }}>{(line as { text?: string }).text}</span>
+                          <span style={{ color: (line as { color?: string }).color ?? "#52525b" }}>{(line as { text?: string }).text}</span>
                         )}
                       </span>
                     </div>
@@ -366,15 +366,15 @@ export default function SecretScannerPage() {
                 {loading ? <div style={sk("100%", 70, 6)} /> : (
                   <ResponsiveContainer width="100%" height={70}>
                     <AreaChart data={trend} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                      <defs><linearGradient id="ss-g1" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#39d353" stopOpacity={0.3}/><stop offset="95%" stopColor="#39d353" stopOpacity={0}/></linearGradient></defs>
-                      <Area type="monotone" dataKey="v" stroke="#39d353" strokeWidth={1.5} fill="url(#ss-g1)" dot={false}/>
-                      <XAxis dataKey="m" tick={{ fill: "#6b7280", fontSize: 8 }} axisLine={false} tickLine={false}/>
-                      <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: "#30363d" }} formatter={(v: unknown) => [`${v}`, "Secrets"]}/>
+                      <defs><linearGradient id="ss-g1" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#16a34a" stopOpacity={0.3}/><stop offset="95%" stopColor="#16a34a" stopOpacity={0}/></linearGradient></defs>
+                      <Area type="monotone" dataKey="v" stroke="#16a34a" strokeWidth={1.5} fill="url(#ss-g1)" dot={false}/>
+                      <XAxis dataKey="m" tick={{ fill: "#71717a", fontSize: 8 }} axisLine={false} tickLine={false}/>
+                      <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: "#dcdce0" }} formatter={(v: unknown) => [`${v}`, "Secrets"]}/>
                     </AreaChart>
                   </ResponsiveContainer>
                 )}
               </div>
-              <div style={{ width: 1, background: "#21262d", flexShrink: 0 }} />
+              <div style={{ width: 1, background: "#e9e9ec", flexShrink: 0 }} />
               {/* Risk trend */}
               <div style={{ flex: 1, padding: "0 16px" }}>
                 <div style={subTitle}>Risk trend</div>
@@ -383,28 +383,28 @@ export default function SecretScannerPage() {
                     <AreaChart data={risk} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                       <defs><linearGradient id="ss-g2" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ea580c" stopOpacity={0.3}/><stop offset="95%" stopColor="#ea580c" stopOpacity={0}/></linearGradient></defs>
                       <Area type="monotone" dataKey="v" stroke="#ea580c" strokeWidth={1.5} fill="url(#ss-g2)" dot={false}/>
-                      <XAxis dataKey="m" tick={{ fill: "#6b7280", fontSize: 8 }} axisLine={false} tickLine={false}/>
-                      <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: "#30363d" }} formatter={(v: unknown) => [`${v}`, "Risk"]}/>
+                      <XAxis dataKey="m" tick={{ fill: "#71717a", fontSize: 8 }} axisLine={false} tickLine={false}/>
+                      <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: "#dcdce0" }} formatter={(v: unknown) => [`${v}`, "Risk"]}/>
                     </AreaChart>
                   </ResponsiveContainer>
                 )}
               </div>
-              <div style={{ width: 1, background: "#21262d", flexShrink: 0 }} />
+              <div style={{ width: 1, background: "#e9e9ec", flexShrink: 0 }} />
               {/* Type exposure */}
               <div style={{ flex: 1, padding: "0 16px" }}>
                 <div style={subTitle}>By secret type</div>
                 {loading ? <div style={sk("100%", 70, 6)} /> : (
                   <ResponsiveContainer width="100%" height={70}>
                     <LineChart data={repo} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                      <XAxis dataKey="t" tick={{ fill: "#6b7280", fontSize: 8 }} axisLine={false} tickLine={false}/>
+                      <XAxis dataKey="t" tick={{ fill: "#71717a", fontSize: 8 }} axisLine={false} tickLine={false}/>
                       <YAxis hide/>
-                      <Line type="monotone" dataKey="v" stroke="#2dd4bf" strokeWidth={1.5} dot={{ r: 2, fill: "#2dd4bf" }} activeDot={{ r: 3 }}/>
-                      <Tooltip cursor={{ stroke: "#30363d" }} contentStyle={tooltipStyle} formatter={(v: unknown) => [`${v}`, "Count"]}/>
+                      <Line type="monotone" dataKey="v" stroke="#0d9488" strokeWidth={1.5} dot={{ r: 2, fill: "#0d9488" }} activeDot={{ r: 3 }}/>
+                      <Tooltip cursor={{ stroke: "#dcdce0" }} contentStyle={tooltipStyle} formatter={(v: unknown) => [`${v}`, "Count"]}/>
                     </LineChart>
                   </ResponsiveContainer>
                 )}
               </div>
-              <div style={{ width: 1, background: "#21262d", flexShrink: 0 }} />
+              <div style={{ width: 1, background: "#e9e9ec", flexShrink: 0 }} />
               {/* Security score gauge */}
               <div style={{ flex: 1, paddingLeft: 16 }}>
                 <div style={subTitle}>Security score</div>
@@ -429,7 +429,7 @@ export default function SecretScannerPage() {
                     </div>
                   ))
                 : remItems.map((item, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 13, color: "#e6edf3" }}>
+                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 13, color: "#0a0a0a" }}>
                       <span style={{ fontSize: 16, flexShrink: 0 }}>{item.icon}</span>
                       <span style={{ lineHeight: 1.4 }}>{item.text}</span>
                     </div>
@@ -447,13 +447,13 @@ export default function SecretScannerPage() {
             <CardHeader title="Repository Security Status" />
             <div style={{ display: "flex", gap: 0 }}>
               {stats.map((m, i) => (
-                <div key={i} style={{ flex: 1, padding: "0 14px", borderLeft: i > 0 ? "1px solid #21262d" : "none" }}>
+                <div key={i} style={{ flex: 1, padding: "0 14px", borderLeft: i > 0 ? "1px solid #e9e9ec" : "none" }}>
                   {loading ? (
                     <><div style={sk("60%", 22, 4)} /><div style={{ ...sk("80%", 9, 3), marginTop: 8 }} /></>
                   ) : (
                     <>
                       <div style={{ fontSize: 22, fontWeight: 800, color: m.accent, lineHeight: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.val}</div>
-                      <div style={{ fontSize: 10, color: "#8b949e", marginTop: 5 }}>{m.label}</div>
+                      <div style={{ fontSize: 10, color: "#52525b", marginTop: 5 }}>{m.label}</div>
                     </>
                   )}
                 </div>
@@ -465,7 +465,7 @@ export default function SecretScannerPage() {
         <div style={{ ...cardStyle, padding: "18px 20px 20px" }}>
           <LazyCard delay={900}>
             <CardHeader title="Cloud & Dev Integrations" right={
-              <span style={{ fontSize: 10, fontWeight: 700, background: "#122118", color: "#39d353", padding: "3px 10px", borderRadius: 20, border: "1px solid #39d35344" }}>Active</span>
+              <span style={{ fontSize: 10, fontWeight: 700, background: "#f2f8f5", color: "#16a34a", padding: "3px 10px", borderRadius: 20, border: "1px solid #16a34a44" }}>Active</span>
             }/>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               {[
@@ -474,8 +474,8 @@ export default function SecretScannerPage() {
                 { icon: "💬", label: "Slack" },  { icon: "▲",  label: "Vercel" },
               ].map((int) => (
                 <div key={int.label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, minWidth: 44 }}>
-                  <span style={{ fontSize: 22, width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", background: "#161b22", borderRadius: 10, border: "1px solid #21262d" }}>{int.icon}</span>
-                  <span style={{ fontSize: 9, color: "#8b949e" }}>{int.label}</span>
+                  <span style={{ fontSize: 22, width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", background: "#f4f4f5", borderRadius: 10, border: "1px solid #e9e9ec" }}>{int.icon}</span>
+                  <span style={{ fontSize: 9, color: "#52525b" }}>{int.label}</span>
                 </div>
               ))}
             </div>

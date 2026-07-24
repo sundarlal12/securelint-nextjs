@@ -78,47 +78,47 @@ const Svg = ({ children, color }: { children: React.ReactNode; color: string }) 
   </svg>
 );
 const banners = {
-  phishing_site: <Svg color="#f97316">
-    {[20,70,130,200,260,300].map((x,i)=><circle key={i} cx={x} cy={15+i%3*22} r={7+i%2*4} stroke="#f9731633" strokeWidth="1.5" fill="none"/>)}
-    <circle cx="160" cy="48" r="18" stroke="#ef4444" strokeWidth="1.8" fill="#ef444418"/>
-    <path d="M153 48l5 6 9-10" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M60 55C90 35 120 68 150 48s60 14 90-4" stroke="#ef444466" strokeWidth="1.5" fill="none"/>
+  phishing_site: <Svg color="#ea580c">
+    {[20,70,130,200,260,300].map((x,i)=><circle key={i} cx={x} cy={15+i%3*22} r={7+i%2*4} stroke="#ea580c33" strokeWidth="1.5" fill="none"/>)}
+    <circle cx="160" cy="48" r="18" stroke="#dc2626" strokeWidth="1.8" fill="#dc262618"/>
+    <path d="M153 48l5 6 9-10" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M60 55C90 35 120 68 150 48s60 14 90-4" stroke="#dc262666" strokeWidth="1.5" fill="none"/>
   </Svg>,
-  phishing_mail: <Svg color="#f97316">
+  phishing_mail: <Svg color="#ea580c">
     <rect x="75" y="20" width="170" height="52" rx="6" stroke="#f9731455" fill="#f9731412"/>
     <path d="M75 26l85 30 85-30" stroke="#f97314" strokeWidth="1.5" fill="none"/>
-    <path d="M148 60l-9 9M170 60l9 9" stroke="#ef4444" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M148 60l-9 9M170 60l9 9" stroke="#dc2626" strokeWidth="2" strokeLinecap="round"/>
   </Svg>,
-  waf_domain: <Svg color="#ef4444">
-    <path d="M160 12L90 36v27c0 22 30 36 70 43 40-7 70-21 70-43V36z" stroke="#ef444455" strokeWidth="1.5" fill="#ef444412"/>
-    <text x="160" y="53" textAnchor="middle" fill="#f87171" fontSize="11" fontWeight="600">⚠ Blocked</text>
+  waf_domain: <Svg color="#dc2626">
+    <path d="M160 12L90 36v27c0 22 30 36 70 43 40-7 70-21 70-43V36z" stroke="#dc262655" strokeWidth="1.5" fill="#dc262612"/>
+    <text x="160" y="53" textAnchor="middle" fill="#dc2626" fontSize="11" fontWeight="600">⚠ Blocked</text>
   </Svg>,
-  url_blocking: <Svg color="#ef4444">
-    <rect x="55" y="22" width="210" height="46" rx="8" stroke="#ef444455" fill="#ef444412"/>
-    <text x="160" y="50" textAnchor="middle" fill="#f87171" fontSize="12" fontWeight="600">🚫 This site is blocked</text>
+  url_blocking: <Svg color="#dc2626">
+    <rect x="55" y="22" width="210" height="46" rx="8" stroke="#dc262655" fill="#dc262612"/>
+    <text x="160" y="50" textAnchor="middle" fill="#dc2626" fontSize="12" fontWeight="600">🚫 This site is blocked</text>
   </Svg>,
-  session_theft: <Svg color="#60a5fa">
+  session_theft: <Svg color="#2563eb">
     {[40,90,145,195,248].map((x,i)=><rect key={i} x={x} y={18+i%2*16} width="46" height="8" rx="2" fill="#1e3a5f" opacity="0.9"/>)}
-    <rect x="98" y="46" width="94" height="12" rx="2" fill="#ef444450"/>
-    <text x="145" y="56" textAnchor="middle" fill="#f87171" fontSize="8">session [missing]</text>
+    <rect x="98" y="46" width="94" height="12" rx="2" fill="#dc262650"/>
+    <text x="145" y="56" textAnchor="middle" fill="#dc2626" fontSize="8">session [missing]</text>
   </Svg>,
-  malicious_extension: <Svg color="#818cf8">
-    {[58,116,176,236].map((x,i)=><rect key={i} x={x} y={26} width="38" height="38" rx="6" stroke="#818cf844" fill="#818cf812"/>)}
-    <path d="M150 45l13-13M150 45l13 13" stroke="#ef4444" strokeWidth="2" strokeLinecap="round"/>
+  malicious_extension: <Svg color="#4f46e5">
+    {[58,116,176,236].map((x,i)=><rect key={i} x={x} y={26} width="38" height="38" rx="6" stroke="#4f46e544" fill="#4f46e512"/>)}
+    <path d="M150 45l13-13M150 45l13 13" stroke="#dc2626" strokeWidth="2" strokeLinecap="round"/>
   </Svg>,
-  email_dlp: <Svg color="#60a5fa">
-    {[0,1,2].map(i=><rect key={i} x={80+i*54} y={20} width="42" height="50" rx="5" stroke="#60a5fa44" fill="#60a5fa11"/>)}
-    <path d="M122 45h40M164 45h40" stroke="#60a5fa" strokeWidth="1.5" strokeDasharray="3 2"/>
+  email_dlp: <Svg color="#2563eb">
+    {[0,1,2].map(i=><rect key={i} x={80+i*54} y={20} width="42" height="50" rx="5" stroke="#2563eb44" fill="#2563eb11"/>)}
+    <path d="M122 45h40M164 45h40" stroke="#2563eb" strokeWidth="1.5" strokeDasharray="3 2"/>
   </Svg>,
-  secret_masking: <Svg color="#a78bfa">
+  secret_masking: <Svg color="#7c3aed">
     {["API_KEY=•••••","TOKEN=••••••","SECRET=•••••"].map((t,i)=>(
-      <text key={i} x="62" y={30+i*20} fill="#a78bfa88" fontSize="11" fontFamily="monospace">{t}</text>
+      <text key={i} x="62" y={30+i*20} fill="#7c3aed88" fontSize="11" fontFamily="monospace">{t}</text>
     ))}
-    <rect x="58" y="16" width="130" height="64" rx="4" stroke="#a78bfa44" fill="none"/>
+    <rect x="58" y="16" width="130" height="64" rx="4" stroke="#7c3aed44" fill="none"/>
   </Svg>,
-  enterprise_data: <Svg color="#34d399">
-    {[60,120,180,240].map((x,i)=><circle key={i} cx={x} cy={45} r={12+i%3*4} stroke="#34d39933" strokeWidth="1.5" fill="#34d39910"/>)}
-    <path d="M100 45h120M130 32h60M130 58h60" stroke="#34d399" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="4 3"/>
+  enterprise_data: <Svg color="#0d9488">
+    {[60,120,180,240].map((x,i)=><circle key={i} cx={x} cy={45} r={12+i%3*4} stroke="#0d948833" strokeWidth="1.5" fill="#0d948810"/>)}
+    <path d="M100 45h120M130 32h60M130 58h60" stroke="#0d9488" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="4 3"/>
   </Svg>,
   blur_secrets: <Svg color="#fb923c">
     {["████████","██████████","███████"].map((t,i)=>(
@@ -166,7 +166,7 @@ const CONTROLS: ControlDef[] = [
     id:"phishing_site",title:"Phishing Site Detection",
     shortDesc:"Detect and block phishing websites in real time.",
     longDesc:"Detect when employees visit malicious or phishing websites. SecureLint scans URLs on every navigation and can warn, flag, or block access based on your policy.",
-    tag:"Phishing",tagColor:"#f97316",bannerEl:banners.phishing_site,
+    tag:"Phishing",tagColor:"#ea580c",bannerEl:banners.phishing_site,
     isEnabled:s=>!!(s.phish_detection),
     statusLabel:s=>s.phish_detection?(s.phish_detection_block?"Block":s.phish_detection_alert?"Warn":"Detect"):"Disabled",
   },
@@ -174,7 +174,7 @@ const CONTROLS: ControlDef[] = [
     id:"phishing_mail",title:"Phishing Mail Detection",
     shortDesc:"AI-powered phishing email detection in Gmail & Outlook.",
     longDesc:"Scan incoming emails for phishing patterns, sender spoofing, and social engineering signals. Works inside Gmail and Outlook mail clients.",
-    tag:"Phishing",tagColor:"#f97316",bannerEl:banners.phishing_mail,
+    tag:"Phishing",tagColor:"#ea580c",bannerEl:banners.phishing_mail,
     isEnabled:s=>!!(s.phish_mail_detection),
     statusLabel:s=>s.phish_mail_detection?(s.phish_mail_action?.toUpperCase()||"Detect"):"Disabled",
   },
@@ -182,7 +182,7 @@ const CONTROLS: ControlDef[] = [
     id:"waf_domain",title:"Domain & URL Blocking",
     shortDesc:"Block access to specific domains, URLs, or social-engineering sites.",
     longDesc:"Maintain a custom blocklist of domains and URLs. Supports wildcards (e.g. *.example.com). When an employee navigates to a blocked address the extension warns or blocks the page per your policy.",
-    tag:"Response",tagColor:"#ef4444",bannerEl:banners.waf_domain,
+    tag:"Response",tagColor:"#dc2626",bannerEl:banners.waf_domain,
     isEnabled:s=>!!(s.waf_social_domain?.length),
     statusLabel:s=>s.waf_social_domain?.length?`${s.waf_social_domain.length} domain${s.waf_social_domain.length>1?"s":""}`:"Not configured",
   },
@@ -190,14 +190,14 @@ const CONTROLS: ControlDef[] = [
     id:"session_theft",title:"Session Theft Detection",
     shortDesc:"Unique marker in User Agent to detect stolen sessions.",
     longDesc:"Add a unique token to the browser User Agent string. By comparing app logs you can identify sessions missing the marker — a strong indicator of session token theft.",
-    tag:"Detection",tagColor:"#60a5fa",bannerEl:banners.session_theft,
+    tag:"Detection",tagColor:"#2563eb",bannerEl:banners.session_theft,
     isEnabled:()=>false,statusLabel:()=>"Monitoring",
   },
   {
     id:"malicious_extension",title:"Malicious Extension Blocking",
     shortDesc:"Block or warn for blacklisted browser extensions.",
     longDesc:"Define a list of Chrome extension IDs that violate your IT policy. SecureLint can detect, warn, or block when a blacklisted extension is active.",
-    tag:"Extensions",tagColor:"#818cf8",bannerEl:banners.malicious_extension,
+    tag:"Extensions",tagColor:"#4f46e5",bannerEl:banners.malicious_extension,
     isEnabled:s=>!!(s.blacklist_extension_status&&s.blacklist_extension_status!=="disabled"),
     statusLabel:s=>s.blacklist_extension_status||"Not configured",
   },
@@ -205,7 +205,7 @@ const CONTROLS: ControlDef[] = [
     id:"email_dlp",title:"Cross-Domain Mail Control",
     shortDesc:"Monitor outbound emails sent to external domains.",
     longDesc:"Detect when employees send emails outside your organisation. Configure an allowlist of trusted external domains and choose how to respond.",
-    tag:"DLP",tagColor:"#60a5fa",bannerEl:banners.email_dlp,
+    tag:"DLP",tagColor:"#2563eb",bannerEl:banners.email_dlp,
     isEnabled:s=>!!(s.email_dlp_enabled),
     statusLabel:s=>s.email_dlp_enabled?(s.email_dlp_action?.toUpperCase()||"Detect"):"Disabled",
   },
@@ -213,7 +213,7 @@ const CONTROLS: ControlDef[] = [
     id:"secret_masking",title:"Secret Masking",
     shortDesc:"Auto-detect and mask secrets typed in the browser.",
     longDesc:"Automatically detect API keys, tokens, and secrets typed or pasted in the browser. Mask them in real time across inputs, text areas, code editors, and network requests.",
-    tag:"Masking",tagColor:"#a78bfa",bannerEl:banners.secret_masking,
+    tag:"Masking",tagColor:"#7c3aed",bannerEl:banners.secret_masking,
     isEnabled:s=>!!(s.global_masking_status),
     statusLabel:s=>s.global_masking_status?(s.masking_style||"blur"):"Disabled",
   },
@@ -221,7 +221,7 @@ const CONTROLS: ControlDef[] = [
     id:"enterprise_data",title:"Enterprise Data Collection",
     shortDesc:"Control what telemetry and data the extension collects for your org.",
     longDesc:"Configure which data points the SecureLint extension reports to your organisation dashboard — extension scraping, password breach checks, email domain collection, and anonymous telemetry. Fine-grained control per group.",
-    tag:"Enterprise",tagColor:"#34d399",bannerEl:banners.enterprise_data,
+    tag:"Enterprise",tagColor:"#0d9488",bannerEl:banners.enterprise_data,
     isEnabled:s=>!!(s.enterprise_data_collection||s.extension_scrape_data||s.password_breach_data),
     statusLabel:s=>(s.enterprise_data_collection||s.extension_scrape_data||s.password_breach_data)?"Active":"Disabled",
   },
@@ -239,19 +239,19 @@ const CONTROLS: ControlDef[] = [
    Action dropdown — rich with icon + description (matches screenshot)
 ───────────────────────────────────────────────────────────────────────── */
 const ACTION_DEFS: Record<string, { label: string; color: string; desc: string; icon: React.ReactNode }> = {
-  OFF:    { label:"Off",    color:"#64748b", desc:"Disables this feature for selected employees.", icon:(
+  OFF:    { label:"Off",    color:"#52525b", desc:"Disables this feature for selected employees.", icon:(
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2v6M6.3 5.3a8 8 0 100 13.4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
   )},
-  DETECT: { label:"Detect", color:"#60a5fa", desc:"Scans and logs the activity without interrupting the user.", icon:(
+  DETECT: { label:"Detect", color:"#2563eb", desc:"Scans and logs the activity without interrupting the user.", icon:(
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="M16.5 16.5l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
   )},
-  WARN:   { label:"Warn",   color:"#f59e0b", desc:"Alerts the employee with a browser notification before proceeding.", icon:(
+  WARN:   { label:"Warn",   color:"#d97706", desc:"Alerts the employee with a browser notification before proceeding.", icon:(
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3H20.5a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
   )},
-  BLOCK:  { label:"Block",  color:"#ef4444", desc:"Disables and blocks access for the selected employees or extensions.", icon:(
+  BLOCK:  { label:"Block",  color:"#dc2626", desc:"Disables and blocks access for the selected employees or extensions.", icon:(
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 12H6M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
   )},
-  MASK:   { label:"Mask",   color:"#a78bfa", desc:"Masks the secret in real time, keeping the raw value hidden.", icon:(
+  MASK:   { label:"Mask",   color:"#7c3aed", desc:"Masks the secret in real time, keeping the raw value hidden.", icon:(
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19M1 1l22 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
   )},
 };
@@ -271,7 +271,7 @@ function ActionDropdown({ choices, value, onChange }: { choices: ActionValue[]; 
     <div ref={ref} style={{ position: "relative" }}>
       {/* Trigger */}
       <button onClick={() => setOpen(o => !o)}
-        style={{ width:"100%", display:"flex", alignItems:"center", gap:10, padding:"10px 14px", background:"#0d1525", border:`1px solid ${current.color}55`, borderRadius:8, color:current.color, fontSize:14, fontWeight:600, cursor:"pointer", transition:".15s" }}>
+        style={{ width:"100%", display:"flex", alignItems:"center", gap:10, padding:"10px 14px", background:"#fafafa", border:`1px solid ${current.color}55`, borderRadius:8, color:current.color, fontSize:14, fontWeight:600, cursor:"pointer", transition:".15s" }}>
         <span style={{ color:current.color, display:"flex", alignItems:"center" }}>{current.icon}</span>
         <span style={{ flex:1, textAlign:"left" }}>{current.label}</span>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ transform:open?"rotate(180deg)":"none", transition:".2s", flexShrink:0 }}>
@@ -281,18 +281,18 @@ function ActionDropdown({ choices, value, onChange }: { choices: ActionValue[]; 
 
       {/* Dropdown panel */}
       {open && (
-        <div style={{ position:"absolute", top:"calc(100% + 6px)", left:0, right:0, background:"#0b1120", border:"1px solid #2d3748", borderRadius:10, zIndex:60, overflow:"hidden", boxShadow:"0 12px 32px rgba(0,0,0,.7)" }}>
-          <div style={{ padding:"8px 14px 6px", fontSize:10, fontWeight:700, color:"#4a5568", letterSpacing:0.8, textTransform:"uppercase" }}>Select</div>
+        <div style={{ position:"absolute", top:"calc(100% + 6px)", left:0, right:0, background:"#fbfbfc", border:"1px solid #e4e4e7", borderRadius:10, zIndex:60, overflow:"hidden", boxShadow:"0 12px 32px rgba(16,17,20,0.32)" }}>
+          <div style={{ padding:"8px 14px 6px", fontSize:10, fontWeight:700, color:"#a1a1aa", letterSpacing:0.8, textTransform:"uppercase" }}>Select</div>
           {choices.map((c, i) => {
             const m = ACTION_DEFS[c];
             const isSelected = c === value;
             return (
               <button key={c} onClick={() => { onChange(c); setOpen(false); }}
-                style={{ width:"100%", display:"flex", alignItems:"flex-start", gap:12, padding:"10px 14px", background: isSelected ? `${m.color}15` : "transparent", border:"none", borderTop: i === 0 ? "1px solid #1a2540" : "1px solid #111827", cursor:"pointer", textAlign:"left" }}>
+                style={{ width:"100%", display:"flex", alignItems:"flex-start", gap:12, padding:"10px 14px", background: isSelected ? `${m.color}15` : "transparent", border:"none", borderTop: i === 0 ? "1px solid #fafafa" : "1px solid #fafafa", cursor:"pointer", textAlign:"left" }}>
                 <span style={{ color:m.color, display:"flex", alignItems:"center", marginTop:2, flexShrink:0 }}>{m.icon}</span>
                 <span>
-                  <div style={{ fontSize:13, fontWeight: isSelected ? 700 : 500, color: isSelected ? m.color : "#c9d1d9" }}>{m.label}</div>
-                  <div style={{ fontSize:11, color:"#64748b", marginTop:2, lineHeight:1.4 }}>{m.desc}</div>
+                  <div style={{ fontSize:13, fontWeight: isSelected ? 700 : 500, color: isSelected ? m.color : "#18181b" }}>{m.label}</div>
+                  <div style={{ fontSize:11, color:"#52525b", marginTop:2, lineHeight:1.4 }}>{m.desc}</div>
                 </span>
                 {isSelected && <span style={{ marginLeft:"auto", color:m.color, fontSize:16, alignSelf:"center" }}>✓</span>}
               </button>
@@ -327,34 +327,34 @@ function DomainTable({ initValues, onCommit, placeholder, label, wildcardNote }:
   return (
     <div>
       {wildcardNote && (
-        <div style={{ fontSize:11, color:"#64748b", marginBottom:8, display:"flex", alignItems:"center", gap:5 }}>
+        <div style={{ fontSize:11, color:"#52525b", marginBottom:8, display:"flex", alignItems:"center", gap:5 }}>
           Domain entry supports the use of wildcards
-          <span style={{ padding:"1px 5px", border:"1px solid #ef444455", borderRadius:4, color:"#f87171", fontSize:10 }}>*</span>
+          <span style={{ padding:"1px 5px", border:"1px solid #dc262655", borderRadius:4, color:"#dc2626", fontSize:10 }}>*</span>
         </div>
       )}
-      <div style={{ display:"flex", borderRadius:8, overflow:"hidden", border:"1px solid #2d3748" }}>
+      <div style={{ display:"flex", borderRadius:8, overflow:"hidden", border:"1px solid #e4e4e7" }}>
         <input value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === "Enter" && (e.preventDefault(), add())}
           placeholder={placeholder}
-          style={{ flex:1, padding:"10px 12px", background:"#0d1525", border:"none", color:"#c9d1d9", fontSize:13, outline:"none" }} />
+          style={{ flex:1, padding:"10px 12px", background:"#fafafa", border:"none", color:"#18181b", fontSize:13, outline:"none" }} />
         <button onClick={add}
-          style={{ padding:"10px 18px", background:"#d97706", border:"none", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
+          style={{ padding:"10px 18px", background:"#0a0a0a", border:"none", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
           + Add
         </button>
       </div>
       {values.length > 0 && (
-        <div style={{ marginTop:8, border:"1px solid #2d3748", borderRadius:8, overflow:"hidden" }}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 60px", padding:"7px 12px", background:"#111827", borderBottom:"1px solid #2d3748" }}>
-            <span style={{ fontSize:11, fontWeight:700, color:"#94a3b8", textTransform:"uppercase", letterSpacing:.5 }}>{label}</span>
-            <span style={{ fontSize:11, fontWeight:700, color:"#94a3b8", textTransform:"uppercase", letterSpacing:.5 }}>Delete</span>
+        <div style={{ marginTop:8, border:"1px solid #e4e4e7", borderRadius:8, overflow:"hidden" }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 60px", padding:"7px 12px", background:"#fafafa", borderBottom:"1px solid #e4e4e7" }}>
+            <span style={{ fontSize:11, fontWeight:700, color:"#8e8e93", textTransform:"uppercase", letterSpacing:.5 }}>{label}</span>
+            <span style={{ fontSize:11, fontWeight:700, color:"#8e8e93", textTransform:"uppercase", letterSpacing:.5 }}>Delete</span>
           </div>
           {values.map((v, i) => (
-            <div key={v} style={{ display:"grid", gridTemplateColumns:"1fr 60px", alignItems:"center", padding:"9px 12px", background:i%2===0?"#0d1525":"#0b1120", borderBottom:i<values.length-1?"1px solid #1a2540":"none" }}>
-              <span style={{ fontSize:13, color:"#c9d1d9", fontFamily:"monospace", wordBreak:"break-all" }}>{v}</span>
+            <div key={v} style={{ display:"grid", gridTemplateColumns:"1fr 60px", alignItems:"center", padding:"9px 12px", background:i%2===0?"#fafafa":"#fbfbfc", borderBottom:i<values.length-1?"1px solid #fafafa":"none" }}>
+              <span style={{ fontSize:13, color:"#18181b", fontFamily:"monospace", wordBreak:"break-all" }}>{v}</span>
               <button onClick={() => remove(v)}
-                style={{ background:"none", border:"none", color:"#4a5568", cursor:"pointer", padding:"2px 8px", borderRadius:4, fontSize:16, lineHeight:1 }}
-                onMouseEnter={e => (e.currentTarget.style.color="#ef4444")}
-                onMouseLeave={e => (e.currentTarget.style.color="#4a5568")}>
+                style={{ background:"none", border:"none", color:"#a1a1aa", cursor:"pointer", padding:"2px 8px", borderRadius:4, fontSize:16, lineHeight:1 }}
+                onMouseEnter={e => (e.currentTarget.style.color="#dc2626")}
+                onMouseLeave={e => (e.currentTarget.style.color="#a1a1aa")}>
                 🗑
               </button>
             </div>
@@ -368,20 +368,20 @@ function DomainTable({ initValues, onCommit, placeholder, label, wildcardNote }:
 /* ─────────────────────────────────────────────────────────────────────────
    Toggle + ToggleRow
 ───────────────────────────────────────────────────────────────────────── */
-function Toggle({ value, onChange, accent="#818cf8" }: { value:boolean; onChange:(v:boolean)=>void; accent?:string }) {
+function Toggle({ value, onChange, accent="#4f46e5" }: { value:boolean; onChange:(v:boolean)=>void; accent?:string }) {
   return (
     <button onClick={() => onChange(!value)}
-      style={{ width:40, height:22, borderRadius:11, border:"none", background:value?accent:"#2d3748", cursor:"pointer", position:"relative", transition:"background .2s", flexShrink:0 }}>
+      style={{ width:40, height:22, borderRadius:11, border:"none", background:value?accent:"#e4e4e7", cursor:"pointer", position:"relative", transition:"background .2s", flexShrink:0 }}>
       <span style={{ position:"absolute", top:3, left:value?19:3, width:16, height:16, borderRadius:"50%", background:"#fff", transition:"left .2s", display:"block" }}/>
     </button>
   );
 }
 function ToggleRow({ label, sub, value, onChange }: { label:string; sub?:string; value:boolean; onChange:(v:boolean)=>void }) {
   return (
-    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 0", borderBottom:"1px solid #1a2540" }}>
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 0", borderBottom:"1px solid #fafafa" }}>
       <div style={{ flex:1, paddingRight:12 }}>
-        <div style={{ fontSize:13, color:"#c9d1d9" }}>{label}</div>
-        {sub && <div style={{ fontSize:11, color:"#64748b", marginTop:2, lineHeight:1.4 }}>{sub}</div>}
+        <div style={{ fontSize:13, color:"#18181b" }}>{label}</div>
+        {sub && <div style={{ fontSize:11, color:"#52525b", marginTop:2, lineHeight:1.4 }}>{sub}</div>}
       </div>
       <Toggle value={value} onChange={onChange}/>
     </div>
@@ -394,8 +394,8 @@ function ToggleRow({ label, sub, value, onChange }: { label:string; sub?:string;
 function Sec({ label, info }: { label:string; info?:string }) {
   return (
     <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:22, marginBottom:10 }}>
-      <span style={{ fontSize:13, fontWeight:700, color:"#c9d1d9" }}>{label}</span>
-      {info && <span title={info} style={{ width:16, height:16, borderRadius:"50%", border:"1px solid #4a5568", display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:9, color:"#64748b", cursor:"help" }}>i</span>}
+      <span style={{ fontSize:13, fontWeight:700, color:"#18181b" }}>{label}</span>
+      {info && <span title={info} style={{ width:16, height:16, borderRadius:"50%", border:"1px solid #a1a1aa", display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:9, color:"#52525b", cursor:"help" }}>i</span>}
     </div>
   );
 }
@@ -451,38 +451,38 @@ function GroupPicker({ groups, selected, onChange, onGroupCreated }: {
     <div ref={ref} style={{ position: "relative" }}>
       {/* Trigger */}
       <button onClick={() => setOpen(o => !o)}
-        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "#0d1525", border: "1px solid #2d3748", borderRadius: 8, color: "#c9d1d9", fontSize: 13, cursor: "pointer" }}>
+        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "#fafafa", border: "1px solid #e4e4e7", borderRadius: 8, color: "#18181b", fontSize: 13, cursor: "pointer" }}>
         <span>{label}</span>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ transform: open ? "rotate(180deg)" : "none", transition: ".2s" }}>
-          <path d="M6 9l6 6 6-6" stroke="#64748b" strokeWidth="2" strokeLinecap="round"/>
+          <path d="M6 9l6 6 6-6" stroke="#52525b" strokeWidth="2" strokeLinecap="round"/>
         </svg>
       </button>
 
       {/* Dropdown */}
       {open && (
-        <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, background: "#0b1120", border: "1px solid #2d3748", borderRadius: 10, zIndex: 60, overflow: "hidden", boxShadow: "0 12px 32px rgba(0,0,0,.7)", maxHeight: 320, display: "flex", flexDirection: "column" }}>
+        <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, background: "#fbfbfc", border: "1px solid #e4e4e7", borderRadius: 10, zIndex: 60, overflow: "hidden", boxShadow: "0 12px 32px rgba(16,17,20,0.32)", maxHeight: 320, display: "flex", flexDirection: "column" }}>
 
           {/* Search */}
-          <div style={{ padding: "8px 10px", borderBottom: "1px solid #1a2540" }}>
+          <div style={{ padding: "8px 10px", borderBottom: "1px solid #fafafa" }}>
             <input value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Search groups…"
-              style={{ width: "100%", padding: "6px 10px", background: "#0d1525", border: "1px solid #2d3748", borderRadius: 6, color: "#c9d1d9", fontSize: 12, outline: "none" }} />
+              style={{ width: "100%", padding: "6px 10px", background: "#fafafa", border: "1px solid #e4e4e7", borderRadius: 6, color: "#18181b", fontSize: 12, outline: "none" }} />
           </div>
 
           {/* Group list */}
           <div style={{ overflowY: "auto", flex: 1 }}>
             {filtered.length === 0 && (
-              <div style={{ padding: "14px 12px", fontSize: 12, color: "#4a5568", textAlign: "center" }}>
+              <div style={{ padding: "14px 12px", fontSize: 12, color: "#a1a1aa", textAlign: "center" }}>
                 No groups found
               </div>
             )}
             {filtered.map(g => (
-              <label key={g.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", cursor: "pointer", borderBottom: "1px solid #111827" }}>
+              <label key={g.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", cursor: "pointer", borderBottom: "1px solid #fafafa" }}>
                 <input type="checkbox" checked={selected.includes(g.id)}
                   onChange={() => toggle(g.id)}
-                  style={{ width: 14, height: 14, accentColor: "#818cf8", cursor: "pointer", flexShrink: 0 }} />
-                <span style={{ flex: 1, fontSize: 13, color: "#c9d1d9" }}>{g.group_name}</span>
-                <span style={{ fontSize: 11, color: "#4a5568", background: "#1a2540", padding: "2px 7px", borderRadius: 20 }}>
+                  style={{ width: 14, height: 14, accentColor: "#4f46e5", cursor: "pointer", flexShrink: 0 }} />
+                <span style={{ flex: 1, fontSize: 13, color: "#18181b" }}>{g.group_name}</span>
+                <span style={{ fontSize: 11, color: "#a1a1aa", background: "#fafafa", padding: "2px 7px", borderRadius: 20 }}>
                   {g.member_count ?? 0} members
                 </span>
               </label>
@@ -490,10 +490,10 @@ function GroupPicker({ groups, selected, onChange, onGroupCreated }: {
           </div>
 
           {/* Create new group */}
-          <div style={{ borderTop: "1px solid #1a2540", padding: "8px 10px" }}>
+          <div style={{ borderTop: "1px solid #fafafa", padding: "8px 10px" }}>
             {!showCreate ? (
               <button onClick={() => setShowCreate(true)}
-                style={{ width: "100%", padding: "7px", background: "transparent", border: "1px dashed #2d3748", borderRadius: 6, color: "#64748b", fontSize: 12, cursor: "pointer", textAlign: "center" }}>
+                style={{ width: "100%", padding: "7px", background: "transparent", border: "1px dashed #e4e4e7", borderRadius: 6, color: "#52525b", fontSize: 12, cursor: "pointer", textAlign: "center" }}>
                 + Create new group
               </button>
             ) : (
@@ -501,13 +501,13 @@ function GroupPicker({ groups, selected, onChange, onGroupCreated }: {
                 <input value={newName} onChange={e => setNewName(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && handleCreate()}
                   placeholder="Group name…" autoFocus
-                  style={{ flex: 1, padding: "7px 10px", background: "#0d1525", border: "1px solid #818cf8", borderRadius: 6, color: "#c9d1d9", fontSize: 12, outline: "none" }} />
+                  style={{ flex: 1, padding: "7px 10px", background: "#fafafa", border: "1px solid #0a0a0a", borderRadius: 6, color: "#18181b", fontSize: 12, outline: "none" }} />
                 <button onClick={handleCreate} disabled={creating}
-                  style={{ padding: "7px 12px", background: "#818cf8", border: "none", borderRadius: 6, color: "#fff", fontSize: 12, fontWeight: 700, cursor: creating ? "wait" : "pointer" }}>
+                  style={{ padding: "7px 12px", background: "#0a0a0a", border: "none", borderRadius: 6, color: "#fff", fontSize: 12, fontWeight: 700, cursor: creating ? "wait" : "pointer" }}>
                   {creating ? "…" : "Add"}
                 </button>
                 <button onClick={() => { setShowCreate(false); setNewName(""); }}
-                  style={{ padding: "7px 10px", background: "transparent", border: "1px solid #2d3748", borderRadius: 6, color: "#64748b", fontSize: 12, cursor: "pointer" }}>
+                  style={{ padding: "7px 10px", background: "transparent", border: "1px solid #e4e4e7", borderRadius: 6, color: "#52525b", fontSize: 12, cursor: "pointer" }}>
                   ✕
                 </button>
               </div>
@@ -616,17 +616,17 @@ function DrawerContent({ ctrl, settings, groups, onChange, onGroupCreated }: {
     case "session_theft": return (
       <>
         <Sec label="Unique marker" info="A random token injected into User Agent strings to detect session theft"/>
-        <p style={{ fontSize:12, color:"#64748b", lineHeight:1.5, marginBottom:12 }}>
+        <p style={{ fontSize:12, color:"#52525b", lineHeight:1.5, marginBottom:12 }}>
           Add a unique marker to the User Agent string with the browser extension. Using app logs that contain session IDs and UA strings, you can discover session theft.
         </p>
         <div style={{ display:"flex", gap:8, alignItems:"stretch" }}>
           <button onClick={() => {
             const rand = Array.from(crypto.getRandomValues(new Uint8Array(5))).map(b=>b.toString(16).padStart(2,"0")).join("").toUpperCase();
             set({ session_marker: `SL-${rand}` });
-          }} style={{ padding:"10px 14px", background:"#0d1525", border:"1px solid #2d3748", borderRadius:8, color:"#c9d1d9", fontSize:13, cursor:"pointer", whiteSpace:"nowrap" }}>
+          }} style={{ padding:"10px 14px", background:"#fafafa", border:"1px solid #e4e4e7", borderRadius:8, color:"#18181b", fontSize:13, cursor:"pointer", whiteSpace:"nowrap" }}>
             Generate new marker
           </button>
-          <div style={{ flex:1, padding:"10px 12px", background:"#0d1525", border:"1px solid #ef444466", borderRadius:8, fontFamily:"monospace", fontSize:13, color:"#f87171" }}>
+          <div style={{ flex:1, padding:"10px 12px", background:"#fafafa", border:"1px solid #dc262666", borderRadius:8, fontFamily:"monospace", fontSize:13, color:"#dc2626" }}>
             {settings.session_marker || "SL-XXXXXXXXXX"}
           </div>
         </div>
@@ -635,7 +635,7 @@ function DrawerContent({ ctrl, settings, groups, onChange, onGroupCreated }: {
         <GroupPicker groups={groups} selected={selGroups} onChange={handleGroupChange} onGroupCreated={onGroupCreated}/>
 
         <Sec label="App domains" info="The marker will be injected on these domains"/>
-        <p style={{ fontSize:12, color:"#64748b", lineHeight:1.5, marginBottom:10 }}>
+        <p style={{ fontSize:12, color:"#52525b", lineHeight:1.5, marginBottom:10 }}>
           The extension injects the marker on these domains. Cross-reference session IDs in your app logs to detect sessions without the marker.
         </p>
         <DomainTable label="Domains" placeholder="example.okta.com" wildcardNote
@@ -712,7 +712,7 @@ function DrawerContent({ ctrl, settings, groups, onChange, onGroupCreated }: {
           <div style={{ display:"flex", gap:6, marginBottom:4 }}>
             {[["blur","Blur"],["mask","Mask (***)"],["custom","Custom"]].map(([val,lbl])=>(
               <button key={val} onClick={()=>set({masking_style:val})}
-                style={{ flex:1, padding:"8px 6px", borderRadius:8, border:`1px solid ${style===val?"#a78bfa":"#2d3748"}`, background:style===val?"#a78bfa18":"#0d1525", color:style===val?"#a78bfa":"#64748b", fontSize:12, fontWeight:style===val?700:400, cursor:"pointer" }}>
+                style={{ flex:1, padding:"8px 6px", borderRadius:8, border:`1px solid ${style===val?"#7c3aed":"#e4e4e7"}`, background:style===val?"#7c3aed18":"#fafafa", color:style===val?"#7c3aed":"#52525b", fontSize:12, fontWeight:style===val?700:400, cursor:"pointer" }}>
                 {lbl}
               </button>
             ))}
@@ -789,8 +789,8 @@ function DrawerContent({ ctrl, settings, groups, onChange, onGroupCreated }: {
         <Sec label="Apply to groups" info="Leave empty to apply to all employees"/>
         <GroupPicker groups={groups} selected={selGroups} onChange={handleGroupChange} onGroupCreated={onGroupCreated}/>
 
-        <div style={{ marginTop:12, padding:"12px 14px", background:"#1a2540", borderRadius:8, border:"1px solid #2d3748" }}>
-          <p style={{ fontSize:12, color:"#94a3b8", margin:0, lineHeight:1.6 }}>
+        <div style={{ marginTop:12, padding:"12px 14px", background:"#fafafa", borderRadius:8, border:"1px solid #e4e4e7" }}>
+          <p style={{ fontSize:12, color:"#8e8e93", margin:0, lineHeight:1.6 }}>
             When enabled, the SecureLint extension detects active screen-sharing sessions
             (Google Meet, Zoom, Teams web) and applies a blur overlay across browser tabs
             that may contain secrets, tokens, or PII — protecting sensitive content from
@@ -821,28 +821,28 @@ function ConfigDrawer({ ctrl, settings, groups, onChange, onClose, onSave, savin
   return (
     <>
       <style>{`@keyframes fdIn{from{opacity:0}to{opacity:1}}`}</style>
-      <div onClick={close} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.55)", zIndex:40, animation:"fdIn .25s ease" }}/>
+      <div onClick={close} style={{ position:"fixed", inset:0, background:"rgba(16,17,20,0.32)", zIndex:40, animation:"fdIn .25s ease" }}/>
       <div style={{
         position:"fixed", right:0, top:0, bottom:0, width:440,
-        background:"#0b1120", borderLeft:"1px solid #1e2d45",
+        background:"#fbfbfc", borderLeft:"1px solid #f4f4f5",
         zIndex:50, display:"flex", flexDirection:"column",
-        boxShadow:"-20px 0 60px rgba(0,0,0,.7)",
+        boxShadow:"-20px 0 60px rgba(16,17,20,0.32)",
         transform: visible?"translateX(0)":"translateX(100%)",
         transition:"transform .28s cubic-bezier(.4,0,.2,1)",
       }}>
         {/* Header */}
-        <div style={{ padding:"18px 20px 14px", borderBottom:"1px solid #1e2d45", flexShrink:0 }}>
+        <div style={{ padding:"18px 20px 14px", borderBottom:"1px solid #f4f4f5", flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
             <button onClick={close}
-              style={{ background:"none", border:"none", color:"#64748b", cursor:"pointer", padding:"4px 6px", borderRadius:6, lineHeight:1, display:"flex" }}
-              onMouseEnter={e=>(e.currentTarget.style.background="#1e2d45")}
+              style={{ background:"none", border:"none", color:"#52525b", cursor:"pointer", padding:"4px 6px", borderRadius:6, lineHeight:1, display:"flex" }}
+              onMouseEnter={e=>(e.currentTarget.style.background="#f4f4f5")}
               onMouseLeave={e=>(e.currentTarget.style.background="none")}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/></svg>
             </button>
-            <span style={{ fontSize:13, fontWeight:600, color:"#64748b" }}>Configuration</span>
+            <span style={{ fontSize:13, fontWeight:600, color:"#52525b" }}>Configuration</span>
           </div>
-          <div style={{ fontSize:17, fontWeight:800, color:"#e6edf3" }}>{ctrl.title}</div>
-          <div style={{ fontSize:12, color:"#64748b", marginTop:5, lineHeight:1.5 }}>{ctrl.longDesc}</div>
+          <div style={{ fontSize:17, fontWeight:800, color:"#0a0a0a" }}>{ctrl.title}</div>
+          <div style={{ fontSize:12, color:"#52525b", marginTop:5, lineHeight:1.5 }}>{ctrl.longDesc}</div>
         </div>
 
         {/* Body */}
@@ -851,13 +851,13 @@ function ConfigDrawer({ ctrl, settings, groups, onChange, onClose, onSave, savin
         </div>
 
         {/* Footer */}
-        <div style={{ padding:"14px 20px", borderTop:"1px solid #1e2d45", display:"flex", gap:10, flexShrink:0 }}>
+        <div style={{ padding:"14px 20px", borderTop:"1px solid #f4f4f5", display:"flex", gap:10, flexShrink:0 }}>
           <button onClick={close}
-            style={{ flex:1, padding:"10px", borderRadius:8, border:"1px solid #2d3748", background:"transparent", color:"#64748b", fontSize:13, cursor:"pointer" }}>
+            style={{ flex:1, padding:"10px", borderRadius:8, border:"1px solid #e4e4e7", background:"transparent", color:"#52525b", fontSize:13, cursor:"pointer" }}>
             Cancel
           </button>
           <button onClick={onSave} disabled={saving}
-            style={{ flex:2, padding:"10px", borderRadius:8, border:"none", background:"#818cf8", color:"#fff", fontSize:13, fontWeight:700, cursor:saving?"wait":"pointer", opacity:saving?.7:1 }}>
+            style={{ flex:2, padding:"10px", borderRadius:8, border:"none", background:"#0a0a0a", color:"#fff", fontSize:13, fontWeight:700, cursor:saving?"wait":"pointer", opacity:saving?.7:1 }}>
             {saving?"Saving…":"Save"}
           </button>
         </div>
@@ -874,18 +874,18 @@ function ControlCard({ ctrl, settings, groupCount, onClick }: {
 }) {
   const configured = groupCount > 0;
   const modeLabel  = ctrl.statusLabel(settings);
-  const dotColor   = configured ? "#22c55e" : "#4a5568";
+  const dotColor   = configured ? "#16a34a" : "#a1a1aa";
   const bannerImg  = bannerImages[ctrl.id];
   return (
     <div onClick={onClick} className="sl-ctrl-card"
-      style={{ background:"#0b1120", border:"1px solid #1e2d45", borderRadius:12, overflow:"hidden", cursor:"pointer", transition:"border-color .2s, box-shadow .2s" }}
-      onMouseEnter={e=>{ (e.currentTarget as HTMLDivElement).style.borderColor="#3d4f6a"; (e.currentTarget as HTMLDivElement).style.boxShadow="0 4px 24px rgba(0,0,0,.5)"; }}
-      onMouseLeave={e=>{ (e.currentTarget as HTMLDivElement).style.borderColor="#1e2d45"; (e.currentTarget as HTMLDivElement).style.boxShadow="none"; }}>
-      <div className="sl-ctrl-banner" style={{ height:150, overflow:"hidden", background:"#0b1120", position:"relative" }}>
+      style={{ background:"#ffffff", border:"1px solid #e9e9ec", borderRadius:14, overflow:"hidden", cursor:"pointer", transition:"border-color .2s, box-shadow .2s" }}
+      onMouseEnter={e=>{ (e.currentTarget as HTMLDivElement).style.borderColor="#dcdce0"; (e.currentTarget as HTMLDivElement).style.boxShadow="0 8px 24px rgba(16,17,20,0.10)"; }}
+      onMouseLeave={e=>{ (e.currentTarget as HTMLDivElement).style.borderColor="#e9e9ec"; (e.currentTarget as HTMLDivElement).style.boxShadow="none"; }}>
+      <div className="sl-ctrl-banner" style={{ height:150, overflow:"hidden", background:"#ffffff", position:"relative" }}>
         {bannerImg
           ? <>
               <img src={bannerImg} alt={ctrl.title} loading="lazy"
-                style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", filter:"brightness(.9) saturate(1.05)" }}/>
+                style={{ width:"100%", height:"100%", objectFit:"cover", display:"block", filter:"saturate(1.02)" }}/>
               {/* Several of the source mockup PNGs have a real white browser-chrome bezel baked
                   into the pixels (measured: up to ~20% of height on top, ~18% on bottom, ~3% on
                   each side) that object-fit:cover doesn't reliably crop away at every card width.
@@ -893,15 +893,15 @@ function ControlCard({ ctrl, settings, groupCount, onClick }: {
                   margin included) so the bezel is always fully hidden, at every viewport size. */}
               <div style={{
                 position:"absolute", inset:0, pointerEvents:"none",
-                background:"linear-gradient(180deg, #0b1120 0%, rgba(11,17,32,0) 25%, rgba(11,17,32,0) 77%, #0b1120 100%), linear-gradient(90deg, #0b1120 0%, rgba(11,17,32,0) 6%, rgba(11,17,32,0) 94%, #0b1120 100%)",
+                background:"linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,0) 25%, rgba(255,255,255,0) 77%, #ffffff 100%), linear-gradient(90deg, #ffffff 0%, rgba(255,255,255,0) 6%, rgba(255,255,255,0) 94%, #ffffff 100%)",
               }}/>
             </>
           : ctrl.bannerEl}
       </div>
       <div style={{ padding:"14px 16px" }}>
         <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:6 }}>
-          <div style={{ fontSize:14, fontWeight:700, color:"#e6edf3", flex:1, paddingRight:8 }}>{ctrl.title}</div>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink:0, marginTop:2 }}><path d="M5 12h14M12 5l7 7-7 7" stroke="#4a5568" strokeWidth="2" strokeLinecap="round"/></svg>
+          <div style={{ fontSize:14, fontWeight:700, color:"#0a0a0a", flex:1, paddingRight:8 }}>{ctrl.title}</div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink:0, marginTop:2 }}><path d="M5 12h14M12 5l7 7-7 7" stroke="#a1a1aa" strokeWidth="2" strokeLinecap="round"/></svg>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:8 }}>
           <span style={{ width:7, height:7, borderRadius:"50%", background:dotColor, flexShrink:0 }}/>
@@ -909,7 +909,7 @@ function ControlCard({ ctrl, settings, groupCount, onClick }: {
             {configured ? `Mode: ${modeLabel} · ${groupCount} group${groupCount>1?"s":""}` : "Not configured"}
           </span>
         </div>
-        <div style={{ fontSize:11, color:"#64748b", lineHeight:1.5 }}>{ctrl.shortDesc}</div>
+        <div style={{ fontSize:11, color:"#52525b", lineHeight:1.5 }}>{ctrl.shortDesc}</div>
         <div style={{ marginTop:10 }}>
           <span style={{ fontSize:10, fontWeight:700, padding:"3px 9px", borderRadius:20, background:`${ctrl.tagColor}18`, border:`1px solid ${ctrl.tagColor}33`, color:ctrl.tagColor }}>
             {ctrl.tag}
@@ -1059,14 +1059,14 @@ export default function ControlsPage() {
   const activeCtrl = active ? CONTROLS.find(c => c.id === active) : null;
 
   return (
-    <div style={{ padding: "28px 32px", minHeight: "100vh", background: "#080d16" }}>
+    <div style={{ padding: "28px 32px", minHeight: "100vh", background: "#f1f4fa" }}>
       <style>{`
         .sl-ctrl-banner img { transform: scale(1); transition: transform .45s cubic-bezier(.4,0,.2,1); }
         .sl-ctrl-card:hover .sl-ctrl-banner img { transform: scale(1.15); }
       `}</style>
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: "#e6edf3", margin: 0 }}>Controls</h1>
-        <p style={{ fontSize: 13, color: "#64748b", marginTop: 6 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: "#0a0a0a", margin: 0 }}>Controls</h1>
+        <p style={{ fontSize: 13, color: "#52525b", marginTop: 6 }}>
           Configure security policies and protection controls for your organisation.
         </p>
       </div>
@@ -1092,7 +1092,7 @@ export default function ControlsPage() {
       )}
 
       {toast && (
-        <div style={{ position: "fixed", bottom: 28, right: 28, background: toast.ok ? "#1e3a1e" : "#2a1818", border: `1px solid ${toast.ok ? "#22c55e44" : "#ef444444"}`, borderRadius: 10, padding: "12px 18px", color: toast.ok ? "#86efac" : "#fca5a5", fontSize: 13, zIndex: 100, boxShadow: "0 8px 24px rgba(0,0,0,.5)", animation: "fdIn .2s ease" }}>
+        <div style={{ position: "fixed", bottom: 28, right: 28, background: toast.ok ? "#f2f8f2" : "#f8f3f3", border: `1px solid ${toast.ok ? "#16a34a44" : "#dc262644"}`, borderRadius: 10, padding: "12px 18px", color: toast.ok ? "#86efac" : "#b91c1c", fontSize: 13, zIndex: 100, boxShadow: "0 8px 24px rgba(16,17,20,0.32)", animation: "fdIn .2s ease" }}>
           {toast.ok ? "✓" : "✗"} {toast.msg}
         </div>
       )}

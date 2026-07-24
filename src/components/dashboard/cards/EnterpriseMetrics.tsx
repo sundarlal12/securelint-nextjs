@@ -1,4 +1,5 @@
 import { LazyCard } from "@/components/dashboard/CardLoader";
+import { T, STATUS, cardStyle, skeleton } from "@/lib/dashboardTheme";
 
 interface EnterpriseMetricsProps {
   total_incidents?:    number | string;
@@ -11,14 +12,20 @@ interface EnterpriseMetricsProps {
 }
 
 const card: React.CSSProperties = {
-  background: "#10161d", border: "1px solid #1b222c", borderRadius: 12,
-  padding: 16, display: "flex", flexDirection: "column", gap: 12, minHeight: 340,
+  ...cardStyle,
+  padding: 18, display: "flex", flexDirection: "column", gap: 14, minHeight: 340,
 };
 
-const sk = (w: number | string, h = 28): React.CSSProperties => ({
-  width: w, height: h, borderRadius: 6, background: "#1b222c",
-  animation: "sk-pulse 1.4s ease-in-out infinite",
-});
+/**
+ * Figures are black. A metric only earns a coloured dot when its value carries
+ * a state worth reacting to — so colour on this card always means "look here".
+ */
+interface Metric {
+  value: string;
+  label: string;
+  sub: string;
+  dot?: string;
+}
 
 export default function EnterpriseMetrics({
   total_incidents, team_members, total_devices,
@@ -28,22 +35,22 @@ export default function EnterpriseMetrics({
 
   const hasData = !loading && total_devices !== undefined;
 
-  const metrics = hasData
+  const metrics: Metric[] = hasData
     ? [
-        { value: String(total_devices      ?? 0),  label: "Protected Devices",   sub: "enrolled endpoints" },
-        { value: String(threats_blocked    ?? 0),  label: "Threats Blocked",      sub: "all time" },
-        { value: String(threats_masked     ?? 0),  label: "Secrets Masked",        sub: "all time", accent: "#60a5fa" },
-        { value: String(team_members       ?? 0),  label: "Team Members",          sub: "protected" },
-        { value: String(critical_incidents ?? 0),  label: "Critical Incidents",    sub: "requiring review", accent: "#ef4444" },
-        { value: String(total_incidents    ?? 0),  label: "Total Detections",      sub: "all time" },
+        { value: String(total_devices      ?? 0), label: "Protected Devices",  sub: "enrolled endpoints" },
+        { value: String(threats_blocked    ?? 0), label: "Threats Blocked",    sub: "all time", dot: STATUS.green },
+        { value: String(threats_masked     ?? 0), label: "Secrets Masked",     sub: "all time", dot: STATUS.blue },
+        { value: String(team_members       ?? 0), label: "Team Members",       sub: "protected" },
+        { value: String(critical_incidents ?? 0), label: "Critical Incidents", sub: "requiring review", dot: Number(critical_incidents) > 0 ? STATUS.red : undefined },
+        { value: String(total_incidents    ?? 0), label: "Total Detections",   sub: "all time" },
       ]
     : [
         { value: "—", label: "Protected Devices",  sub: "enrolled endpoints" },
-        { value: "—", label: "Threats Blocked",     sub: "all time" },
-        { value: "—", label: "Secrets Masked",       sub: "all time" },
-        { value: "—", label: "Team Members",         sub: "protected" },
-        { value: "—", label: "Critical Incidents",   sub: "requiring review" },
-        { value: "—", label: "Total Detections",     sub: "all time" },
+        { value: "—", label: "Threats Blocked",    sub: "all time" },
+        { value: "—", label: "Secrets Masked",     sub: "all time" },
+        { value: "—", label: "Team Members",       sub: "protected" },
+        { value: "—", label: "Critical Incidents", sub: "requiring review" },
+        { value: "—", label: "Total Detections",   sub: "all time" },
       ];
 
   return (
@@ -52,27 +59,33 @@ export default function EnterpriseMetrics({
       <LazyCard delay={600}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span className="card-title">Enterprise Security Metrics</span>
-          <button type="button" style={{ color: "#8b949e", background: "none", border: "none", cursor: "pointer", fontSize: 18, lineHeight: 1 }}>···</button>
+          <span style={{ fontSize: 11.5, color: T.muted }}>All time</span>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px 24px", flex: 1, alignContent: "start", paddingTop: 4 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px 24px", flex: 1, alignContent: "start", paddingTop: 4 }}>
           {loading
             ? Array.from({ length: 6 }).map((_, i) => (
                 <div key={i}>
-                  <div style={sk("60%")} />
-                  <div style={{ ...sk("80%", 11), marginTop: 8 }} />
+                  <div style={skeleton("60%", 28)} />
+                  <div style={{ ...skeleton("80%", 11), marginTop: 8 }} />
                 </div>
               ))
             : metrics.map((m, i) => (
                 <div key={i}>
-                  <div style={{
-                    fontSize: 26, fontWeight: 800, letterSpacing: "-0.5px", lineHeight: 1,
-                    color: (m as { accent?: string }).accent ?? "#2dd4bf",
-                  }}>
-                    {m.value}
+                  <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                    <span style={{
+                      fontSize: 27, fontWeight: 680, letterSpacing: "-0.03em", lineHeight: 1,
+                      // An em-dash at figure weight reads as a heavy black bar;
+                      // grey it so "no data" doesn't shout louder than a number.
+                      color: m.value === "—" ? T.dim : T.text,
+                      fontVariantNumeric: "tabular-nums",
+                    }}>
+                      {m.value}
+                    </span>
+                    {m.dot && <span style={{ width: 7, height: 7, borderRadius: "50%", background: m.dot, flexShrink: 0 }} />}
                   </div>
-                  <div style={{ fontSize: 11, color: "#8b949e", marginTop: 5, lineHeight: 1.4 }}>
-                    {m.label}<br /><span style={{ color: "#6e7681" }}>{m.sub}</span>
+                  <div style={{ fontSize: 11.5, color: T.text2, marginTop: 7, lineHeight: 1.45 }}>
+                    {m.label}<br /><span style={{ color: T.muted }}>{m.sub}</span>
                   </div>
                 </div>
               ))

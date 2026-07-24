@@ -1,5 +1,6 @@
 "use client";
 import { LazyCard } from "@/components/dashboard/CardLoader";
+import { T, STATUS, TONE, cardStyle, skeleton } from "@/lib/dashboardTheme";
 
 export interface BrowserProtectionSettings {
   enable_detection?:          boolean;
@@ -80,14 +81,11 @@ const FEATURES: FeatureDef[] = [
   { key: "site_exclusions_status",    label: "Site Exclusions Active",     desc: "Org allowlist is currently enforced",          Ico: IcoSite     },
 ];
 
-const sk = (w: number | string, h: number, r = 6): React.CSSProperties => ({
-  width: w, height: h, borderRadius: r, background: "#1b222c",
-  animation: "sk-pulse 1.4s ease-in-out infinite",
-});
+const sk = skeleton;
 
 const card: React.CSSProperties = {
-  background: "#10161d", border: "1px solid #1b222c", borderRadius: 12,
-  padding: 16, display: "flex", flexDirection: "column", gap: 0, minHeight: 340,
+  ...cardStyle,
+  padding: 18, display: "flex", flexDirection: "column", gap: 0, minHeight: 340,
 };
 
 export default function BrowserProtectionCard({ settings, loading }: Props = {}) {
@@ -106,64 +104,65 @@ export default function BrowserProtectionCard({ settings, loading }: Props = {})
       <style>{`@keyframes sk-pulse{0%,100%{opacity:.4}50%{opacity:.9}}`}</style>
       <LazyCard delay={500}>
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span className="card-title">Browser Protection</span>
             {!loading && enabled.length > 0 && (
-              <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 10, background: "#0f2318", color: "#4ade80", border: "1px solid #4ade8022" }}>
+              <span style={{ fontSize: 10.5, fontWeight: 600, padding: "3px 9px", borderRadius: 999, background: TONE.green.bg, color: TONE.green.color, border: `1px solid ${TONE.green.border}` }}>
                 {enabled.length} active
               </span>
             )}
           </div>
-          <button type="button" style={{ color: "#8b949e", background: "none", border: "none", cursor: "pointer", fontSize: 18, lineHeight: 1 }}>···</button>
         </div>
 
         {/* Rows */}
         {loading
           ? Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid #1b222c" }}>
-                <div style={sk(32, 32, 8)} />
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 0", borderBottom: `1px solid ${T.border}` }}>
+                <div style={sk(30, 30, 9)} />
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
                   <div style={sk("65%", 10)} />
                   <div style={sk("45%", 8)} />
                 </div>
-                <div style={sk(58, 20, 10)} />
               </div>
             ))
           : visible.map((feat, i) => (
               <div key={feat.key} style={{
                 display: "flex", alignItems: "center", gap: 12,
-                padding: "10px 0",
-                borderBottom: i < visible.length - 1 ? "1px solid #1b222c" : "none",
+                padding: "11px 0",
+                borderBottom: i < visible.length - 1 ? `1px solid ${T.border}` : "none",
               }}>
-                {/* Icon box — always green (only enabled shown) */}
+                {/* Only enabled features are listed, so every row reads "on" —
+                    a green tick-dot marks that without tinting the whole chip. */}
                 <div style={{
-                  width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-                  background: "#0f2318", border: "1px solid #39d35344",
+                  width: 30, height: 30, borderRadius: 9, flexShrink: 0,
+                  background: T.inset, border: `1px solid ${T.border}`,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  color: "#39d353",
+                  color: T.text,
                 }}>
                   <feat.Ico />
                 </div>
 
                   {/* Label + desc */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: "#e6edf3", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 560, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {feat.label}
                     </div>
-                    <div style={{ fontSize: 10, color: "#6e7681", marginTop: 2 }}>{feat.desc}</div>
+                    <div style={{ fontSize: 11, color: T.muted, marginTop: 2 }}>{feat.desc}</div>
                   </div>
+
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: STATUS.green, flexShrink: 0 }} />
               </div>
             ))
         }
 
         {/* Footer: link to settings for the full picture */}
         {!loading && hasSettings && (
-          <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid #1b222c", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 10, color: "#6e7681" }}>
+          <div style={{ marginTop: "auto", paddingTop: 12, borderTop: `1px solid ${T.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 11, color: T.muted }}>
               {FEATURES.length - enabled.length} protection{FEATURES.length - enabled.length !== 1 ? "s" : ""} inactive
             </span>
-            <a href="/dashboard/settings" style={{ fontSize: 10, color: "#58a6ff", textDecoration: "none", fontWeight: 600 }}>
+            <a href="/dashboard/settings" style={{ fontSize: 11.5, color: T.text, textDecoration: "none", fontWeight: 560 }}>
               Manage in Settings →
             </a>
           </div>

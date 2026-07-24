@@ -16,16 +16,16 @@ interface Props {
 }
 
 const sk = (w: number | string, h: number, r = 5): React.CSSProperties => ({
-  width: w, height: h, borderRadius: r, background: "#1b222c",
+  width: w, height: h, borderRadius: r, background: "#e9e9ec",
   animation: "sk-pulse 1.4s ease-in-out infinite",
 });
 
-const tooltipStyle = { background: "#161b22", border: "1px solid #30363d", borderRadius: 8, color: "#e6edf3", fontSize: 11 };
-const barCursor    = { fill: "rgba(255,255,255,0.05)" };
-const itemStyle    = { color: "#e6edf3" };
-const labelStyle   = { color: "#c9d1d9", fontWeight: 700 };
+const tooltipStyle = { background: "#f4f4f5", border: "1px solid #dcdce0", borderRadius: 8, color: "#0a0a0a", fontSize: 11 };
+const barCursor    = { fill: "rgba(16,17,20,0.04)" };
+const itemStyle    = { color: "#0a0a0a" };
+const labelStyle   = { color: "#18181b", fontWeight: 700 };
 
-const subTitle: React.CSSProperties = { fontSize: 12, color: "#c9d1d9", marginBottom: 8, fontWeight: 700 };
+const subTitle: React.CSSProperties = { fontSize: 12, color: "#18181b", marginBottom: 8, fontWeight: 700 };
 
 function GaugeMeter({ pct = 62 }: { pct?: number }) {
   // pct 0–100 maps to 0–180 degrees sweep
@@ -33,22 +33,22 @@ function GaugeMeter({ pct = 62 }: { pct?: number }) {
   const rad   = (angle * Math.PI) / 180;
   const nx    = 90 + 58 * Math.cos(rad);
   const ny    = 90 + 58 * Math.sin(rad);
-  const color = pct < 35 ? "#4ade80" : pct < 65 ? "#f59e0b" : "#ef4444";
+  const color = pct < 35 ? "#16a34a" : pct < 65 ? "#d97706" : "#dc2626";
   return (
     <svg viewBox="0 0 180 110" width="160" height="100">
       <defs>
         <linearGradient id="gArc2" x1="0%" y1="50%" x2="100%" y2="50%">
-          <stop offset="0%"   stopColor="#4ade80" />
-          <stop offset="40%"  stopColor="#f59e0b" />
-          <stop offset="100%" stopColor="#ef4444" />
+          <stop offset="0%"   stopColor="#16a34a" />
+          <stop offset="40%"  stopColor="#d97706" />
+          <stop offset="100%" stopColor="#dc2626" />
         </linearGradient>
       </defs>
       <path d="M20 90 A70 70 0 0 1 160 90" fill="none" stroke="#1a2030" strokeWidth="16" strokeLinecap="round"/>
       <path d="M20 90 A70 70 0 0 1 160 90" fill="none" stroke="url(#gArc2)" strokeWidth="16" strokeLinecap="round"/>
       <line x1="90" y1="90" x2={nx} y2={ny} stroke={color} strokeWidth="3" strokeLinecap="round"/>
       <circle cx="90" cy="90" r="6" fill="#d1d5db"/>
-      <circle cx="90" cy="90" r="3" fill="#0d1117"/>
-      <text x="90" y="106" textAnchor="middle" fill="#8b949e" fontSize="11" fontWeight="600">{pct}%</text>
+      <circle cx="90" cy="90" r="3" fill="#ffffff"/>
+      <text x="90" y="106" textAnchor="middle" fill="#52525b" fontSize="11" fontWeight="600">{pct}%</text>
     </svg>
   );
 }
@@ -129,12 +129,12 @@ export default function LiveThreatAnalytics({ weekActivity, hubWeekly, severityB
   })();
 
   return (
-    <div style={{ background: "#0d1117", border: "1px solid #21262d", borderRadius: 14, padding: "18px 20px 20px", height: "100%", display: "flex", flexDirection: "column" }}>
+    <div style={{ background: "#ffffff", border: "1px solid #e9e9ec", borderRadius: 14, padding: "18px 20px 20px", height: "100%", display: "flex", flexDirection: "column" }}>
       <style>{`@keyframes sk-pulse{0%,100%{opacity:.4}50%{opacity:.9}}`}</style>
       <LazyCard delay={600}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
           <span className="card-title">Threat Analytics</span>
-          <span style={{ color: "#4a5568", cursor: "pointer", fontSize: 18 }}>···</span>
+          <span style={{ color: "#a1a1aa", cursor: "pointer", fontSize: 18 }}>···</span>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px 24px", flex: 1 }}>
@@ -148,14 +148,14 @@ export default function LiveThreatAnalytics({ weekActivity, hubWeekly, severityB
                   <AreaChart data={trend} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
                     <defs>
                       <linearGradient id="ltTrend" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%"  stopColor="#2dd4bf" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#2dd4bf" stopOpacity={0}/>
+                        <stop offset="5%"  stopColor="#0d9488" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#0d9488" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <XAxis dataKey="t" tick={{ fill: "#6b7280", fontSize: 8 }} axisLine={false} tickLine={false} interval={0}/>
-                    <YAxis tick={{ fill: "#6b7280", fontSize: 9 }} axisLine={false} tickLine={false}/>
+                    <XAxis dataKey="t" tick={{ fill: "#71717a", fontSize: 8 }} axisLine={false} tickLine={false} interval={0}/>
+                    <YAxis tick={{ fill: "#71717a", fontSize: 9 }} axisLine={false} tickLine={false}/>
                     <Tooltip contentStyle={tooltipStyle} itemStyle={itemStyle} labelStyle={labelStyle} formatter={(v: unknown) => [`${v} incidents`, "Threats"]}/>
-                    <Area type="monotone" dataKey="v" stroke="#2dd4bf" strokeWidth={2} fill="url(#ltTrend)" dot={false}/>
+                    <Area type="monotone" dataKey="v" stroke="#0d9488" strokeWidth={2} fill="url(#ltTrend)" dot={false}/>
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -169,10 +169,10 @@ export default function LiveThreatAnalytics({ weekActivity, hubWeekly, severityB
               <div style={{ flex: 1, minHeight: 95 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={aiData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
-                    <XAxis dataKey="name" tick={{ fill: "#6b7280", fontSize: 8 }} axisLine={false} tickLine={false} interval={0}/>
-                    <YAxis tick={{ fill: "#6b7280", fontSize: 9 }} axisLine={false} tickLine={false}/>
+                    <XAxis dataKey="name" tick={{ fill: "#71717a", fontSize: 8 }} axisLine={false} tickLine={false} interval={0}/>
+                    <YAxis tick={{ fill: "#71717a", fontSize: 9 }} axisLine={false} tickLine={false}/>
                     <Tooltip cursor={barCursor} contentStyle={tooltipStyle} itemStyle={itemStyle} labelStyle={labelStyle} formatter={(v: unknown) => [`${v}`, "Secrets"]}/>
-                    <Bar dataKey="v" fill="#2dd4bf" radius={[3, 3, 0, 0]} barSize={14}/>
+                    <Bar dataKey="v" fill="#0d9488" radius={[3, 3, 0, 0]} barSize={14}/>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -186,10 +186,10 @@ export default function LiveThreatAnalytics({ weekActivity, hubWeekly, severityB
               <div style={{ flex: 1, minHeight: 95 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={freqData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }} barCategoryGap="20%">
-                    <XAxis dataKey="d" tick={{ fill: "#6b7280", fontSize: 8 }} axisLine={false} tickLine={false} interval={0}/>
-                    <YAxis tick={{ fill: "#6b7280", fontSize: 9 }} axisLine={false} tickLine={false}/>
+                    <XAxis dataKey="d" tick={{ fill: "#71717a", fontSize: 8 }} axisLine={false} tickLine={false} interval={0}/>
+                    <YAxis tick={{ fill: "#71717a", fontSize: 9 }} axisLine={false} tickLine={false}/>
                     <Tooltip cursor={barCursor} contentStyle={tooltipStyle} itemStyle={itemStyle} labelStyle={labelStyle} formatter={(v: unknown) => [`${v}`, "Incidents"]}/>
-                    <Bar dataKey="v" fill="#58a6ff" radius={[3, 3, 0, 0]} barSize={14}/>
+                    <Bar dataKey="v" fill="#2563eb" radius={[3, 3, 0, 0]} barSize={14}/>
                   </BarChart>
                 </ResponsiveContainer>
               </div>

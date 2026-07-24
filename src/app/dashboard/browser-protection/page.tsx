@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts";
 import { LazyCard } from "@/components/dashboard/CardLoader";
 import { fetchBrowserProtection, fetchCharts } from "@/lib/adminApi";
+import { TONE } from "@/lib/dashboardTheme";
 
 const defaultThreats = [
   { type: "Malicious Chrome Extension", browser: "Chrome", level: "Critical", detected: "2 mins ago", action: "Blocked" },
@@ -16,9 +17,9 @@ const defaultThreats = [
 const defaultStats = { safe_browsing: 1245, blocked_phishing: 8762 };
 
 const levelStyles: Record<string, { color: string; bg: string; border: string }> = {
-  Critical: { color: "#ffffff", bg: "#7f1d1d", border: "#991b1b" },
-  High:     { color: "#ffffff", bg: "#7c4a1a", border: "#92400e" },
-  Medium:   { color: "#ffffff", bg: "#5a6318", border: "#6b7220" },
+  Critical: TONE.red,
+  High:     TONE.orange,
+  Medium:   TONE.amber,
 };
 
 function BrowserIcon({ name }: { name: string }) {
@@ -27,7 +28,7 @@ function BrowserIcon({ name }: { name: string }) {
     Firefox: ["#ff7139", "#e15f2b"],
     Edge: ["#0078d7", "#50e6ff"],
   };
-  const c = colors[name] ?? ["#8b949e"];
+  const c = colors[name] ?? ["#52525b"];
   return (
     <svg width="20" height="20" viewBox="0 0 20 20">
       <circle cx="10" cy="10" r="9" fill={c[0]} />
@@ -48,7 +49,7 @@ const defaultThreatBlockedData = [
 ];
 
 const defaultPieData = [
-  { name: "Safe", value: 65, color: "#39d353" },
+  { name: "Safe", value: 65, color: "#16a34a" },
   { name: "Risk", value: 20, color: "#ea580c" },
   { name: "Unknown", value: 15, color: "#2563eb" },
 ];
@@ -58,7 +59,7 @@ const defaultPhishTrendData = [
   { t: "Jun", v: 45 }, { t: "Jul", v: 60 }, { t: "Aug", v: 75 }, { t: "Sep", v: 55 },
 ];
 
-const cardStyle: React.CSSProperties = { background: "#0d1117", border: "1px solid #21262d", borderRadius: 14 };
+const cardStyle: React.CSSProperties = { background: "#ffffff", border: "1px solid #e9e9ec", borderRadius: 14 };
 
 function WorldHeatmap() {
   const dots = [
@@ -69,14 +70,14 @@ function WorldHeatmap() {
   ];
   return (
     <svg viewBox="0 0 100 60" width="100%" height="100%" style={{ opacity: 0.5 }}>
-      <ellipse cx="50" cy="30" rx="45" ry="24" fill="none" stroke="#21262d" strokeWidth="0.3" />
-      <ellipse cx="25" cy="30" rx="18" ry="20" fill="none" stroke="#21262d" strokeWidth="0.2" />
-      <ellipse cx="55" cy="28" rx="22" ry="22" fill="none" stroke="#21262d" strokeWidth="0.2" />
-      <ellipse cx="78" cy="32" rx="14" ry="18" fill="none" stroke="#21262d" strokeWidth="0.2" />
+      <ellipse cx="50" cy="30" rx="45" ry="24" fill="none" stroke="#e9e9ec" strokeWidth="0.3" />
+      <ellipse cx="25" cy="30" rx="18" ry="20" fill="none" stroke="#e9e9ec" strokeWidth="0.2" />
+      <ellipse cx="55" cy="28" rx="22" ry="22" fill="none" stroke="#e9e9ec" strokeWidth="0.2" />
+      <ellipse cx="78" cy="32" rx="14" ry="18" fill="none" stroke="#e9e9ec" strokeWidth="0.2" />
       {dots.map((d, i) => (
         <g key={i}>
-          <circle cx={d.x} cy={d.y} r="1.5" fill="#2dd4bf" opacity={0.3 + Math.random() * 0.5} />
-          <circle cx={d.x} cy={d.y} r="0.5" fill="#2dd4bf" />
+          <circle cx={d.x} cy={d.y} r="1.5" fill="#0d9488" opacity={0.3 + Math.random() * 0.5} />
+          <circle cx={d.x} cy={d.y} r="0.5" fill="#0d9488" />
         </g>
       ))}
     </svg>
@@ -110,8 +111,8 @@ export default function BrowserProtectionPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 1400 }}>
       <div style={{ marginBottom: 4 }}>
-        <h2 style={{ fontSize: 24, fontWeight: 800, color: "#e6edf3", letterSpacing: "-0.5px", margin: 0 }}>BROWSER PROTECTION</h2>
-        <p style={{ fontSize: 14, color: "#8b949e", marginTop: 6 }}>Real-time browser security, extension monitoring, phishing defense, and secure web protection.</p>
+        <h2 style={{ fontSize: 24, fontWeight: 660, color: "#0a0a0a", letterSpacing: "-0.028em", margin: 0 }}>Browser Protection</h2>
+        <p style={{ fontSize: 14, color: "#52525b", marginTop: 6 }}>Real-time browser security, extension monitoring, phishing defense, and secure web protection.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -119,33 +120,33 @@ export default function BrowserProtectionPage() {
           <LazyCard delay={300}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
               <span className="card-title">Active Browser Threats Table</span>
-              <span style={{ color: "#4a5568", cursor: "pointer", fontSize: 18 }}>···</span>
+              <span style={{ color: "#a1a1aa", cursor: "pointer", fontSize: 18 }}>···</span>
             </div>
             <div className="overflow-x-auto">
               <table style={{ width: "100%", fontSize: 12, borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid #21262d" }}>
+                  <tr style={{ borderBottom: "1px solid #e9e9ec" }}>
                     {["Threat Type", "Browser", "Risk Level", "Detected Time", "Action Status"].map(h => (
-                      <th key={h} style={{ textAlign: "left", padding: "8px 8px 8px 0", color: "#8b949e", fontWeight: 600, fontSize: 11, whiteSpace: "nowrap" }}>{h}</th>
+                      <th key={h} style={{ textAlign: "left", padding: "8px 8px 8px 0", color: "#52525b", fontWeight: 600, fontSize: 11, whiteSpace: "nowrap" }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {threats.map((t, i) => {
-                    const lv = levelStyles[t.level] ?? { color: "#8b949e", bg: "#1b222c", border: "#333" };
+                    const lv = levelStyles[t.level] ?? { color: "#52525b", bg: "#e9e9ec", border: "#333" };
                     return (
-                      <tr key={i} style={{ borderBottom: i < threats.length - 1 ? "1px solid #21262d" : "none" }}>
-                        <td style={{ padding: "12px 8px 12px 0", color: "#e6edf3", fontWeight: 500 }}>{t.type}</td>
+                      <tr key={i} style={{ borderBottom: i < threats.length - 1 ? "1px solid #e9e9ec" : "none" }}>
+                        <td style={{ padding: "12px 8px 12px 0", color: "#0a0a0a", fontWeight: 500 }}>{t.type}</td>
                         <td style={{ padding: "12px 8px 12px 0" }}>
-                          <span style={{ display: "flex", alignItems: "center", gap: 6, color: "#e6edf3" }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: 6, color: "#0a0a0a" }}>
                             <BrowserIcon name={t.browser} />
                           </span>
                         </td>
                         <td style={{ padding: "12px 8px 12px 0" }}>
                           <span style={{ fontSize: 10, fontWeight: 400, padding: "3px 12px", borderRadius: 20, color: lv.color, background: lv.bg, border: `1px solid ${lv.border}` }}>{t.level}</span>
                         </td>
-                        <td style={{ padding: "12px 8px 12px 0", color: "#8b949e", fontSize: 12 }}>{t.detected}</td>
-                        <td style={{ padding: "12px 0", color: "#e6edf3", fontSize: 12 }}>{t.action}</td>
+                        <td style={{ padding: "12px 8px 12px 0", color: "#52525b", fontSize: 12 }}>{t.detected}</td>
+                        <td style={{ padding: "12px 0", color: "#0a0a0a", fontSize: 12 }}>{t.action}</td>
                       </tr>
                     );
                   })}
@@ -159,44 +160,44 @@ export default function BrowserProtectionPage() {
           <LazyCard delay={500}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
               <span className="card-title">Real-Time Web Protection Panel</span>
-              <span style={{ color: "#4a5568", cursor: "pointer", fontSize: 18 }}>···</span>
+              <span style={{ color: "#a1a1aa", cursor: "pointer", fontSize: 18 }}>···</span>
             </div>
             <div style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 16 }}>
-              <div style={{ background: "#0a1a14", borderRadius: 12, padding: "14px 16px", display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, minWidth: 100 }}>
+              <div style={{ background: "#f1faf6", borderRadius: 12, padding: "14px 16px", display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, minWidth: 100 }}>
                 <div style={{ position: "relative", width: 48, height: 48, marginBottom: 6 }}>
                   <svg viewBox="0 0 48 48" width="48" height="48">
-                    <path d="M24 4L6 14v12c0 11 8 18 18 20 10-2 18-9 18-20V14z" fill="#122118" stroke="#39d353" strokeWidth="1.5"/>
-                    <path d="M19 24l4 4 8-8" fill="none" stroke="#39d353" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M24 4L6 14v12c0 11 8 18 18 20 10-2 18-9 18-20V14z" fill="#122118" stroke="#16a34a" strokeWidth="1.5"/>
+                    <path d="M19 24l4 4 8-8" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
-                <div style={{ fontSize: 10, color: "#8b949e", marginBottom: 2 }}>Safe Browsing</div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: "#2dd4bf" }}>{stats.safe_browsing.toLocaleString()}</div>
+                <div style={{ fontSize: 10, color: "#52525b", marginBottom: 2 }}>Safe Browsing</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: "#0d9488" }}>{stats.safe_browsing.toLocaleString()}</div>
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 12, color: "#8b949e", marginBottom: 2 }}>Blocked Phishing Attempts:</div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: "#e6edf3", marginBottom: 8 }}>{stats.blocked_phishing.toLocaleString()}</div>
-                <div style={{ fontSize: 11, color: "#8b949e", marginBottom: 10 }}>Browser Sessions Protected</div>
+                <div style={{ fontSize: 12, color: "#52525b", marginBottom: 2 }}>Blocked Phishing Attempts:</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: "#0a0a0a", marginBottom: 8 }}>{stats.blocked_phishing.toLocaleString()}</div>
+                <div style={{ fontSize: 11, color: "#52525b", marginBottom: 10 }}>Browser Sessions Protected</div>
                 {[
                   { text: "Secure DNS Enabled", val: "" },
                   { text: "Web Tracking Blocked", val: "" },
                   { text: "Real-time Protection", val: "Active" },
                 ].map((item, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#e6edf3", marginBottom: 6 }}>
-                    <span style={{ color: "#39d353", fontWeight: 700, fontSize: 13 }}>✓</span>
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#0a0a0a", marginBottom: 6 }}>
+                    <span style={{ color: "#16a34a", fontWeight: 700, fontSize: 13 }}>✓</span>
                     <span>{item.text}</span>
-                    {item.val && <span style={{ color: "#39d353", fontWeight: 700, marginLeft: 4 }}>{item.val}</span>}
+                    {item.val && <span style={{ color: "#16a34a", fontWeight: 700, marginLeft: 4 }}>{item.val}</span>}
                   </div>
                 ))}
               </div>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               {["Chrome", "Firefox", "Edge"].map((b) => (
-                <div key={b} style={{ width: 32, height: 32, borderRadius: 8, background: "#161b22", border: "1px solid #21262d", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div key={b} style={{ width: 32, height: 32, borderRadius: 8, background: "#f4f4f5", border: "1px solid #e9e9ec", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <BrowserIcon name={b} />
                 </div>
               ))}
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: "#161b22", border: "1px solid #21262d", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="18" height="18" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#7c3aed"/><circle cx="10" cy="10" r="4" fill="#a78bfa"/></svg>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: "#f4f4f5", border: "1px solid #e9e9ec", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="18" height="18" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#7c3aed"/><circle cx="10" cy="10" r="4" fill="#7c3aed"/></svg>
               </div>
             </div>
           </LazyCard>
@@ -209,12 +210,12 @@ export default function BrowserProtectionPage() {
             <div style={{ marginBottom: 10 }}>
               <span className="card-title">Real-Time Web Protection Panel</span>
             </div>
-            <div style={{ fontSize: 10, color: "#8b949e", marginBottom: 6 }}>Safe Browsing</div>
+            <div style={{ fontSize: 10, color: "#52525b", marginBottom: 6 }}>Safe Browsing</div>
             <ResponsiveContainer width="100%" height={100}>
               <AreaChart data={safeData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <defs><linearGradient id="sbg" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#39d353" stopOpacity={0.3}/><stop offset="95%" stopColor="#39d353" stopOpacity={0}/></linearGradient></defs>
-                <XAxis dataKey="t" tick={{ fill: "#6b7280", fontSize: 9 }} axisLine={false} tickLine={false} />
-                <Area type="monotone" dataKey="v" stroke="#39d353" strokeWidth={1.5} fill="url(#sbg)" dot={false} />
+                <defs><linearGradient id="sbg" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#16a34a" stopOpacity={0.3}/><stop offset="95%" stopColor="#16a34a" stopOpacity={0}/></linearGradient></defs>
+                <XAxis dataKey="t" tick={{ fill: "#71717a", fontSize: 9 }} axisLine={false} tickLine={false} />
+                <Area type="monotone" dataKey="v" stroke="#16a34a" strokeWidth={1.5} fill="url(#sbg)" dot={false} />
               </AreaChart>
             </ResponsiveContainer>
           </LazyCard>
@@ -227,16 +228,16 @@ export default function BrowserProtectionPage() {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div>
-                <div style={{ fontSize: 9, color: "#8b949e", marginBottom: 6, fontWeight: 600 }}>Threats Blocked Over Time</div>
+                <div style={{ fontSize: 9, color: "#52525b", marginBottom: 6, fontWeight: 600 }}>Threats Blocked Over Time</div>
                 <ResponsiveContainer width="100%" height={80}>
                   <BarChart data={threatBlockedData} margin={{ top: 2, right: 2, left: -20, bottom: 0 }}>
-                    <XAxis dataKey="t" tick={{ fill: "#6b7280", fontSize: 7 }} axisLine={false} tickLine={false} />
-                    <Bar dataKey="v" fill="#2dd4bf" radius={[2, 2, 0, 0]} barSize={8} />
+                    <XAxis dataKey="t" tick={{ fill: "#71717a", fontSize: 7 }} axisLine={false} tickLine={false} />
+                    <Bar dataKey="v" fill="#0d9488" radius={[2, 2, 0, 0]} barSize={8} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
               <div>
-                <div style={{ fontSize: 9, color: "#8b949e", marginBottom: 6, fontWeight: 600 }}>Extension Risk Analytics</div>
+                <div style={{ fontSize: 9, color: "#52525b", marginBottom: 6, fontWeight: 600 }}>Extension Risk Analytics</div>
                 <div style={{ display: "flex", justifyContent: "center" }}>
                   <PieChart width={80} height={80}>
                     <Pie data={pieData} cx={37} cy={37} innerRadius={20} outerRadius={34} dataKey="value" strokeWidth={0}>
@@ -256,10 +257,10 @@ export default function BrowserProtectionPage() {
             </div>
             <ResponsiveContainer width="100%" height={100}>
               <AreaChart data={phishTrendData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <defs><linearGradient id="ptg" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#2dd4bf" stopOpacity={0.3}/><stop offset="95%" stopColor="#2dd4bf" stopOpacity={0}/></linearGradient></defs>
-                <XAxis dataKey="t" tick={{ fill: "#6b7280", fontSize: 8 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#6b7280", fontSize: 8 }} axisLine={false} tickLine={false} />
-                <Area type="monotone" dataKey="v" stroke="#2dd4bf" strokeWidth={1.5} fill="url(#ptg)" dot={false} />
+                <defs><linearGradient id="ptg" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#0d9488" stopOpacity={0.3}/><stop offset="95%" stopColor="#0d9488" stopOpacity={0}/></linearGradient></defs>
+                <XAxis dataKey="t" tick={{ fill: "#71717a", fontSize: 8 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "#71717a", fontSize: 8 }} axisLine={false} tickLine={false} />
+                <Area type="monotone" dataKey="v" stroke="#0d9488" strokeWidth={1.5} fill="url(#ptg)" dot={false} />
               </AreaChart>
             </ResponsiveContainer>
           </LazyCard>
@@ -282,7 +283,7 @@ export default function BrowserProtectionPage() {
           <LazyCard delay={1000}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
               <span className="card-title">AI Browser Defense Assistant</span>
-              <span style={{ color: "#4a5568", cursor: "pointer", fontSize: 18 }}>···</span>
+              <span style={{ color: "#a1a1aa", cursor: "pointer", fontSize: 18 }}>···</span>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {[
@@ -291,8 +292,8 @@ export default function BrowserProtectionPage() {
                 { text: "Suspicious login blocked", ok: false },
                 { text: "AI web protection active", ok: true },
               ].map((item, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#e6edf3" }}>
-                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.ok ? "#39d353" : "#dc2626", flexShrink: 0, boxShadow: `0 0 6px ${item.ok ? "#39d35355" : "#dc262655"}` }} />
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#0a0a0a" }}>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.ok ? "#16a34a" : "#dc2626", flexShrink: 0, boxShadow: `0 0 6px ${item.ok ? "#16a34a55" : "#dc262655"}` }} />
                   {item.text}
                 </div>
               ))}
@@ -304,7 +305,7 @@ export default function BrowserProtectionPage() {
           <LazyCard delay={1100}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
               <span className="card-title">Device & Session Security</span>
-              <span style={{ color: "#4a5568", cursor: "pointer", fontSize: 18 }}>···</span>
+              <span style={{ color: "#a1a1aa", cursor: "pointer", fontSize: 18 }}>···</span>
             </div>
             <div style={{ display: "flex", gap: 0 }}>
               {[
@@ -313,9 +314,9 @@ export default function BrowserProtectionPage() {
                 { label: "Threats\nBlocked", val: "2.1k" },
                 { label: "Secure\nBrowsing", val: "98%", highlight: true },
               ].map((m, i) => (
-                <div key={i} style={{ flex: 1, padding: "0 12px", borderLeft: i > 0 ? "1px solid #21262d" : "none", textAlign: "center" }}>
-                  <div style={{ fontSize: 9, color: "#8b949e", marginBottom: 6, whiteSpace: "pre-line", lineHeight: 1.3 }}>{m.label}</div>
-                  <div style={{ fontSize: 24, fontWeight: 800, color: m.highlight ? "#39d353" : "#2dd4bf", lineHeight: 1 }}>{m.val}</div>
+                <div key={i} style={{ flex: 1, padding: "0 12px", borderLeft: i > 0 ? "1px solid #e9e9ec" : "none", textAlign: "center" }}>
+                  <div style={{ fontSize: 9, color: "#52525b", marginBottom: 6, whiteSpace: "pre-line", lineHeight: 1.3 }}>{m.label}</div>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: m.highlight ? "#16a34a" : "#0d9488", lineHeight: 1 }}>{m.val}</div>
                 </div>
               ))}
             </div>
@@ -326,17 +327,17 @@ export default function BrowserProtectionPage() {
           <LazyCard delay={1200}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
               <span className="card-title">Extension Monitoring Panel</span>
-              <span style={{ color: "#4a5568", cursor: "pointer", fontSize: 18 }}>···</span>
+              <span style={{ color: "#a1a1aa", cursor: "pointer", fontSize: 18 }}>···</span>
             </div>
             <div style={{ display: "flex", gap: 0 }}>
               {[
-                { label: "Installed\nExtensions\nScanned", val: "189", color: "#2dd4bf" },
+                { label: "Installed\nExtensions\nScanned", val: "189", color: "#0d9488" },
                 { label: "Unsafe\nPermissions\nDetected", val: "14", color: "#dc2626" },
-                { label: "Privacy Risk\nScore", val: "Low", color: "#39d353" },
-                { label: "Browser\nIsolation\nStatus", val: "Enabled", color: "#39d353" },
+                { label: "Privacy Risk\nScore", val: "Low", color: "#16a34a" },
+                { label: "Browser\nIsolation\nStatus", val: "Enabled", color: "#16a34a" },
               ].map((m, i) => (
-                <div key={i} style={{ flex: 1, padding: "0 10px", borderLeft: i > 0 ? "1px solid #21262d" : "none", textAlign: "center" }}>
-                  <div style={{ fontSize: 8, color: "#8b949e", marginBottom: 6, whiteSpace: "pre-line", lineHeight: 1.3 }}>{m.label}</div>
+                <div key={i} style={{ flex: 1, padding: "0 10px", borderLeft: i > 0 ? "1px solid #e9e9ec" : "none", textAlign: "center" }}>
+                  <div style={{ fontSize: 8, color: "#52525b", marginBottom: 6, whiteSpace: "pre-line", lineHeight: 1.3 }}>{m.label}</div>
                   <div style={{ fontSize: m.val.length > 3 ? 14 : 22, fontWeight: 800, color: m.color, lineHeight: 1 }}>{m.val}</div>
                 </div>
               ))}

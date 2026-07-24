@@ -1,9 +1,13 @@
 "use client";
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   BarChart, Bar, Cell,
 } from "recharts";
 import { LazyCard } from "@/components/dashboard/CardLoader";
+import {
+  T, CHART, STATUS, cardStyle,
+  tooltipStyle, tooltipItemStyle, tooltipLabelStyle, skeleton,
+} from "@/lib/dashboardTheme";
 
 type DataPoint = Record<string, unknown>;
 
@@ -15,7 +19,9 @@ interface ThreatAnalyticsProps {
 }
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const DAY_FILLS = ["#39d353", "#2dd4bf", "#d29922", "#f85149", "#58a6ff", "#bc8cff", "#39d353"];
+
+/** One hue per weekday, cycling the categorical palette. */
+const DAY_FILLS = [CHART[0], CHART[5], CHART[2], CHART[3], CHART[1], CHART[4], CHART[0]];
 
 const defaultDualTrend = [
   { m: "Dec", incidents: 28, resolved: 22 },
@@ -26,14 +32,21 @@ const defaultDualTrend = [
   { m: "May", incidents: 88, resolved: 80 },
 ];
 
-// Risk colour scale: 0 = empty, low = green, medium = amber, high = red
+/** Risk scale — a sequential ramp from empty grey through amber to deep red. */
 function heatColor(count: number): string {
-  if (count === 0)  return "#161b22";
-  if (count <= 2)   return "#39d353"; // low  → green
-  if (count <= 5)   return "#d29922"; // med  → amber
-  if (count <= 10)  return "#f85149"; // high → red
-  return "#9e1515";                   // very high → deep red
+  if (count === 0)  return "#f1f1f3";
+  if (count <= 2)   return "#bbf7d0"; // low
+  if (count <= 5)   return "#fcd34d"; // medium
+  if (count <= 10)  return "#f87171"; // high
+  return "#b91c1c";                   // critical
 }
+
+const HEAT_LEGEND = [
+  { c: "#bbf7d0", l: "Low"  },
+  { c: "#fcd34d", l: "Med"  },
+  { c: "#f87171", l: "High" },
+  { c: "#b91c1c", l: "Crit" },
+];
 
 const defaultHeatCells = Array.from({ length: 28 }, (_, i) => {
   const v = [0,1,3,0,2,5,1, 0,4,7,2,1,6,3, 1,0,3,8,2,4,1, 5,2,0,3,1,4,2][i] ?? 0;
@@ -47,17 +60,14 @@ const defaultWeekActivity = DAYS.map((n, d) => ({
 }));
 
 const card: React.CSSProperties = {
-  background: "#10161d", border: "1px solid #1b222c", borderRadius: 12,
-  padding: 16, display: "flex", flexDirection: "column", gap: 12, minHeight: 340,
+  ...cardStyle,
+  padding: 18, display: "flex", flexDirection: "column", gap: 14, minHeight: 340,
 };
-const tooltipStyle = { background: "#161b22", border: "1px solid #30363d", borderRadius: 8, color: "#e6edf3", fontSize: 11, padding: "6px 10px" };
-const tooltipItemStyle = { color: "#e6edf3" };
-const tooltipLabelStyle = { color: "#c9d1d9", fontWeight: 700, marginBottom: 2 };
 
-const sk = (w: number | string, h: number, r = 5): React.CSSProperties => ({
-  width: w, height: h, borderRadius: r, background: "#1b222c",
-  animation: "sk-pulse 1.4s ease-in-out infinite",
-});
+const sectionLabel: React.CSSProperties = {
+  fontSize: 10.5, color: T.muted, marginBottom: 9,
+  fontWeight: 560, textTransform: "uppercase", letterSpacing: "0.06em",
+};
 
 export default function ThreatAnalytics({ dualTrend, heatCells, weekActivity, loading }: ThreatAnalyticsProps = {}) {
   const trend    = dualTrend    ?? defaultDualTrend;
@@ -70,56 +80,60 @@ export default function ThreatAnalytics({ dualTrend, heatCells, weekActivity, lo
       <LazyCard delay={300}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span className="card-title">Threat Analytics</span>
-          <button type="button" style={{ color: "#8b949e", background: "none", border: "none", cursor: "pointer", fontSize: 18, lineHeight: 1 }}>···</button>
+          {/* Series legend doubles as the key for the line chart below */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {[{ c: CHART[3], l: "Detected" }, { c: CHART[1], l: "Resolved" }].map(({ c, l }) => (
+              <span key={l} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: T.text2 }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: c }} />
+                {l}
+              </span>
+            ))}
+          </div>
         </div>
 
         {/* Line chart */}
         {loading ? (
-          <div style={{ ...sk("100%", 112), borderRadius: 8 }} />
+          <div style={{ ...skeleton("100%", 116, 10) }} />
         ) : (
-          <div style={{ height: 112, width: "100%", minWidth: 0 }}>
-            <ResponsiveContainer width="100%" height={112}>
-              <LineChart data={trend} margin={{ top: 2, right: 8, left: -20, bottom: 0 }}>
-                <XAxis dataKey="m" tick={{ fill: "#8b949e", fontSize: 9 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#8b949e", fontSize: 9 }} axisLine={false} tickLine={false} domain={[0, "auto"]} />
+          <div className="dash-chart" style={{ height: 116, width: "100%", minWidth: 0 }}>
+            <ResponsiveContainer width="100%" height={116}>
+              <LineChart data={trend} margin={{ top: 4, right: 8, left: -22, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="m" tick={{ fill: T.muted, fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: T.muted, fontSize: 10 }} axisLine={false} tickLine={false} domain={[0, "auto"]} />
                 <Tooltip contentStyle={tooltipStyle} itemStyle={tooltipItemStyle} labelStyle={tooltipLabelStyle} />
-                <Line type="monotone" dataKey="incidents" name="Detected"  stroke="#39d353" strokeWidth={2} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
-                <Line type="monotone" dataKey="resolved"  name="Resolved"  stroke="#58a6ff" strokeWidth={2} strokeOpacity={0.9} dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
+                <Line type="monotone" dataKey="incidents" name="Detected" stroke={CHART[3]} strokeWidth={2.25} dot={false} activeDot={{ r: 4, strokeWidth: 2, stroke: T.surface }} />
+                <Line type="monotone" dataKey="resolved"  name="Resolved" stroke={CHART[1]} strokeWidth={2.25} dot={false} activeDot={{ r: 4, strokeWidth: 2, stroke: T.surface }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 4 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, marginTop: 2 }}>
           {/* Heatmap */}
           <div>
-            <div style={{ fontSize: 10, color: "#8b949e", marginBottom: 8, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.04em" }}>Heatmap of risk</div>
+            <div style={sectionLabel}>Heatmap of risk</div>
             {loading ? (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3 }}>
                 {Array.from({ length: 28 }).map((_, i) => (
-                  <div key={i} style={{ ...sk("100%", 0, 2), aspectRatio: "1", minHeight: 10 }} />
+                  <div key={i} style={{ ...skeleton("100%", 0, 3), aspectRatio: "1", minHeight: 10 }} />
                 ))}
               </div>
             ) : (
               <>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3 }}>
                   {cells.map((c, i) => (
-                    <div key={i} style={{ background: c, borderRadius: 2, aspectRatio: "1", minHeight: 10 }} />
+                    <div key={i} style={{ background: c, borderRadius: 3, aspectRatio: "1", minHeight: 10 }} />
                   ))}
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
-                  {DAYS.map((n) => <span key={n} style={{ fontSize: 7, color: "#6e7681", fontWeight: 500 }}>{n.slice(0, 1)}</span>)}
+                  {DAYS.map((n) => <span key={n} style={{ fontSize: 8, color: T.dim, fontWeight: 500 }}>{n.slice(0, 1)}</span>)}
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 5, gap: 4 }}>
-                  {[
-                    { c: "#39d353", l: "Low"  },
-                    { c: "#d29922", l: "Med"  },
-                    { c: "#f85149", l: "High" },
-                    { c: "#9e1515", l: "Crit" },
-                  ].map(({ c, l }) => (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 7, gap: 4 }}>
+                  {HEAT_LEGEND.map(({ c, l }) => (
                     <div key={l} style={{ display: "flex", alignItems: "center", gap: 3 }}>
                       <div style={{ width: 7, height: 7, borderRadius: 2, background: c }} />
-                      <span style={{ fontSize: 7, color: "#8b949e" }}>{l}</span>
+                      <span style={{ fontSize: 8, color: T.muted }}>{l}</span>
                     </div>
                   ))}
                 </div>
@@ -129,20 +143,20 @@ export default function ThreatAnalytics({ dualTrend, heatCells, weekActivity, lo
 
           {/* Threat activity bars — Mon through Sun */}
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 10, color: "#8b949e", marginBottom: 8, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.04em" }}>Threat activity</div>
+            <div style={sectionLabel}>Threat activity</div>
             {loading ? (
               <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 96 }}>
                 {DAYS.map((d) => (
-                  <div key={d} style={{ flex: 1, height: "60%", ...sk("100%", 0, 2), borderRadius: "3px 3px 0 0" }} />
+                  <div key={d} style={{ flex: 1, height: "60%", ...skeleton("100%", 0, 3), borderRadius: "4px 4px 0 0" }} />
                 ))}
               </div>
             ) : (
-              <div style={{ height: 96, width: "100%", minWidth: 0 }}>
+              <div className="dash-chart" style={{ height: 96, width: "100%", minWidth: 0 }}>
                 <ResponsiveContainer width="100%" height={96}>
-                  <BarChart data={activity} margin={{ top: 2, right: 2, left: 2, bottom: 0 }} barCategoryGap="18%">
+                  <BarChart data={activity} margin={{ top: 2, right: 2, left: 2, bottom: 0 }} barCategoryGap="20%">
                     <XAxis
                       dataKey="n"
-                      tick={{ fill: "#8b949e", fontSize: 8 }}
+                      tick={{ fill: T.muted, fontSize: 9 }}
                       axisLine={false}
                       tickLine={false}
                       interval={0}
@@ -151,7 +165,7 @@ export default function ThreatAnalytics({ dualTrend, heatCells, weekActivity, lo
                     />
                     <YAxis hide />
                     <Tooltip
-                      cursor={{ fill: "#1b222c", opacity: 0.35 }}
+                      cursor={{ fill: T.hover }}
                       contentStyle={tooltipStyle}
                       itemStyle={tooltipItemStyle}
                       labelStyle={tooltipLabelStyle}
@@ -163,7 +177,7 @@ export default function ThreatAnalytics({ dualTrend, heatCells, weekActivity, lo
                     />
                     <Bar dataKey="v" radius={[4, 4, 0, 0]} maxBarSize={18}>
                       {activity.map((e, i) => (
-                        <Cell key={`c-${i}`} fill={(e.fill as string) ?? "#39d353"} />
+                        <Cell key={`c-${i}`} fill={(e.fill as string) ?? STATUS.blue} />
                       ))}
                     </Bar>
                   </BarChart>

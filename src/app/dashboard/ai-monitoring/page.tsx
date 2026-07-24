@@ -5,10 +5,10 @@ import { LazyCard } from "@/components/dashboard/CardLoader";
 import { fetchPhishingStats, fetchCharts, fetchIncidentsPhishing } from "@/lib/adminApi";
 
 // ── Styles ────────────────────────────────────────────────────────────────────
-const cardStyle: React.CSSProperties = { background: "#0d1117", border: "1px solid #21262d", borderRadius: 14 };
-const tooltipStyle: React.CSSProperties = { background: "#0d1218", border: "1px solid #21262d", borderRadius: 8, color: "#e6edf3", fontSize: 11 };
+const cardStyle: React.CSSProperties = { background: "#ffffff", border: "1px solid #e9e9ec", borderRadius: 14 };
+const tooltipStyle: React.CSSProperties = { background: "#fafafa", border: "1px solid #e9e9ec", borderRadius: 8, color: "#0a0a0a", fontSize: 11 };
 const sk = (w: number | string, h: number, r = 5): React.CSSProperties => ({
-  width: w, height: h, borderRadius: r, background: "#1b222c",
+  width: w, height: h, borderRadius: r, background: "#e9e9ec",
   animation: "sk-pulse 1.4s ease-in-out infinite", display: "inline-block",
 });
 
@@ -25,9 +25,9 @@ const DEFAULT_WEEKLY: { day: string; emails: number; pages: number }[] = [
   { day: "Sun", emails: 0, pages: 0 },
 ];
 const DEFAULT_ATTACK = [
-  { label: "Credential Harvest", pct: 38, color: "#ef4444" },
-  { label: "Brand Impersonation", pct: 27, color: "#f97316" },
-  { label: "Spear Phishing",      pct: 19, color: "#2dd4bf" },
+  { label: "Credential Harvest", pct: 38, color: "#dc2626" },
+  { label: "Brand Impersonation", pct: 27, color: "#ea580c" },
+  { label: "Spear Phishing",      pct: 19, color: "#0d9488" },
   { label: "BEC",                 pct: 16, color: "#a855f7" },
 ];
 
@@ -91,14 +91,14 @@ function DonutChart({ segs }: { segs: AttackSeg[] }) {
           />
         );
       })}
-      <circle cx={cx} cy={cy} r={r - sw / 2 + 1} fill="#0d1117" />
+      <circle cx={cx} cy={cy} r={r - sw / 2 + 1} fill="#ffffff" />
       {hovered ? (
         <>
           <text x={cx} y={cy - 6} textAnchor="middle" fill={hovered.color} fontSize="13" fontWeight="700">{hovered.pct}%</text>
-          <text x={cx} y={cy + 9} textAnchor="middle" fill="#8b949e" fontSize="7.5">{labelLine}</text>
+          <text x={cx} y={cy + 9} textAnchor="middle" fill="#52525b" fontSize="7.5">{labelLine}</text>
         </>
       ) : (
-        <text x={cx} y={cy + 4} textAnchor="middle" fill="#4a5568" fontSize="9">hover</text>
+        <text x={cx} y={cy + 4} textAnchor="middle" fill="#a1a1aa" fontSize="9">hover</text>
       )}
     </svg>
   );
@@ -161,10 +161,10 @@ export default function AiMonitoringPage() {
   const totalIncidents   = Number(kpis?.total_phishing_incidents ?? 0);
 
   const kpiCards = [
-    { title: "THREATS BLOCKED",    value: String(threatsBlocked), sub1: "All time",       sub2: "↑ Protected",     sub2Color: "#39d353" },
-    { title: "BLOCKED LAST 24H",   value: String(blockedLast24h), sub1: "Rolling 24-hour",sub2: "↑ Active shield", sub2Color: "#39d353" },
-    { title: "USERS AFFECTED",     value: String(usersAffected),  sub1: `${totalIncidents} total incidents`, sub2: "↓ Risk exposure", sub2Color: "#f59e0b" },
-    { title: "USERS PROTECTED",    value: `${pctProtected}%`,     sub1: "Click-through rate", sub2: pctProtected >= 90 ? "↑ Excellent" : "↑ Active", sub2Color: "#39d353" },
+    { title: "THREATS BLOCKED",    value: String(threatsBlocked), sub1: "All time",       sub2: "↑ Protected",     sub2Color: "#16a34a" },
+    { title: "BLOCKED LAST 24H",   value: String(blockedLast24h), sub1: "Rolling 24-hour",sub2: "↑ Active shield", sub2Color: "#16a34a" },
+    { title: "USERS AFFECTED",     value: String(usersAffected),  sub1: `${totalIncidents} total incidents`, sub2: "↓ Risk exposure", sub2Color: "#d97706" },
+    { title: "USERS PROTECTED",    value: `${pctProtected}%`,     sub1: "Click-through rate", sub2: pctProtected >= 90 ? "↑ Excellent" : "↑ Active", sub2Color: "#16a34a" },
   ];
 
   // ── Split all incidents by type, then slice the active client-side page ────
@@ -184,10 +184,10 @@ export default function AiMonitoringPage() {
 
   // ── Status badge colour ───────────────────────────────────────────────────
   const statusColor = (type: string) => {
-    if (type === "Phishing" || type === "Phishing Email") return { color: "#ef4444", bg: "#2d0a0a", border: "#7f1d1d" };
-    if (type === "Malicious" || type === "Blocked Threat") return { color: "#f97316", bg: "#2c1200", border: "#7c2d12" };
-    if (type === "Suspicious") return { color: "#f59e0b", bg: "#2d1a00", border: "#78350f" };
-    return { color: "#4ade80", bg: "#0d2b17", border: "#166534" };
+    if (type === "Phishing" || type === "Phishing Email") return { color: "#dc2626", bg: "#fef2f2", border: "#fecaca" };
+    if (type === "Malicious" || type === "Blocked Threat") return { color: "#ea580c", bg: "#fff7ed", border: "#fed7aa" };
+    if (type === "Suspicious") return { color: "#d97706", bg: "#fffbeb", border: "#fde68a" };
+    return { color: "#16a34a", bg: "#f0fdf4", border: "#bbf7d0" };
   };
 
   return (
@@ -195,8 +195,8 @@ export default function AiMonitoringPage() {
       <style>{`@keyframes sk-pulse{0%,100%{opacity:.4}50%{opacity:.9}}`}</style>
 
       <div style={{ marginBottom: 4 }}>
-        <h2 style={{ fontSize: 24, fontWeight: 800, color: "#e6edf3", letterSpacing: "-0.5px", margin: 0 }}>PHISHING MONITORING</h2>
-        <p style={{ fontSize: 14, color: "#8b949e", marginTop: 6 }}>AI-powered phishing detection, behavioural analysis, and intelligent threat monitoring.</p>
+        <h2 style={{ fontSize: 24, fontWeight: 660, color: "#0a0a0a", letterSpacing: "-0.028em", margin: 0 }}>Phishing Monitoring</h2>
+        <p style={{ fontSize: 14, color: "#52525b", marginTop: 6 }}>AI-powered phishing detection, behavioural analysis, and intelligent threat monitoring.</p>
       </div>
 
       {/* KPI Row */}
@@ -204,13 +204,13 @@ export default function AiMonitoringPage() {
         {kpiCards.map((stat, i) => (
           <div key={i} style={{ ...cardStyle, padding: "20px 22px" }}>
             <LazyCard delay={200 + i * 100}>
-              <div style={{ fontSize: 10, color: "#8b949e", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12 }}>{stat.title}</div>
+              <div style={{ fontSize: 10, color: "#52525b", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12 }}>{stat.title}</div>
               {loading
                 ? <><div style={sk("60%", 28, 4)} /><div style={{ ...sk("80%", 9, 3), marginTop: 12 }} /></>
                 : <>
-                    <div style={{ fontSize: 36, fontWeight: 800, color: "#e6edf3", lineHeight: 1, marginBottom: 12 }}>{stat.value}</div>
+                    <div style={{ fontSize: 36, fontWeight: 800, color: "#0a0a0a", lineHeight: 1, marginBottom: 12 }}>{stat.value}</div>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-                      <span style={{ fontSize: 11, color: "#8b949e" }}>{stat.sub1}</span>
+                      <span style={{ fontSize: 11, color: "#52525b" }}>{stat.sub1}</span>
                       <span style={{ fontSize: 11, color: stat.sub2Color, fontWeight: 600 }}>{stat.sub2}</span>
                     </div>
                   </>
@@ -228,16 +228,16 @@ export default function AiMonitoringPage() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span className="card-title">Phishing Volume</span>
-                <span style={{ fontSize: 10, color: "#8b949e", fontWeight: 500 }}>· 24H</span>
+                <span style={{ fontSize: 10, color: "#52525b", fontWeight: 500 }}>· 24H</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <span style={{ width: 10, height: 2, background: "#ef4444", borderRadius: 2 }} />
-                  <span style={{ fontSize: 10, color: "#8b949e" }}>Detected</span>
+                  <span style={{ width: 10, height: 2, background: "#dc2626", borderRadius: 2 }} />
+                  <span style={{ fontSize: 10, color: "#52525b" }}>Detected</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <span style={{ width: 10, height: 2, background: "#2dd4bf", borderRadius: 2 }} />
-                  <span style={{ fontSize: 10, color: "#8b949e" }}>Blocked</span>
+                  <span style={{ width: 10, height: 2, background: "#0d9488", borderRadius: 2 }} />
+                  <span style={{ fontSize: 10, color: "#52525b" }}>Blocked</span>
                 </div>
               </div>
             </div>
@@ -246,11 +246,11 @@ export default function AiMonitoringPage() {
               : (
                 <ResponsiveContainer width="100%" height={180}>
                   <LineChart data={volumeData} margin={{ top: 4, right: 8, left: -10, bottom: 0 }}>
-                    <XAxis dataKey="t" tick={{ fill: "#6b7280", fontSize: 10 }} axisLine={{ stroke: "#21262d" }} tickLine={false} />
-                    <YAxis tick={{ fill: "#6b7280", fontSize: 10 }} axisLine={{ stroke: "#21262d" }} tickLine={false} />
-                    <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: "#30363d" }} />
-                    <Line type="monotone" dataKey="detected" stroke="#ef4444" strokeWidth={2} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
-                    <Line type="monotone" dataKey="blocked"  stroke="#2dd4bf" strokeWidth={2} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
+                    <XAxis dataKey="t" tick={{ fill: "#71717a", fontSize: 10 }} axisLine={{ stroke: "#e9e9ec" }} tickLine={false} />
+                    <YAxis tick={{ fill: "#71717a", fontSize: 10 }} axisLine={{ stroke: "#e9e9ec" }} tickLine={false} />
+                    <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: "#dcdce0" }} />
+                    <Line type="monotone" dataKey="detected" stroke="#dc2626" strokeWidth={2} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
+                    <Line type="monotone" dataKey="blocked"  stroke="#0d9488" strokeWidth={2} dot={false} activeDot={{ r: 3, strokeWidth: 0 }} />
                   </LineChart>
                 </ResponsiveContainer>
               )
@@ -265,12 +265,12 @@ export default function AiMonitoringPage() {
               <span className="card-title">Weekly Trend</span>
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <span style={{ width: 10, height: 2, background: "#39d353", borderRadius: 2 }} />
-                  <span style={{ fontSize: 10, color: "#8b949e" }}>Emails</span>
+                  <span style={{ width: 10, height: 2, background: "#16a34a", borderRadius: 2 }} />
+                  <span style={{ fontSize: 10, color: "#52525b" }}>Emails</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <span style={{ width: 10, height: 2, background: "#f59e0b", borderRadius: 2 }} />
-                  <span style={{ fontSize: 10, color: "#8b949e" }}>Page Visits</span>
+                  <span style={{ width: 10, height: 2, background: "#d97706", borderRadius: 2 }} />
+                  <span style={{ fontSize: 10, color: "#52525b" }}>Page Visits</span>
                 </div>
               </div>
             </div>
@@ -279,11 +279,11 @@ export default function AiMonitoringPage() {
               : (
                 <ResponsiveContainer width="100%" height={180}>
                   <LineChart data={weeklyData} margin={{ top: 4, right: 8, left: -10, bottom: 0 }}>
-                    <XAxis dataKey="day" tick={{ fill: "#6b7280", fontSize: 10 }} axisLine={{ stroke: "#21262d" }} tickLine={false} />
-                    <YAxis tick={{ fill: "#6b7280", fontSize: 10 }} axisLine={{ stroke: "#21262d" }} tickLine={false} />
-                    <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: "#30363d" }} />
-                    <Line type="monotone" dataKey="emails" stroke="#39d353" strokeWidth={2} dot={{ r: 3, fill: "#39d353", strokeWidth: 0 }} activeDot={{ r: 4, strokeWidth: 0 }} />
-                    <Line type="monotone" dataKey="pages"  stroke="#f59e0b" strokeWidth={2} dot={{ r: 3, fill: "#f59e0b", strokeWidth: 0 }} activeDot={{ r: 4, strokeWidth: 0 }} />
+                    <XAxis dataKey="day" tick={{ fill: "#71717a", fontSize: 10 }} axisLine={{ stroke: "#e9e9ec" }} tickLine={false} />
+                    <YAxis tick={{ fill: "#71717a", fontSize: 10 }} axisLine={{ stroke: "#e9e9ec" }} tickLine={false} />
+                    <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: "#dcdce0" }} />
+                    <Line type="monotone" dataKey="emails" stroke="#16a34a" strokeWidth={2} dot={{ r: 3, fill: "#16a34a", strokeWidth: 0 }} activeDot={{ r: 4, strokeWidth: 0 }} />
+                    <Line type="monotone" dataKey="pages"  stroke="#d97706" strokeWidth={2} dot={{ r: 3, fill: "#d97706", strokeWidth: 0 }} activeDot={{ r: 4, strokeWidth: 0 }} />
                   </LineChart>
                 </ResponsiveContainer>
               )
@@ -300,17 +300,17 @@ export default function AiMonitoringPage() {
           <LazyCard delay={800}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <span className="card-title">Detection Events</span>
-              <div style={{ display: "flex", gap: 0, borderRadius: 8, overflow: "hidden", border: "1px solid #21262d" }}>
-                <button onClick={() => setTab("email")} style={{ padding: "6px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer", border: "none", background: tab === "email" ? "#39d353" : "transparent", color: tab === "email" ? "#0d1117" : "#8b949e" }}>Email</button>
-                <button onClick={() => setTab("page")}  style={{ padding: "6px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer", border: "none", background: tab === "page"  ? "#39d353" : "transparent", color: tab === "page"  ? "#0d1117" : "#8b949e" }}>Page Visit</button>
+              <div style={{ display: "flex", gap: 0, borderRadius: 8, overflow: "hidden", border: "1px solid #e9e9ec" }}>
+                <button onClick={() => setTab("email")} style={{ padding: "6px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer", border: "none", background: tab === "email" ? "#0a0a0a" : "transparent", color: tab === "email" ? "#ffffff" : "#52525b" }}>Email</button>
+                <button onClick={() => setTab("page")}  style={{ padding: "6px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer", border: "none", background: tab === "page"  ? "#0a0a0a" : "transparent", color: tab === "page"  ? "#ffffff" : "#52525b" }}>Page Visit</button>
               </div>
             </div>
             {/* thead outside scroll so it stays fixed while rows scroll */}
             <table style={{ width: "100%", fontSize: 12, borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ borderBottom: "1px solid #21262d" }}>
+                <tr style={{ borderBottom: "1px solid #e9e9ec" }}>
                   {["URL / Domain", "User", "Type", "When"].map(h => (
-                    <th key={h} style={{ textAlign: "left", padding: "8px 10px 8px 0", color: "#8b949e", fontWeight: 600, fontSize: 11 }}>{h}</th>
+                    <th key={h} style={{ textAlign: "left", padding: "8px 10px 8px 0", color: "#52525b", fontWeight: 600, fontSize: 11 }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -321,7 +321,7 @@ export default function AiMonitoringPage() {
               <tbody>
                 {loading
                   ? Array.from({ length: ROWS_PER_PAGE }).map((_, i) => (
-                      <tr key={i} style={{ borderBottom: "1px solid #21262d" }}>
+                      <tr key={i} style={{ borderBottom: "1px solid #e9e9ec" }}>
                         <td style={{ padding: "12px 10px 12px 0" }}><div style={sk(130, 9)} /></td>
                         <td style={{ padding: "12px 10px 12px 0" }}><div style={sk(80, 9)} /></td>
                         <td style={{ padding: "12px 10px 12px 0" }}><div style={sk(70, 20, 10)} /></td>
@@ -329,22 +329,22 @@ export default function AiMonitoringPage() {
                       </tr>
                     ))
                   : activeEvents.length === 0
-                  ? <tr><td colSpan={4} style={{ padding: "32px 0", textAlign: "center", color: "#6e7681" }}>No events recorded</td></tr>
+                  ? <tr><td colSpan={4} style={{ padding: "32px 0", textAlign: "center", color: "#8e8e93" }}>No events recorded</td></tr>
                   : activeEvents.map((inc, i) => {
                       const type = deriveType(inc);
                       const sc   = statusColor(type);
                       return (
-                        <tr key={`${tab}-${curPage}-${i}`} style={{ borderBottom: "1px solid #21262d" }}>
-                          <td style={{ padding: "11px 10px 11px 0", color: "#2dd4bf", fontFamily: "monospace", fontSize: 11, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <tr key={`${tab}-${curPage}-${i}`} style={{ borderBottom: "1px solid #e9e9ec" }}>
+                          <td style={{ padding: "11px 10px 11px 0", color: "#0d9488", fontFamily: "monospace", fontSize: 11, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {shortUrl(String(inc.tab_url ?? ""))}
                           </td>
-                          <td style={{ padding: "11px 10px 11px 0", color: "#8b949e", fontSize: 12, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          <td style={{ padding: "11px 10px 11px 0", color: "#52525b", fontSize: 12, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {String(inc.user_email ?? "—")}
                           </td>
                           <td style={{ padding: "11px 10px 11px 0" }}>
                             <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 20, color: sc.color, background: sc.bg, border: `1px solid ${sc.border}` }}>{type}</span>
                           </td>
-                          <td style={{ padding: "11px 0", color: "#6e7681", whiteSpace: "nowrap" }}>{relTime(String(inc.timestamp ?? ""))}</td>
+                          <td style={{ padding: "11px 0", color: "#8e8e93", whiteSpace: "nowrap" }}>{relTime(String(inc.timestamp ?? ""))}</td>
                         </tr>
                       );
                     })
@@ -354,17 +354,17 @@ export default function AiMonitoringPage() {
             </div>
             {/* Prev / Next — only when there are multiple pages */}
             {!loading && totalPages > 1 && (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 14, paddingTop: 12, borderTop: "1px solid #21262d" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 14, paddingTop: 12, borderTop: "1px solid #e9e9ec" }}>
                 <button
                   onClick={() => setPage(p => Math.max(0, p - 1))}
                   disabled={curPage === 0}
-                  style={{ padding: "5px 14px", fontSize: 11, fontWeight: 600, borderRadius: 7, border: "1px solid #30363d", background: "transparent", color: curPage === 0 ? "#4a5568" : "#e6edf3", cursor: curPage === 0 ? "default" : "pointer" }}
+                  style={{ padding: "5px 14px", fontSize: 11, fontWeight: 600, borderRadius: 7, border: "1px solid #dcdce0", background: "transparent", color: curPage === 0 ? "#a1a1aa" : "#0a0a0a", cursor: curPage === 0 ? "default" : "pointer" }}
                 >← Prev</button>
-                <span style={{ fontSize: 11, color: "#8b949e" }}>Page {curPage + 1} of {totalPages}</span>
+                <span style={{ fontSize: 11, color: "#52525b" }}>Page {curPage + 1} of {totalPages}</span>
                 <button
                   onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                   disabled={curPage + 1 >= totalPages}
-                  style={{ padding: "5px 14px", fontSize: 11, fontWeight: 600, borderRadius: 7, border: "1px solid #30363d", background: "transparent", color: curPage + 1 >= totalPages ? "#4a5568" : "#e6edf3", cursor: curPage + 1 >= totalPages ? "default" : "pointer" }}
+                  style={{ padding: "5px 14px", fontSize: 11, fontWeight: 600, borderRadius: 7, border: "1px solid #dcdce0", background: "transparent", color: curPage + 1 >= totalPages ? "#a1a1aa" : "#0a0a0a", cursor: curPage + 1 >= totalPages ? "default" : "pointer" }}
                 >Next →</button>
               </div>
             )}
@@ -390,9 +390,9 @@ export default function AiMonitoringPage() {
                     <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 11 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <span style={{ width: 8, height: 8, borderRadius: "50%", background: a.color, flexShrink: 0 }} />
-                        <span style={{ color: "#c9d1d9" }}>{a.label}</span>
+                        <span style={{ color: "#18181b" }}>{a.label}</span>
                       </div>
-                      <span style={{ color: "#e6edf3", fontWeight: 700 }}>{a.pct}%</span>
+                      <span style={{ color: "#0a0a0a", fontWeight: 700 }}>{a.pct}%</span>
                     </div>
                   ))
               }
@@ -407,7 +407,7 @@ export default function AiMonitoringPage() {
             {loading
               ? <div style={sk("100%", 200, 8)} />
               : topTargeted.length === 0
-              ? <p style={{ color: "#6e7681", fontSize: 12 }}>No data available</p>
+              ? <p style={{ color: "#8e8e93", fontSize: 12 }}>No data available</p>
               : (
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart
@@ -416,17 +416,17 @@ export default function AiMonitoringPage() {
                   >
                     <XAxis
                       dataKey="name"
-                      tick={{ fill: "#8b949e", fontSize: 9 }}
-                      axisLine={{ stroke: "#21262d" }}
+                      tick={{ fill: "#52525b", fontSize: 9 }}
+                      axisLine={{ stroke: "#e9e9ec" }}
                       tickLine={false}
                       interval={0}
                       tickFormatter={(v: string) => v.length > 8 ? v.slice(0, 8) + "…" : v}
                       angle={-30}
                       textAnchor="end"
                     />
-                    <YAxis tick={{ fill: "#6b7280", fontSize: 9 }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(255,255,255,0.04)" }} formatter={(v: unknown) => [`${v}`, "Hits"]} />
-                    <Bar dataKey="val" fill="#2dd4bf" radius={[4, 4, 0, 0]} barSize={20} />
+                    <YAxis tick={{ fill: "#71717a", fontSize: 9 }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(16,17,20,0.04)" }} formatter={(v: unknown) => [`${v}`, "Hits"]} />
+                    <Bar dataKey="val" fill="#0d9488" radius={[4, 4, 0, 0]} barSize={20} />
                   </BarChart>
                 </ResponsiveContainer>
               )
