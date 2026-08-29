@@ -1,0 +1,133 @@
+.section {
+  background: #fff;
+}
+
+.inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 96px 24px;
+}
+
+@media (max-width: 640px) {
+  .inner {
+    padding: 64px 16px;
+  }
+}
+
+/* ── Header ── */
+.head {
+  text-align: center;
+  max-width: 620px;
+  margin: 0 auto 48px;
+}
+
+@media (max-width: 640px) {
+  .head {
+    margin-bottom: 32px;
+  }
+}
+
+.overline {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink-muted);
+  margin-bottom: 12px;
+}
+
+.h2 {
+  font-size: clamp(26px, 3.8vw, 44px);
+  font-weight: 800;
+  letter-spacing: -1.2px;
+  line-height: 1.12;
+  color: var(--ink);
+  margin: 0;
+}
+
+.italic {
+  font-style: italic;
+  color: var(--ink-muted);
+  font-weight: 700;
+}
+
+/* ── Video frame ── */
+.frame {
+  position: relative;
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  aspect-ratio: 16 / 9;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #0e101a;
+  box-shadow: 0 20px 60px rgba(14, 16, 26, 0.18);
+  outline: 1px solid rgba(14, 16, 26, 0.08);
+}
+
+.iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.facade {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  background: none;
+  appearance: none;
+}
+
+.thumb {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(14, 16, 26, 0.05) 0%, rgba(14, 16, 26, 0.35) 100%);
+  transition: background 0.25s ease;
+}
+
+.facade:hover .scrim {
+  background: rgba(14, 16, 26, 0.45);
+}
+
+.playBtn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: #40826d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 30px rgba(14, 16, 26, 0.35);
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+
+.facade:hover .playBtn {
+  transform: translate(-50%, -50%) scale(1.08);
+  background: #35705d;
+}
+
+@media (max-width: 640px) {
+  .playBtn {
+    width: 60px;
+    height: 60px;
+  }
+}

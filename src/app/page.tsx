@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import {
+  DemoVideoSection,
   FeaturesShowcase,
   FaqSection,
   HeroSection,
@@ -45,6 +46,7 @@ export default function HomePage() {
       <main className={styles.main}>
         <HeroSection />
         {/* <TrustedStrip /> */}
+        <DemoVideoSection />
         <FeaturesShowcase />
         <HowItWorksSection />
         <PhishingDemoSection />

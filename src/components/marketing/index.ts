@@ -1,5 +1,6 @@
 /** Public marketing sections — assemble for optional single import */
 export { HeroSection } from "./hero/Hero";
+export { DemoVideoSection } from "./demo-video/DemoVideoSection";
 export { TrustedStrip } from "./trusted/TrustedStrip";
 export { FeaturesShowcase } from "./features/FeaturesShowcase";
 export { HowItWorksSection } from "./how-it-works/HowItWorksSection";
