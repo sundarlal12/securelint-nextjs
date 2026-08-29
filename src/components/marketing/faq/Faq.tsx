@@ -42,6 +42,42 @@ const FAQS = [
     q: "What payment methods are accepted?",
     a: "We accept all major UPI apps (PhonePe, GPay, Paytm), credit/debit cards (Visa, Mastercard, RuPay), and net banking via Razorpay. All payments are in INR.",
   },
+  {
+    q: "How do I mask internal API keys and secrets while I work?",
+    a: "SecureLint scans every input, textarea, and code editor in your browser in real time — including internal tools, admin dashboards, and staging environments — and automatically masks API keys, tokens, and passwords the moment they're typed or pasted, whether they're external (AWS, Stripe, OpenAI) or internal to your company's own systems.",
+  },
+  {
+    q: "What is browser DLP (data loss prevention)?",
+    a: "Browser DLP means data loss prevention that runs inside the browser itself instead of on a network gateway or endpoint agent. SecureLint's browser DLP watches everything you type or paste — into forms, emails, chat tools, and code editors — and masks or blocks sensitive data like API keys, passwords, and PII before it can leave your machine, with zero server-side data collection.",
+  },
+  {
+    q: "What is console masking?",
+    a: "Console masking is SecureLint automatically redacting API keys, tokens, and credentials that get printed to the browser's DevTools console — a common leak point when developers debug with console.log(). Instead of secrets sitting in plain text in your console output (and in screenshots or screen shares of it), SecureLint replaces them with ●●●●●● automatically.",
+  },
+  {
+    q: "Does SecureLint detect breached or leaked passwords?",
+    a: "Yes. SecureLint checks the passwords you use against live breach databases, including HaveIBeenPwned, and alerts you immediately if a credential you're typing has appeared in a known data breach — so you can rotate it before an attacker uses it.",
+  },
+  {
+    q: "Does SecureLint detect crypto wallet drainers?",
+    a: "Yes. SecureLint analyses transaction requests and page scripts for known wallet-drainer patterns and flags the destination wallet address before you sign anything, protecting you from fake dApps and Web3 phishing pages designed to empty your wallet.",
+  },
+  {
+    q: "Is SecureLint the same as Secretlint?",
+    a: "No — they're different tools. Secretlint is an open-source command-line/CI linter that scans source code repositories for hardcoded secrets before you commit. SecureLint is a browser extension that masks secrets in real time as you type or paste into any website — Gmail, ChatGPT, internal dashboards, and more — protecting you at the point of exposure, not just in your codebase.",
+  },
+  {
+    q: "Can SecureLint detect malicious or risky browser extensions?",
+    a: "Yes. SecureLint audits your installed browser extensions against known malicious signatures and flags excessive permission requests — like an extension that can read all your browsing data — so you can spot risky or rogue extensions before they steal session cookies or inject ads.",
+  },
+  {
+    q: "How does SecureLint catch exposed keys like sk-proj- or sk_live_ tokens?",
+    a: "SecureLint's detection engine recognises the exact prefix formats used by real providers — sk-proj- and sk-... for OpenAI, sk_live_ and sk_test_ for Stripe, AKIA... for AWS, and 100+ others — so it can mask them the instant they appear on screen, even before you've finished typing the full key.",
+  },
+  {
+    q: "What is an IDN homograph attack?",
+    a: "An IDN homograph attack uses look-alike characters from other alphabets (like a Cyrillic 'а' instead of a Latin 'a') to register a domain that looks visually identical to a trusted one — for example, a fake 'gооgle.com'. SecureLint's phishing engine analyses every domain at the character level to catch these lookalikes before you enter any credentials.",
+  },
 ];
 
 export function FaqSection() {

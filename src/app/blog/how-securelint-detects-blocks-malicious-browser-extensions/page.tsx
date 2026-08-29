@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description:
     "Rogue Chrome extensions silently read passwords, inject ads, and exfiltrate session cookies. SecureLint audits installed extensions against known malicious signatures, flags permission overreach, and blocks risky extensions before they execute.",
   keywords:
-    "malicious browser extension detection, block rogue chrome extensions, extension security audit, browser extension risk score, securelint extension guard, malicious extension blocker chrome, session hijacking extensions",
+    "malicious browser extension detection, block rogue chrome extensions, extension security audit, browser extension risk score, securelint extension guard, malicious extension blocker chrome, session hijacking extensions, check for malicious extensions, how to check if a browser extension is safe, browser extension security testing, browser extension assessment, browser extension risk detection solution",
   authors: [{ name: "SecureLint Research Team", url: "https://securelint.in" }],
   alternates: { canonical: "https://securelint.in/blog/how-securelint-detects-blocks-malicious-browser-extensions" },
   openGraph: {
